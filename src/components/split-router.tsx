@@ -228,8 +228,11 @@ export function SplitRouter() {
                 />
                 <span className="truncate">{p.name}</span>
               </span>
-              <span className="shrink-0 font-mono text-xs tabular-nums">
-                {((amount * p.bps) / 10000).toFixed(2)}
+              <span className="shrink-0 text-right font-mono text-xs tabular-nums">
+                <span className="block">{((amount * p.bps) / 10000).toFixed(2)} USDC</span>
+                <span className="block text-[10px] text-muted-foreground">
+                  {formatLocal((amount * p.bps) / 10000, currency)}
+                </span>
               </span>
             </li>
           ))}
