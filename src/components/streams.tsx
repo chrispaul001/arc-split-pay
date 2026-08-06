@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { CurrencySelect } from "@/components/currency-select";
@@ -49,8 +49,6 @@ const INITIAL: Stream[] = [
 export function Streams() {
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [streams, setStreams] = useState<Stream[]>(INITIAL);
-  const ref = useRef(streams);
-  ref.current = streams;
 
   useEffect(() => {
     const t = window.setInterval(() => {
