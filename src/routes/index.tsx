@@ -193,6 +193,7 @@ function Dashboard() {
           )}
           {view === "links" && <PaymentLinks />}
           {view === "split" && <SplitRouter />}
+          {view === "streams" && <Streams />}
           {view === "keys" && <ApiKeys />}
           {view === "settings" && <SettingsView />}
         </main>
