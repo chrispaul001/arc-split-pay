@@ -170,7 +170,8 @@ export function SplitRouter() {
                   Receives{" "}
                   <span className="font-semibold text-foreground tabular-nums">
                     {((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
-                  </span>
+                  </span>{" "}
+                  <span className="tabular-nums">≈ {formatLocal((amount * p.bps) / 10000, currency)}</span>
                 </p>
               </div>
             );
