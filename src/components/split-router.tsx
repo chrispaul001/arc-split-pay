@@ -33,12 +33,14 @@ export function SplitRouter() {
   const amount = Number(total) || 0;
   const balanced = totalBps === 10000;
 
+  const c = getCurrency(currency);
+
   const link = useMemo(
     () =>
       `https://pay.coindecc.xyz/s/${parties
         .map((p) => p.bps)
-        .join("-")}?amt=${amount}&net=arc`,
-    [parties, amount],
+        .join("-")}?amt=${amount}&cur=${currency}&net=arc`,
+    [parties, amount, currency],
   );
 
   const update = (id: number, patch: Partial<Party>) =>
@@ -48,6 +50,15 @@ export function SplitRouter() {
     setParties((ps) => {
       const even = Math.floor(10000 / ps.length);
       return ps.map((p, i) => ({ ...p, bps: i === 0 ? 10000 - even * (ps.length - 1) : even }));
+    });
+
+  const applyPreset = (bps: number[]) =>
+    setParties((ps) => {
+      const base = ps.slice(0, bps.length);
+      while (base.length < bps.length) {
+        base.push({ id: nextId++, name: "New recipient", address: "0x0000…0000", bps: 0 });
+      }
+      return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
   return (
@@ -60,9 +71,24 @@ export function SplitRouter() {
               Route incoming USDC across parties atomically at settlement.
             </p>
           </div>
-          <Button variant="secondary" size="sm" className="shrink-0" onClick={rebalance}>
-            Even split
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <CurrencySelect value={currency} onChange={setCurrency} />
+            <Button variant="secondary" size="sm" onClick={rebalance}>
+              Even
+            </Button>
+          </div>
+        </div>
+
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          {PRESETS.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => applyPreset(p.bps)}
+              className="shrink-0 rounded-full bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/90 hover:text-foreground"
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -75,6 +101,10 @@ export function SplitRouter() {
               onChange={(e) => setTotal(e.target.value.replace(/[^\d.]/g, ""))}
               className="bg-background/40 font-display text-lg"
             />
+            <p className="text-[11px] text-muted-foreground tabular-nums">
+              Customer sees {formatLocal(amount, currency)} · 1 USDC = {c.symbol}
+              {c.rate.toLocaleString()}
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="ref">Reference</Label>
