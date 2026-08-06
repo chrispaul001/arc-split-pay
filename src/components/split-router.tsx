@@ -3,6 +3,8 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CurrencySelect } from "@/components/currency-select";
+import { formatLocal, getCurrency, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 
@@ -10,26 +12,35 @@ type Party = { id: number; name: string; address: string; bps: number };
 
 const PALETTE = ["var(--electric)", "var(--mint)", "oklch(0.68 0.17 300)", "oklch(0.75 0.15 85)"];
 
+const PRESETS: { label: string; bps: number[] }[] = [
+  { label: "Creator 70/20/10", bps: [7000, 2000, 1000] },
+  { label: "Marketplace 85/15", bps: [8500, 1500] },
+  { label: "Tax vault 60/25/15", bps: [6000, 2500, 1500] },
+];
+
 let nextId = 4;
 
 export function SplitRouter() {
   const [total, setTotal] = useState("1250");
+  const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [parties, setParties] = useState<Party[]>([
     { id: 1, name: "Merchant treasury", address: "0x8fA2…4c19", bps: 7000 },
-    { id: 2, name: "Affiliate partner", address: "0x21Bd…9e07", bps: 2000 },
-    { id: 3, name: "Platform fee", address: "0xC730…11aa", bps: 1000 },
+    { id: 2, name: "Co-creator", address: "0x21Bd…9e07", bps: 2000 },
+    { id: 3, name: "Tax vault", address: "0xC730…11aa", bps: 1000 },
   ]);
 
   const totalBps = parties.reduce((s, p) => s + p.bps, 0);
   const amount = Number(total) || 0;
   const balanced = totalBps === 10000;
 
+  const c = getCurrency(currency);
+
   const link = useMemo(
     () =>
       `https://pay.coindecc.xyz/s/${parties
         .map((p) => p.bps)
-        .join("-")}?amt=${amount}&net=arc`,
-    [parties, amount],
+        .join("-")}?amt=${amount}&cur=${currency}&net=arc`,
+    [parties, amount, currency],
   );
 
   const update = (id: number, patch: Partial<Party>) =>
@@ -39,6 +50,15 @@ export function SplitRouter() {
     setParties((ps) => {
       const even = Math.floor(10000 / ps.length);
       return ps.map((p, i) => ({ ...p, bps: i === 0 ? 10000 - even * (ps.length - 1) : even }));
+    });
+
+  const applyPreset = (bps: number[]) =>
+    setParties((ps) => {
+      const base = ps.slice(0, bps.length);
+      while (base.length < bps.length) {
+        base.push({ id: nextId++, name: "New recipient", address: "0x0000…0000", bps: 0 });
+      }
+      return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
   return (
@@ -51,9 +71,24 @@ export function SplitRouter() {
               Route incoming USDC across parties atomically at settlement.
             </p>
           </div>
-          <Button variant="secondary" size="sm" className="shrink-0" onClick={rebalance}>
-            Even split
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <CurrencySelect value={currency} onChange={setCurrency} />
+            <Button variant="secondary" size="sm" onClick={rebalance}>
+              Even
+            </Button>
+          </div>
+        </div>
+
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          {PRESETS.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => applyPreset(p.bps)}
+              className="shrink-0 rounded-full bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/90 hover:text-foreground"
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -66,6 +101,10 @@ export function SplitRouter() {
               onChange={(e) => setTotal(e.target.value.replace(/[^\d.]/g, ""))}
               className="bg-background/40 font-display text-lg"
             />
+            <p className="text-[11px] text-muted-foreground tabular-nums">
+              Customer sees {formatLocal(amount, currency)} · 1 USDC = {c.symbol}
+              {c.rate.toLocaleString()}
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="ref">Reference</Label>
@@ -131,7 +170,8 @@ export function SplitRouter() {
                   Receives{" "}
                   <span className="font-semibold text-foreground tabular-nums">
                     {((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
-                  </span>
+                  </span>{" "}
+                  <span className="tabular-nums">≈ {formatLocal((amount * p.bps) / 10000, currency)}</span>
                 </p>
               </div>
             );
@@ -188,8 +228,11 @@ export function SplitRouter() {
                 />
                 <span className="truncate">{p.name}</span>
               </span>
-              <span className="shrink-0 font-mono text-xs tabular-nums">
-                {((amount * p.bps) / 10000).toFixed(2)}
+              <span className="shrink-0 text-right font-mono text-xs tabular-nums">
+                <span className="block">{((amount * p.bps) / 10000).toFixed(2)} USDC</span>
+                <span className="block text-[10px] text-muted-foreground">
+                  {formatLocal((amount * p.bps) / 10000, currency)}
+                </span>
               </span>
             </li>
           ))}

@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, Lock, Timer, Wallet, Zap } from "lucide-react";
+import { CurrencyPills } from "@/components/currency-select";
+import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
+import { Check, Fuel, Loader2, Lock, Timer, Wallet, Zap } from "lucide-react";
+
+const AMOUNT = 1250;
+
+const SPLIT = [
+  { name: "Merchant treasury", address: "0x8fA2…4c19", bps: 7000 },
+  { name: "Co-creator", address: "0x21Bd…9e07", bps: 2000 },
+  { name: "Tax vault", address: "0xC730…11aa", bps: 1000 },
+];
 
 export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
+  const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  const c = getCurrency(currency);
 
   const pay = () => {
     setState("paying");
@@ -18,30 +30,93 @@ export function CheckoutPreview() {
           Exactly what your customer sees. Drop it in with one script tag.
         </p>
 
-        <div className="mt-5 rounded-3xl border border-border bg-background/45 p-5 backdrop-blur-xl">
+        <div className="mt-4">
+          <CurrencyPills value={currency} onChange={setCurrency} />
+        </div>
+
+        <div className="mt-4 rounded-3xl border border-border bg-background/45 p-5 backdrop-blur-xl">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0">
               <p className="truncate text-xs text-muted-foreground">Pay Nova Studio</p>
-              <p className="font-display text-3xl font-bold tabular-nums">1,250.00 USDC</p>
+              <p className="font-display text-3xl font-bold tabular-nums">{formatLocal(AMOUNT, currency)}</p>
+              <p className="truncate text-[11px] text-muted-foreground tabular-nums">
+                {formatUsdc(AMOUNT)} · 1 USDC = {c.symbol}
+                {c.rate.toLocaleString()}
+              </p>
             </div>
             <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
               <Timer className="size-3.5" /> &lt;1s settle
             </span>
           </div>
 
-          <div className="mt-4 space-y-2 text-sm">
-            {[
-              ["Order", "order-8842"],
-              ["Network", "Arc Mainnet"],
-              ["Gas paid in", "USDC"],
-              ["Split parties", "3"],
-            ].map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">{k}</span>
-                <span className="truncate font-medium">{v}</span>
+          {state !== "done" ? (
+            <div className="mt-4 space-y-2 text-sm">
+              {[
+                ["Order", "order-8842"],
+                ["Network", "Arc Mainnet"],
+                ["Gas paid in", "USDC (zero-gas for buyer)"],
+                ["Settlement currency", `${c.code} → USDC`],
+                ["Split parties", String(SPLIT.length)],
+              ].map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-muted-foreground">{k}</span>
+                  <span className="truncate text-right font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="animate-rise mt-4 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
+                  <Check className="size-3.5" /> Final in 0.62s
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                  <Fuel className="size-3.5" /> Buyer paid 0 gas
+                </span>
               </div>
-            ))}
-          </div>
+
+              <div className="rounded-2xl bg-secondary/50 p-3">
+                <p className="text-[11px] tracking-wide text-muted-foreground uppercase">Receipt</p>
+                <div className="mt-2 space-y-1.5 text-xs">
+                  {[
+                    ["Tx hash", "0x7c41…e9a2"],
+                    ["Block", "18,442,901"],
+                    ["Charged", formatLocal(AMOUNT, currency)],
+                    ["Settled", formatUsdc(AMOUNT)],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-center justify-between gap-3">
+                      <span className="shrink-0 text-muted-foreground">{k}</span>
+                      <span className="truncate font-mono">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-secondary/50 p-3">
+                <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+                  Atomic split executed
+                </p>
+                <ul className="mt-2 space-y-2">
+                  {SPLIT.map((s) => (
+                    <li key={s.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-xs">
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{s.name}</span>
+                        <span className="block truncate font-mono text-[10px] text-muted-foreground">
+                          {s.address} · {s.bps / 100}%
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-right font-mono tabular-nums">
+                        <span className="block">{((AMOUNT * s.bps) / 10000).toFixed(2)} USDC</span>
+                        <span className="block text-[10px] text-muted-foreground">
+                          {formatLocal((AMOUNT * s.bps) / 10000, currency)}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           <Button
             className="mt-5 w-full transition-transform active:scale-[0.98]"
@@ -51,7 +126,7 @@ export function CheckoutPreview() {
           >
             {state === "idle" && (
               <>
-                <Wallet className="size-4" /> Pay with USDC
+                <Wallet className="size-4" /> Pay {formatLocal(AMOUNT, currency)}
               </>
             )}
             {state === "paying" && (
@@ -86,9 +161,9 @@ export function CheckoutPreview() {
           <h3 className="text-lg font-semibold">Why it converts</h3>
           <ul className="mt-4 space-y-3 text-sm">
             {[
+              ["Local pricing", "Shoppers see NGN, GHS, KES, ZAR or USD — you settle in USDC."],
               ["Sub-second settlement", "Funds finalize on Arc before the page animation ends."],
-              ["USDC gas", "Customers never hold a second token to pay."],
-              ["One-click pay", "Wallet session reused across the merchant network."],
+              ["Zero-gas buyer", "Native USDC gas is sponsored — no second token required."],
               ["Atomic splits", "Every party is paid in the same transaction."],
             ].map(([t, d]) => (
               <li key={t} className="flex gap-3 rounded-2xl bg-secondary/50 p-3">
@@ -108,6 +183,7 @@ export function CheckoutPreview() {
             {`<script src="https://cdn.coindecc.xyz/pay.js"></script>
 <div data-coindecc-pay
      data-amount="1250"
+     data-display="${currency}"
      data-network="arc"
      data-split="7000-2000-1000">
 </div>`}
