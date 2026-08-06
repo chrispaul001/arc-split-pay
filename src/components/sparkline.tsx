@@ -42,8 +42,8 @@ export function Sparkline({
         vectorEffect="non-scaling-stroke"
       />
       <circle
-        cx={points[points.length - 1][0]}
-        cy={points[points.length - 1][1]}
+        cx={points[points.length - 1]?.[0] ?? 0}
+        cy={points[points.length - 1]?.[1] ?? 0}
         r={1.8}
         fill="var(--mint)"
         vectorEffect="non-scaling-stroke"

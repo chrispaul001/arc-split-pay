@@ -120,7 +120,7 @@ export function SplitRouter() {
                     min={0}
                     max={10000}
                     step={25}
-                    onValueChange={([v]) => update(p.id, { bps: v })}
+                    onValueChange={([v]) => update(p.id, { bps: v ?? 0 })}
                   />
                   <span className="shrink-0 rounded-full bg-background/50 px-2 py-1 font-mono text-[11px] tabular-nums">
                     {p.bps} bps
