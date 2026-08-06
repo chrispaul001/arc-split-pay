@@ -8,6 +8,7 @@ import {
   Menu,
   Moon,
   Plus,
+  Radio,
   Settings,
   Split,
   Sun,
@@ -17,6 +18,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Overview } from "@/components/overview";
 import { SplitRouter } from "@/components/split-router";
+import { Streams } from "@/components/streams";
 import { CheckoutPreview } from "@/components/checkout-preview";
 import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
