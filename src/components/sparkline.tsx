@@ -41,13 +41,14 @@ export function Sparkline({
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
-      <circle
-        cx={points[points.length - 1]?.[0] ?? 0}
-        cy={points[points.length - 1]?.[1] ?? 0}
-        r={1.8}
-        fill="var(--mint)"
-        vectorEffect="non-scaling-stroke"
-      />
+      {!filled && (
+        <circle
+          cx={points[points.length - 1]?.[0] ?? 0}
+          cy={points[points.length - 1]?.[1] ?? 0}
+          r={1.8}
+          fill="var(--mint)"
+        />
+      )}
     </svg>
   );
 }
