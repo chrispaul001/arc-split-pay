@@ -49,6 +49,7 @@ const NAV = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "links", label: "Payment Links", icon: CreditCard },
   { key: "split", label: "Split Router", icon: Split },
+  { key: "streams", label: "Streams", icon: Radio },
   { key: "keys", label: "API Keys", icon: KeyRound },
   { key: "settings", label: "Settings", icon: Settings },
 ] as const;
