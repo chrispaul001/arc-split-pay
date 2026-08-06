@@ -3,6 +3,8 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CurrencySelect } from "@/components/currency-select";
+import { formatLocal, getCurrency, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 
@@ -10,14 +12,21 @@ type Party = { id: number; name: string; address: string; bps: number };
 
 const PALETTE = ["var(--electric)", "var(--mint)", "oklch(0.68 0.17 300)", "oklch(0.75 0.15 85)"];
 
+const PRESETS: { label: string; bps: number[] }[] = [
+  { label: "Creator 70/20/10", bps: [7000, 2000, 1000] },
+  { label: "Marketplace 85/15", bps: [8500, 1500] },
+  { label: "Tax vault 60/25/15", bps: [6000, 2500, 1500] },
+];
+
 let nextId = 4;
 
 export function SplitRouter() {
   const [total, setTotal] = useState("1250");
+  const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [parties, setParties] = useState<Party[]>([
     { id: 1, name: "Merchant treasury", address: "0x8fA2…4c19", bps: 7000 },
-    { id: 2, name: "Affiliate partner", address: "0x21Bd…9e07", bps: 2000 },
-    { id: 3, name: "Platform fee", address: "0xC730…11aa", bps: 1000 },
+    { id: 2, name: "Co-creator", address: "0x21Bd…9e07", bps: 2000 },
+    { id: 3, name: "Tax vault", address: "0xC730…11aa", bps: 1000 },
   ]);
 
   const totalBps = parties.reduce((s, p) => s + p.bps, 0);
