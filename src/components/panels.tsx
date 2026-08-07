@@ -14,7 +14,7 @@ const links = [
 
 export function PaymentLinks() {
   return (
-    <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
+    <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">Payment links</h3>
         <Button size="sm" className="shrink-0" onClick={() => toast.success("New link draft created")}>
@@ -25,11 +25,11 @@ export function PaymentLinks() {
         {links.map((l) => (
           <li
             key={l.url}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 p-4 transition-all hover:-translate-y-0.5 hover:bg-secondary/70"
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 w-full min-w-0 rounded-2xl bg-secondary/50 p-4 transition-all hover:-translate-y-0.5 hover:bg-secondary/70"
           >
             <div className="min-w-0">
               <p className="truncate font-medium">{l.name}</p>
-              <p className="truncate font-mono text-[11px] text-muted-foreground">
+              <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
                 <Link2 className="mr-1 inline size-3" />
                 {l.url} · {l.parties} parties
               </p>
@@ -68,7 +68,7 @@ export function ApiKeys() {
     { label: "Sandbox", value: "sk_test_arc_4b70e19da55c22", created: "Jan 04, 2026" },
   ];
   return (
-    <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
+    <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">API keys</h3>
         <Button variant="secondary" size="sm" className="shrink-0" onClick={() => setShown((s) => !s)}>
@@ -78,13 +78,13 @@ export function ApiKeys() {
       </div>
       <ul className="mt-5 space-y-3">
         {keys.map((k) => (
-          <li key={k.label} className="rounded-2xl bg-secondary/50 p-4">
+          <li key={k.label} className="w-full min-w-0 rounded-2xl bg-secondary/50 p-4">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <p className="flex min-w-0 items-center gap-2 font-medium">
                 <KeyRound className="size-4 shrink-0 text-primary" />
                 <span className="truncate">{k.label}</span>
               </p>
-              <span className="shrink-0 text-[11px] text-muted-foreground">{k.created}</span>
+              <span className="shrink-0 text-[11px] break-words text-muted-foreground">{k.created}</span>
             </div>
             <p className="mt-2 truncate font-mono text-xs">
               {shown ? k.value : "•".repeat(k.value.length)}
@@ -98,7 +98,7 @@ export function ApiKeys() {
 
 export function SettingsView() {
   return (
-    <div className="glass animate-rise max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-6">
+    <div className="glass animate-rise w-full max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-5">
       <h3 className="text-lg font-semibold">Settings</h3>
       <div className="space-y-2">
         <Label htmlFor="biz">Business name</Label>
@@ -113,10 +113,10 @@ export function SettingsView() {
         ["Email receipts", "Send a branded receipt to every payer."],
         ["Sandbox mode", "Route all traffic to the Arc testnet."],
       ].map(([t, d], i) => (
-        <div key={t} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl bg-secondary/50 p-4">
+        <div key={t} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full min-w-0 rounded-2xl bg-secondary/50 p-4">
           <div className="min-w-0">
             <p className="truncate font-medium">{t}</p>
-            <p className="text-xs text-muted-foreground">{d}</p>
+            <p className="text-xs break-words text-muted-foreground">{d}</p>
           </div>
           <Switch defaultChecked={i < 2} />
         </div>

@@ -67,11 +67,11 @@ export function Streams() {
 
   return (
     <div className="space-y-4">
-      <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
+      <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold">Payment streams</h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs break-words text-muted-foreground">
               Second-by-second USDC settlement for contractors and service providers.
             </p>
           </div>
@@ -84,7 +84,7 @@ export function Streams() {
             ["Combined rate", `${activeRate.toFixed(4)} USDC/s`],
             ["Streamed to date", formatLocal(totalStreamed, currency)],
           ].map(([k, v]) => (
-            <div key={k} className="rounded-2xl bg-secondary/50 p-4">
+            <div key={k} className="w-full min-w-0 rounded-2xl bg-secondary/50 p-4">
               <p className="truncate text-[11px] tracking-wide text-muted-foreground uppercase">{k}</p>
               <p className="mt-1 truncate font-display text-xl font-bold tabular-nums">{v}</p>
             </div>
@@ -94,7 +94,7 @@ export function Streams() {
 
       <div className="space-y-3">
         {streams.map((s) => (
-          <div key={s.id} className="glass animate-rise rounded-3xl p-5">
+          <div key={s.id} className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
               <div className="min-w-0">
                 <p className="flex min-w-0 items-center gap-2">
@@ -103,8 +103,8 @@ export function Streams() {
                   />
                   <span className="truncate font-semibold">{s.name}</span>
                 </p>
-                <p className="truncate text-xs text-muted-foreground">{s.role}</p>
-                <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">{s.address}</p>
+                <p className="truncate text-xs break-words text-muted-foreground">{s.role}</p>
+                <p className="mt-0.5 truncate font-mono text-[11px] break-words text-muted-foreground">{s.address}</p>
               </div>
               <span
                 className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
@@ -116,15 +116,15 @@ export function Streams() {
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-secondary/50 p-3">
-                <p className="text-[11px] text-muted-foreground">Streamed so far</p>
+              <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
+                <p className="text-[11px] break-words text-muted-foreground">Streamed so far</p>
                 <p className="font-display text-2xl font-bold tabular-nums">{s.streamed.toFixed(4)}</p>
                 <p className="text-[11px] text-muted-foreground tabular-nums">
                   USDC · {formatLocal(s.streamed, currency)}
                 </p>
               </div>
-              <div className="rounded-2xl bg-secondary/50 p-3">
-                <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
+                <p className="flex items-center gap-1.5 text-[11px] break-words text-muted-foreground">
                   <Timer className="size-3" /> Rate
                 </p>
                 <p className="font-display text-2xl font-bold tabular-nums">{s.ratePerSec.toFixed(4)}</p>
@@ -184,7 +184,7 @@ export function Streams() {
         ))}
       </div>
 
-      <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+      <p className="flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
         <Radio className="size-3" /> Streams tick every 250ms against Arc Mainnet · gas paid in USDC
       </p>
     </div>

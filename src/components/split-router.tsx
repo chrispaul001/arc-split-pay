@@ -62,16 +62,16 @@ export function SplitRouter() {
     });
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-      <div className="glass animate-rise space-y-5 rounded-3xl px-4 py-5 sm:px-6">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+    <div className="grid w-full max-w-full min-w-0 gap-4 lg:grid-cols-[1.5fr_1fr]">
+      <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-semibold">Split-Router link builder</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-lg font-semibold break-words">Split-Router link builder</h3>
+            <p className="text-xs break-words text-muted-foreground">
               Route incoming USDC across parties atomically at settlement.
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <CurrencySelect value={currency} onChange={setCurrency} />
             <Button variant="secondary" size="sm" onClick={rebalance}>
               Even
@@ -79,12 +79,12 @@ export function SplitRouter() {
           </div>
         </div>
 
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        <div className="flex w-full max-w-full flex-wrap gap-2">
           {PRESETS.map((p) => (
             <button
               key={p.label}
               onClick={() => applyPreset(p.bps)}
-              className="shrink-0 rounded-full bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/90 hover:text-foreground"
+              className="rounded-full bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/90 hover:text-foreground"
             >
               {p.label}
             </button>
@@ -116,7 +116,7 @@ export function SplitRouter() {
           {parties.map((p, i) => {
             const pct = p.bps / 100;
             return (
-              <div key={p.id} className="rounded-2xl bg-secondary/50 p-4 transition-colors hover:bg-secondary/70">
+              <div key={p.id} className="w-full min-w-0 rounded-2xl bg-secondary/50 p-4 transition-colors hover:bg-secondary/70">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <span
@@ -129,7 +129,7 @@ export function SplitRouter() {
                       className="w-full min-w-0 bg-transparent text-sm font-semibold outline-none"
                     />
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                     <span className="font-display text-sm font-bold tabular-nums">{pct.toFixed(2)}%</span>
                     {parties.length > 2 && (
                       <button
@@ -143,7 +143,7 @@ export function SplitRouter() {
                   </div>
                 </div>
 
-                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-2 flex items-center gap-2 text-xs break-words text-muted-foreground">
                   <Wallet className="size-3.5 shrink-0" />
                   <input
                     value={p.address}
@@ -166,7 +166,7 @@ export function SplitRouter() {
                   </span>
                 </div>
 
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs break-words text-muted-foreground">
                   Receives{" "}
                   <span className="font-semibold text-foreground tabular-nums">
                     {((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
@@ -192,7 +192,7 @@ export function SplitRouter() {
         </Button>
       </div>
 
-      <div className="glass animate-rise space-y-5 rounded-3xl px-4 py-5 sm:px-6">
+      <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
         <h3 className="text-lg font-semibold">Allocation</h3>
 
         <div className="flex h-4 w-full overflow-hidden rounded-full bg-secondary/70">
@@ -238,8 +238,8 @@ export function SplitRouter() {
           ))}
         </ul>
 
-        <div className="space-y-2 rounded-2xl bg-secondary/50 p-3">
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="space-y-2 w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
+          <p className="flex items-center gap-2 text-xs break-words text-muted-foreground">
             <Link2 className="size-3.5" /> Generated payment link
           </p>
           <p className="break-all font-mono text-[11px]">{link}</p>
