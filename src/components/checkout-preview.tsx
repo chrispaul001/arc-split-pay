@@ -23,8 +23,8 @@ export function CheckoutPreview() {
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-      <div className="glass animate-rise rounded-3xl p-5 sm:p-6">
+    <div className="grid w-full max-w-full gap-4 lg:grid-cols-[1fr_1fr]">
+      <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
         <h3 className="text-lg font-semibold">Embedded checkout widget</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           Exactly what your customer sees. Drop it in with one script tag.
@@ -34,7 +34,7 @@ export function CheckoutPreview() {
           <CurrencyPills value={currency} onChange={setCurrency} />
         </div>
 
-        <div className="mt-4 rounded-3xl border border-border bg-background/45 p-5 backdrop-blur-xl">
+        <div className={`mt-4 rounded-3xl border border-border bg-background/45 px-4 py-5 backdrop-blur-xl sm:px-5 ${state === "done" ? "glow-border" : ""}`}>
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0">
               <p className="truncate text-xs text-muted-foreground">Pay Nova Studio</p>
@@ -44,7 +44,7 @@ export function CheckoutPreview() {
                 {c.rate.toLocaleString()}
               </p>
             </div>
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
+            <span className="pulse-emerald inline-flex shrink-0 items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
               <Timer className="size-3.5" /> &lt;1s settle
             </span>
           </div>
@@ -60,14 +60,14 @@ export function CheckoutPreview() {
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between gap-3">
                   <span className="shrink-0 text-muted-foreground">{k}</span>
-                  <span className="truncate text-right font-medium">{v}</span>
+                  <span className="truncate text-right font-medium tabular-nums">{v}</span>
                 </div>
               ))}
             </div>
           ) : (
             <div className="animate-rise mt-4 space-y-3">
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
+                <span className="pulse-emerald inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
                   <Check className="size-3.5" /> Final in 0.62s
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">
@@ -86,7 +86,7 @@ export function CheckoutPreview() {
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-center justify-between gap-3">
                       <span className="shrink-0 text-muted-foreground">{k}</span>
-                      <span className="truncate font-mono">{v}</span>
+                      <span className="truncate font-mono tabular-nums">{v}</span>
                     </div>
                   ))}
                 </div>
@@ -107,7 +107,7 @@ export function CheckoutPreview() {
                       </span>
                       <span className="shrink-0 text-right font-mono tabular-nums">
                         <span className="block">{((AMOUNT * s.bps) / 10000).toFixed(2)} USDC</span>
-                        <span className="block text-[10px] text-muted-foreground">
+                        <span className="block font-mono text-[10px] text-muted-foreground tabular-nums">
                           {formatLocal((AMOUNT * s.bps) / 10000, currency)}
                         </span>
                       </span>
@@ -157,7 +157,7 @@ export function CheckoutPreview() {
       </div>
 
       <div className="space-y-4">
-        <div className="glass animate-rise rounded-3xl p-5 sm:p-6">
+        <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
           <h3 className="text-lg font-semibold">Why it converts</h3>
           <ul className="mt-4 space-y-3 text-sm">
             {[
@@ -177,7 +177,7 @@ export function CheckoutPreview() {
           </ul>
         </div>
 
-        <div className="glass animate-rise rounded-3xl p-5 sm:p-6">
+        <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Embed snippet</p>
           <pre className="mt-3 overflow-x-auto rounded-2xl bg-background/50 p-4 font-mono text-[11px] leading-relaxed">
             {`<script src="https://cdn.coindecc.xyz/pay.js"></script>
