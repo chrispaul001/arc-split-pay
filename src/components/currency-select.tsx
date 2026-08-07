@@ -45,12 +45,13 @@ export function CurrencyPills({
   onChange: (c: CurrencyCode) => void;
 }) {
   return (
-    <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+    <div className="flex w-full max-w-full flex-wrap gap-2">
       {CURRENCIES.map((c) => (
         <button
           key={c.code}
           onClick={() => onChange(c.code)}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all ${
+          className={`rounded-full px-3 py-1.5 text-[11px] font-semibold break-words transition-all ${
+
             c.code === value
               ? "bg-primary text-primary-foreground shadow-[0_6px_18px_-8px_var(--electric)]"
               : "bg-secondary/60 text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
