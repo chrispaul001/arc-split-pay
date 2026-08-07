@@ -39,7 +39,7 @@ export function Overview() {
         {metrics.map((m, i) => (
           <div
             key={m.label}
-            className="glass animate-rise rounded-3xl p-5"
+            className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5"
             style={{ animationDelay: `${i * 70}ms` }}
           >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -65,10 +65,10 @@ export function Overview() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <div className="glass animate-rise rounded-3xl p-5">
+        <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <h3 className="truncate text-lg font-semibold">Settlement flow · last 24h</h3>
-            <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
+            <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] break-words text-muted-foreground">
               Arc · sub-second
             </span>
           </div>
@@ -84,14 +84,14 @@ export function Overview() {
               { k: "Success rate", v: "99.98%" },
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">
-                <p className="text-[11px] text-muted-foreground">{s.k}</p>
+                <p className="text-[11px] break-words text-muted-foreground">{s.k}</p>
                 <p className="mt-0.5 font-display font-semibold">{s.v}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="glass animate-rise rounded-3xl p-5">
+        <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Live activity</h3>
           <ul className="mt-4 space-y-2.5">
             {activity.map((a) => (
@@ -101,7 +101,7 @@ export function Overview() {
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{a.label}</p>
-                  <p className="truncate font-mono text-[11px] text-muted-foreground">
+                  <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
                     {a.id} · {a.parties} parties · {a.t}
                   </p>
                 </div>
@@ -109,7 +109,7 @@ export function Overview() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
             <ShieldCheck className="size-4 shrink-0 text-primary" />
             All splits executed atomically on Arc.
             <Zap className="ml-auto size-4 shrink-0 text-mint" />

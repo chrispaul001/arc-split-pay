@@ -23,10 +23,10 @@ export function CheckoutPreview() {
   };
 
   return (
-    <div className="grid w-full max-w-full gap-4 lg:grid-cols-[1fr_1fr]">
-      <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
+    <div className="grid w-full max-w-full min-w-0 gap-4 lg:grid-cols-[1fr_1fr]">
+      <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
         <h3 className="text-lg font-semibold">Embedded checkout widget</h3>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-xs break-words text-muted-foreground">
           Exactly what your customer sees. Drop it in with one script tag.
         </p>
 
@@ -37,7 +37,7 @@ export function CheckoutPreview() {
         <div className={`mt-4 rounded-3xl border border-border bg-background/45 px-4 py-5 backdrop-blur-xl sm:px-5 ${state === "done" ? "glow-border" : ""}`}>
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0">
-              <p className="truncate text-xs text-muted-foreground">Pay Nova Studio</p>
+              <p className="truncate text-xs break-words text-muted-foreground">Pay Nova Studio</p>
               <p className="font-display text-3xl font-bold tabular-nums">{formatLocal(AMOUNT, currency)}</p>
               <p className="truncate text-[11px] text-muted-foreground tabular-nums">
                 {formatUsdc(AMOUNT)} · 1 USDC = {c.symbol}
@@ -75,7 +75,7 @@ export function CheckoutPreview() {
                 </span>
               </div>
 
-              <div className="rounded-2xl bg-secondary/50 p-3">
+              <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
                 <p className="text-[11px] tracking-wide text-muted-foreground uppercase">Receipt</p>
                 <div className="mt-2 space-y-1.5 text-xs">
                   {[
@@ -92,7 +92,7 @@ export function CheckoutPreview() {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-secondary/50 p-3">
+              <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
                 <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
                   Atomic split executed
                 </p>
@@ -141,7 +141,7 @@ export function CheckoutPreview() {
             )}
           </Button>
 
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
             <Lock className="size-3" /> Secured by Coindecc Pay
           </p>
         </div>
@@ -156,8 +156,8 @@ export function CheckoutPreview() {
         )}
       </div>
 
-      <div className="space-y-4">
-        <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
+      <div className="w-full min-w-0 space-y-4">
+        <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Why it converts</h3>
           <ul className="mt-4 space-y-3 text-sm">
             {[
@@ -166,20 +166,20 @@ export function CheckoutPreview() {
               ["Zero-gas buyer", "Native USDC gas is sponsored — no second token required."],
               ["Atomic splits", "Every party is paid in the same transaction."],
             ].map(([t, d]) => (
-              <li key={t} className="flex gap-3 rounded-2xl bg-secondary/50 p-3">
+              <li key={t} className="flex gap-3 w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
                 <Zap className="mt-0.5 size-4 shrink-0 text-mint" />
                 <div className="min-w-0">
                   <p className="font-medium">{t}</p>
-                  <p className="text-xs text-muted-foreground">{d}</p>
+                  <p className="text-xs break-words text-muted-foreground">{d}</p>
                 </div>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
+        <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Embed snippet</p>
-          <pre className="mt-3 overflow-x-auto rounded-2xl bg-background/50 p-4 font-mono text-[11px] leading-relaxed">
+          <pre className="mt-3 w-full max-w-full overflow-hidden rounded-2xl bg-background/50 p-4 font-mono text-[11px] leading-relaxed break-words whitespace-pre-wrap">
             {`<script src="https://cdn.coindecc.xyz/pay.js"></script>
 <div data-coindecc-pay
      data-amount="1250"
