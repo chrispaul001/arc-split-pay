@@ -108,8 +108,9 @@ function Dashboard() {
   );
 
   return (
-    <div className="app-gradient min-h-screen">
-      <div className="mx-auto flex max-w-[1400px] gap-6 p-4 sm:p-6">
+    <div className="app-gradient w-full max-w-full overflow-x-hidden">
+      <div className="mx-auto flex w-full max-w-[1400px] gap-6 px-4 py-4 sm:px-6 sm:py-6">
+
         {/* Sidebar — desktop */}
         <aside className="glass sticky top-6 hidden h-[calc(100vh-3rem)] w-64 shrink-0 flex-col rounded-3xl p-4 lg:flex">
           <Brand />
@@ -134,8 +135,9 @@ function Dashboard() {
           </div>
         )}
 
-        <main className="min-w-0 flex-1 space-y-6">
-          <header className="glass grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl p-3 sm:p-4">
+        <main className="min-w-0 w-full max-w-full flex-1 space-y-6 overflow-x-hidden">
+          <header className="glass grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl px-4 py-3 sm:px-6 sm:py-4">
+
             <div className="flex min-w-0 items-center gap-3">
               <button
                 onClick={() => setNavOpen(true)}

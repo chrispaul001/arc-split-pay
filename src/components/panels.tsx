@@ -14,7 +14,7 @@ const links = [
 
 export function PaymentLinks() {
   return (
-    <div className="glass animate-rise rounded-3xl p-5 sm:p-6">
+    <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">Payment links</h3>
         <Button size="sm" className="shrink-0" onClick={() => toast.success("New link draft created")}>
@@ -68,7 +68,7 @@ export function ApiKeys() {
     { label: "Sandbox", value: "sk_test_arc_4b70e19da55c22", created: "Jan 04, 2026" },
   ];
   return (
-    <div className="glass animate-rise rounded-3xl p-5 sm:p-6">
+    <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">API keys</h3>
         <Button variant="secondary" size="sm" className="shrink-0" onClick={() => setShown((s) => !s)}>
@@ -98,7 +98,7 @@ export function ApiKeys() {
 
 export function SettingsView() {
   return (
-    <div className="glass animate-rise max-w-2xl space-y-5 rounded-3xl p-5 sm:p-6">
+    <div className="glass animate-rise max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-6">
       <h3 className="text-lg font-semibold">Settings</h3>
       <div className="space-y-2">
         <Label htmlFor="biz">Business name</Label>

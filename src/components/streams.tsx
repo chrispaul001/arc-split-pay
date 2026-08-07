@@ -67,7 +67,7 @@ export function Streams() {
 
   return (
     <div className="space-y-4">
-      <div className="glass animate-rise rounded-3xl p-5 sm:p-6">
+      <div className="glass animate-rise rounded-3xl px-4 py-5 sm:px-6">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold">Payment streams</h3>

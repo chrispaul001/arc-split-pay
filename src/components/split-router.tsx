@@ -63,7 +63,7 @@ export function SplitRouter() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-      <div className="glass animate-rise space-y-5 rounded-3xl p-5 sm:p-6">
+      <div className="glass animate-rise space-y-5 rounded-3xl px-4 py-5 sm:px-6">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold">Split-Router link builder</h3>
@@ -192,7 +192,7 @@ export function SplitRouter() {
         </Button>
       </div>
 
-      <div className="glass animate-rise space-y-5 rounded-3xl p-5 sm:p-6">
+      <div className="glass animate-rise space-y-5 rounded-3xl px-4 py-5 sm:px-6">
         <h3 className="text-lg font-semibold">Allocation</h3>
 
         <div className="flex h-4 w-full overflow-hidden rounded-full bg-secondary/70">
