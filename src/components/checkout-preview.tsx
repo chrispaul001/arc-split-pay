@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CurrencyPills } from "@/components/currency-select";
 import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
+import { useBrand } from "@/lib/brand";
+import { ImageUpload } from "@/components/image-upload";
 import { Check, Fuel, Loader2, Lock, RotateCcw, Timer, Wallet, Zap } from "lucide-react";
 
 const AMOUNT = 1250;
@@ -15,6 +17,7 @@ const SPLIT = [
 export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  const { logo, product, setImage } = useBrand();
   const c = getCurrency(currency);
 
   const pay = () => {
@@ -35,9 +38,22 @@ export function CheckoutPreview() {
         </div>
 
         <div className={`mt-4 rounded-3xl border border-border bg-background/45 px-4 py-5 backdrop-blur-xl sm:px-5 ${state === "done" ? "glow-border" : ""}`}>
+          {product && (
+            <img
+              src={product}
+              alt="Product"
+              className="mb-4 h-32 w-full rounded-2xl border border-border object-cover"
+            />
+          )}
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0">
-              <p className="truncate text-xs break-words text-muted-foreground">Pay Nova Studio</p>
+              <p className="flex min-w-0 items-center gap-2 text-xs break-words text-muted-foreground">
+                {logo && (
+                  <img src={logo} alt="" className="size-5 shrink-0 rounded-md object-cover" />
+                )}
+                <span className="truncate">Pay Nova Studio</span>
+              </p>
+
               <p className="font-display text-3xl font-bold tabular-nums transition-all duration-300">
                 {formatLocal(AMOUNT, currency)}
               </p>
