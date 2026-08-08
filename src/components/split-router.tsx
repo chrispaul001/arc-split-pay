@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { CurrencySelect } from "@/components/currency-select";
 import { formatLocal, getCurrency, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
+import { useBrand } from "@/lib/brand";
+import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 
 type Party = { id: number; name: string; address: string; bps: number };
@@ -21,6 +23,7 @@ const PRESETS: { label: string; bps: number[] }[] = [
 let nextId = 4;
 
 export function SplitRouter() {
+  const { product, setImage } = useBrand();
   const [total, setTotal] = useState("1250");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [parties, setParties] = useState<Party[]>([
@@ -111,6 +114,14 @@ export function SplitRouter() {
             <Input id="ref" defaultValue="order-8842" className="bg-background/40" />
           </div>
         </div>
+
+        <ImageUpload
+          label="Product image (optional)"
+          hint="Attached to this checkout session · PNG, JPG or SVG"
+          value={product}
+          onChange={(v) => setImage("product", v)}
+        />
+
 
         <div className="space-y-3">
           {parties.map((p, i) => {
