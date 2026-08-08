@@ -22,6 +22,8 @@ import { Streams } from "@/components/streams";
 import { CheckoutPreview } from "@/components/checkout-preview";
 import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
+import { ProfileMenu } from "@/components/profile-menu";
+import { BrandProvider } from "@/lib/brand";
 import logoLight from "@/assets/logo-light.png.asset.json";
 import logoDark from "@/assets/logo-dark.png.asset.json";
 
