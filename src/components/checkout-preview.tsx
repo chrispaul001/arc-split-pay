@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CurrencyPills } from "@/components/currency-select";
 import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
-import { Check, Fuel, Loader2, Lock, Timer, Wallet, Zap } from "lucide-react";
+import { Check, Fuel, Loader2, Lock, RotateCcw, Timer, Wallet, Zap } from "lucide-react";
 
 const AMOUNT = 1250;
 
@@ -103,16 +103,19 @@ export function CheckoutPreview() {
                 <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
                   Atomic split executed
                 </p>
-                <ul className="mt-2 space-y-2">
+                <ul className="mt-2 divide-y divide-border/60">
                   {SPLIT.map((s) => (
-                    <li key={s.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-xs">
-                      <span className="min-w-0">
+                    <li
+                      key={s.name}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 text-xs first:pt-1"
+                    >
+                      <span className="min-w-0 leading-relaxed">
                         <span className="block truncate font-medium">{s.name}</span>
-                        <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                          {s.address} · {s.bps / 100}%
+                        <span className="block truncate font-mono text-[10px] text-muted-foreground tabular-nums">
+                          {s.address} · {(s.bps / 100).toFixed(2)}%
                         </span>
                       </span>
-                      <span className="shrink-0 text-right font-mono tabular-nums">
+                      <span className="shrink-0 text-right font-mono leading-relaxed tabular-nums">
                         <span className="block">{((AMOUNT * s.bps) / 10000).toFixed(2)} USDC</span>
                         <span className="block font-mono text-[10px] text-muted-foreground tabular-nums">
                           {formatLocal((AMOUNT * s.bps) / 10000, currency)}
@@ -154,12 +157,14 @@ export function CheckoutPreview() {
         </div>
 
         {state === "done" && (
-          <button
+          <Button
+            variant="secondary"
+            size="lg"
             onClick={() => setState("idle")}
-            className="mt-3 w-full text-xs text-muted-foreground underline-offset-4 hover:underline"
+            className="mt-4 w-full border border-border font-semibold transition-transform active:scale-[0.98]"
           >
-            Reset preview
-          </button>
+            <RotateCcw className="size-4" /> Reset preview
+          </Button>
         )}
       </div>
 
