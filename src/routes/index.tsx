@@ -61,6 +61,14 @@ const NAV = [
 type ViewKey = (typeof NAV)[number]["key"];
 
 function Dashboard() {
+  return (
+    <BrandProvider>
+      <DashboardShell />
+    </BrandProvider>
+  );
+}
+
+function DashboardShell() {
   const { theme, toggle } = useTheme();
   const [view, setView] = useState<ViewKey>("overview");
   const [navOpen, setNavOpen] = useState(false);
