@@ -38,12 +38,19 @@ export function CheckoutPreview() {
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0">
               <p className="truncate text-xs break-words text-muted-foreground">Pay Nova Studio</p>
-              <p className="font-display text-3xl font-bold tabular-nums">{formatLocal(AMOUNT, currency)}</p>
+              <p className="font-display text-3xl font-bold tabular-nums transition-all duration-300">
+                {formatLocal(AMOUNT, currency)}
+              </p>
+              <p className="text-[11px] break-words text-muted-foreground tabular-nums">
+                ≈ {(AMOUNT * c.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })} {c.code} converted
+                instantly to {formatUsdc(AMOUNT)} at market rate
+              </p>
               <p className="truncate text-[11px] text-muted-foreground tabular-nums">
-                {formatUsdc(AMOUNT)} · 1 USDC = {c.symbol}
+                1 USDC = {c.symbol}
                 {c.rate.toLocaleString()}
               </p>
             </div>
+
             <span className="pulse-emerald inline-flex shrink-0 items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
               <Timer className="size-3.5" /> &lt;1s settle
             </span>
