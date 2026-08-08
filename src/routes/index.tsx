@@ -178,6 +178,8 @@ function Dashboard() {
                 <Bell className="size-5" />
               </button>
               <ProfileMenu onOpenSettings={() => setView("settings")} />
+            </div>
+
 
           </header>
 
