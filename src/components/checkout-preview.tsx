@@ -37,6 +37,16 @@ export function CheckoutPreview() {
           <CurrencyPills value={currency} onChange={setCurrency} />
         </div>
 
+        <div className="mt-4">
+          <ImageUpload
+            label="Product image (optional)"
+            hint="Shown at the top of this checkout session · PNG, JPG or SVG"
+            value={product}
+            onChange={(v) => setImage("product", v)}
+          />
+        </div>
+
+
         <div className={`mt-4 rounded-3xl border border-border bg-background/45 px-4 py-5 backdrop-blur-xl sm:px-5 ${state === "done" ? "glow-border" : ""}`}>
           {product && (
             <img
@@ -99,7 +109,9 @@ export function CheckoutPreview() {
               </div>
 
               <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
-                <p className="text-[11px] tracking-wide text-muted-foreground uppercase">Receipt</p>
+                <p className="flex items-center gap-1.5 text-[11px] tracking-wide text-muted-foreground uppercase">
+                  {logo && <img src={logo} alt="" className="size-4 rounded object-cover" />} Receipt
+                </p>
                 <div className="mt-2 space-y-1.5 text-xs">
                   {[
                     ["Tx hash", "0x7c41…e9a2"],
