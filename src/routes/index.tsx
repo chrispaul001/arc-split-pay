@@ -22,6 +22,8 @@ import { Streams } from "@/components/streams";
 import { CheckoutPreview } from "@/components/checkout-preview";
 import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
+import { ProfileMenu } from "@/components/profile-menu";
+import { BrandProvider } from "@/lib/brand";
 import logoLight from "@/assets/logo-light.png.asset.json";
 import logoDark from "@/assets/logo-dark.png.asset.json";
 
@@ -59,6 +61,14 @@ const NAV = [
 type ViewKey = (typeof NAV)[number]["key"];
 
 function Dashboard() {
+  return (
+    <BrandProvider>
+      <DashboardShell />
+    </BrandProvider>
+  );
+}
+
+function DashboardShell() {
   const { theme, toggle } = useTheme();
   const [view, setView] = useState<ViewKey>("overview");
   const [navOpen, setNavOpen] = useState(false);
@@ -177,16 +187,10 @@ function Dashboard() {
               >
                 <Bell className="size-5" />
               </button>
-              <div className="flex items-center gap-2 rounded-2xl bg-secondary/50 py-1 pr-3 pl-1">
-                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/20 font-display text-xs font-bold text-primary">
-                  NS
-                </span>
-                <span className="hidden text-xs leading-tight sm:block">
-                  <span className="block font-semibold">Nova Studio</span>
-                  <span className="block text-muted-foreground">Merchant</span>
-                </span>
-              </div>
+              <ProfileMenu onOpenSettings={() => setView("settings")} />
             </div>
+
+
           </header>
 
           {view === "overview" && (
