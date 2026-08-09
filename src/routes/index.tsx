@@ -213,11 +213,11 @@ function DashboardShell() {
 function Brand() {
   const { theme } = useTheme();
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
+    <div className="flex min-w-0 items-center gap-3">
       <img
         src={theme === "dark" ? logoLight.url : logoDark.url}
         alt="Coindecc Pay logo"
-        className="size-9 shrink-0 object-contain"
+        className="size-12 shrink-0 object-contain"
       />
 
       <span className="min-w-0">
