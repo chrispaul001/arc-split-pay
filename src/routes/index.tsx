@@ -64,9 +64,11 @@ type ViewKey = (typeof NAV)[number]["key"];
 
 function Dashboard() {
   return (
-    <BrandProvider>
-      <DashboardShell />
-    </BrandProvider>
+    <WalletProvider>
+      <BrandProvider>
+        <DashboardShell />
+      </BrandProvider>
+    </WalletProvider>
   );
 }
 
