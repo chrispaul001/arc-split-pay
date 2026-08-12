@@ -24,6 +24,9 @@ import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
 import { ProfileMenu } from "@/components/profile-menu";
 import { BrandProvider } from "@/lib/brand";
+import { WalletProvider } from "@/lib/wallet";
+import { OnchainCheckout } from "@/components/onchain-checkout";
+import { ConnectWallet } from "@/components/connect-wallet";
 import logo from "@/assets/coindecc-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -61,9 +64,11 @@ type ViewKey = (typeof NAV)[number]["key"];
 
 function Dashboard() {
   return (
-    <BrandProvider>
-      <DashboardShell />
-    </BrandProvider>
+    <WalletProvider>
+      <BrandProvider>
+        <DashboardShell />
+      </BrandProvider>
+    </WalletProvider>
   );
 }
 
@@ -171,6 +176,9 @@ function DashboardShell() {
                 <span className="pulse-dot size-1.5 rounded-full bg-mint" />
                 Arc Mainnet — USDC Gas
               </span>
+              <div className="hidden sm:block">
+                <ConnectWallet compact />
+              </div>
               <Button
                 size="sm"
                 variant="secondary"
@@ -195,6 +203,7 @@ function DashboardShell() {
           {view === "overview" && (
             <div className="space-y-6">
               <Overview />
+              <OnchainCheckout />
               <CheckoutPreview />
             </div>
           )}
