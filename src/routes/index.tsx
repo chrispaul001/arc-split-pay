@@ -195,6 +195,7 @@ function DashboardShell() {
           {view === "overview" && (
             <div className="space-y-6">
               <Overview />
+              <OnchainCheckout />
               <CheckoutPreview />
             </div>
           )}
