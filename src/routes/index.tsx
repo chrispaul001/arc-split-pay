@@ -24,8 +24,7 @@ import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
 import { ProfileMenu } from "@/components/profile-menu";
 import { BrandProvider } from "@/lib/brand";
-import logoLight from "@/assets/logo-light.png.asset.json";
-import logoDark from "@/assets/logo-dark.png.asset.json";
+import logo from "@/assets/coindecc-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
