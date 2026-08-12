@@ -176,6 +176,9 @@ function DashboardShell() {
                 <span className="pulse-dot size-1.5 rounded-full bg-mint" />
                 Arc Mainnet — USDC Gas
               </span>
+              <div className="hidden sm:block">
+                <ConnectWallet compact />
+              </div>
               <Button
                 size="sm"
                 variant="secondary"
