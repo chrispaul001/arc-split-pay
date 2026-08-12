@@ -74,7 +74,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const provider = new BrowserProvider(eth);
       const usdc = new Contract(USDC_ADDRESS, ERC20_ABI, provider);
-      const [raw, decimals] = await Promise.all([usdc.balanceOf!(address), usdc.decimals!()]);
+      const [raw, decimals] = await Promise.all([usdc['balanceOf']!(address), usdc['decimals']!()]);
       setUsdcBalance(formatUnits(raw as bigint, decimals as number));
     } catch {
       setUsdcBalance(null);
