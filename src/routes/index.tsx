@@ -24,8 +24,7 @@ import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
 import { ProfileMenu } from "@/components/profile-menu";
 import { BrandProvider } from "@/lib/brand";
-import logoLight from "@/assets/logo-light.png.asset.json";
-import logoDark from "@/assets/logo-dark.png.asset.json";
+import logo from "@/assets/coindecc-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -211,14 +210,14 @@ function DashboardShell() {
 }
 
 function Brand() {
-  const { theme } = useTheme();
   return (
     <div className="flex min-w-0 items-center gap-3">
       <img
-        src={theme === "dark" ? logoLight.url : logoDark.url}
+        src={logo.url}
         alt="Coindecc Pay logo"
-        className="size-12 shrink-0 object-contain"
+        className="size-14 shrink-0 object-contain"
       />
+
 
       <span className="min-w-0">
         <span className="block truncate font-display text-base font-bold">Coindecc Pay</span>
