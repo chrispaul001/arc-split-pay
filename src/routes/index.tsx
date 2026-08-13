@@ -24,7 +24,7 @@ import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
 import { ProfileMenu } from "@/components/profile-menu";
 import { BrandProvider } from "@/lib/brand";
-import { WalletProvider } from "@/lib/wallet";
+import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
 import logo from "@/assets/coindecc-logo.png.asset.json";
@@ -64,11 +64,11 @@ type ViewKey = (typeof NAV)[number]["key"];
 
 function Dashboard() {
   return (
-    <WalletProvider>
+    <Web3Provider>
       <BrandProvider>
         <DashboardShell />
       </BrandProvider>
-    </WalletProvider>
+    </Web3Provider>
   );
 }
 

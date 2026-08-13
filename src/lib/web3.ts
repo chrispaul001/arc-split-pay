@@ -1,33 +1,86 @@
 // On-chain configuration for Coindecc Pay (Arc Network Testnet).
-// Update CHAIN / USDC_ADDRESS if your deployment targets different values.
 
-export const COINDECC_PAY_ADDRESS = "0xbD13692792b8356c142c93Ef5B114166e4Cd2Acd";
+import { defineChain } from "viem";
+
+export const COINDECC_PAY_ADDRESS = "0xbD13692792b8356c142c93Ef5B114166e4Cd2Acd" as const;
 
 /** USDC token used by the CoindeccPay contract on Arc testnet. */
-export const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+export const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" as const;
 
 export const ARC_TESTNET = {
-  chainIdDecimal: 10247,
-  chainId: "0x2807", // 10247
+  chainIdDecimal: 5042002,
+  chainId: "0x4CEA52",
   chainName: "Arc Network Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
   rpcUrls: ["https://rpc.testnet.arc.network"],
   blockExplorerUrls: ["https://explorer.testnet.arc.network"],
 } as const;
 
+export const arcTestnet = defineChain({
+  id: ARC_TESTNET.chainIdDecimal,
+  name: ARC_TESTNET.chainName,
+  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+  rpcUrls: { default: { http: [ARC_TESTNET.rpcUrls[0]] } },
+  blockExplorers: {
+    default: { name: "Arc Explorer", url: ARC_TESTNET.blockExplorerUrls[0] },
+  },
+  testnet: true,
+});
+
 export const ERC20_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function decimals() view returns (uint8)",
-  "function symbol() view returns (string)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function approve(address spender, uint256 value) returns (bool)",
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "decimals",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint8" }],
+  },
+  {
+    type: "function",
+    name: "symbol",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "string" }],
+  },
+  {
+    type: "function",
+    name: "allowance",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
 ] as const;
 
 export const COINDECC_PAY_ABI = [
-  "function pay(uint256 amount)",
+  {
+    type: "function",
+    name: "pay",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "amount", type: "uint256" }],
+    outputs: [],
+  },
 ] as const;
 
 export const shortAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
-export const explorerTx = (hash: string) =>
-  `${ARC_TESTNET.blockExplorerUrls[0]}/tx/${hash}`;
+export const explorerTx = (hash: string) => `${ARC_TESTNET.blockExplorerUrls[0]}/tx/${hash}`;
