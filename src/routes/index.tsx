@@ -125,8 +125,8 @@ function DashboardShell() {
   );
 
   return (
-    <div className="app-gradient w-full max-w-full overflow-x-hidden">
-      <div className="mx-auto flex w-full max-w-[1400px] gap-6 px-4 py-4 sm:px-6 sm:py-6">
+    <div className="app-gradient flex min-h-screen w-full max-w-full flex-col overflow-x-hidden">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1 gap-6 px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Sidebar — desktop */}
         <aside className="glass sticky top-6 hidden h-[calc(100vh-3rem)] w-64 shrink-0 flex-col rounded-3xl p-4 lg:flex">
