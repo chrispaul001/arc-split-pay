@@ -27,7 +27,8 @@ import { BrandProvider } from "@/lib/brand";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
-import logo from "@/assets/coindecc-logo.png.asset.json";
+import logoLight from "@/assets/coindecc-logo-light.png.asset.json";
+import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -124,8 +125,8 @@ function DashboardShell() {
   );
 
   return (
-    <div className="app-gradient w-full max-w-full overflow-x-hidden">
-      <div className="mx-auto flex w-full max-w-[1400px] gap-6 px-4 py-4 sm:px-6 sm:py-6">
+    <div className="app-gradient flex min-h-screen w-full max-w-full flex-col overflow-x-hidden">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1 gap-6 px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Sidebar — desktop */}
         <aside className="glass sticky top-6 hidden h-[calc(100vh-3rem)] w-64 shrink-0 flex-col rounded-3xl p-4 lg:flex">
@@ -222,10 +223,18 @@ function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <img
-        src={logo.url}
+        src={logoDark.url}
         alt="Coindecc Pay logo"
-        className="size-14 shrink-0 object-contain"
+        className="h-10 w-auto shrink-0 self-center object-contain dark:hidden"
       />
+      <img
+        src={logoLight.url}
+        alt=""
+        aria-hidden="true"
+        className="hidden h-10 w-auto shrink-0 self-center object-contain dark:block"
+      />
+
+
 
 
       <span className="min-w-0">
