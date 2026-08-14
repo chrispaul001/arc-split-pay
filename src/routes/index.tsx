@@ -222,20 +222,18 @@ function DashboardShell() {
 function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <picture className="flex h-10 shrink-0 items-center">
-        <source srcSet={logoLight.url} media="(prefers-color-scheme: no-preference)" />
-        <img
-          src={logoDark.url}
-          alt="Coindecc Pay logo"
-          className="h-10 w-auto shrink-0 object-contain dark:hidden"
-        />
-      </picture>
+      <img
+        src={logoDark.url}
+        alt="Coindecc Pay logo"
+        className="h-10 w-auto shrink-0 self-center object-contain dark:hidden"
+      />
       <img
         src={logoLight.url}
         alt=""
         aria-hidden="true"
-        className="hidden h-10 w-auto shrink-0 object-contain dark:block"
+        className="hidden h-10 w-auto shrink-0 self-center object-contain dark:block"
       />
+
 
 
 
