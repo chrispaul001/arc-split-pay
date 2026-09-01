@@ -17,7 +17,7 @@ const SPLIT = [
 export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
-  const { logo, product, setImage } = useBrand();
+  const { logo, product, setImage, businessName } = useBrand();
   const c = getCurrency(currency);
 
   const pay = () => {
@@ -61,7 +61,7 @@ export function CheckoutPreview() {
                 {logo && (
                   <img src={logo} alt="" className="size-5 shrink-0 rounded-md object-cover" />
                 )}
-                <span className="truncate">Pay Nova Studio</span>
+                <span className="truncate">Pay {businessName}</span>
               </p>
 
               <p className="font-display text-3xl font-bold tabular-nums transition-all duration-300">
