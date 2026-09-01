@@ -9,15 +9,42 @@ export type Brand = {
   logo: string | null;
   /** product image attached to a checkout session (data URL) */
   product: string | null;
+  /** merchant business name — single source of truth across the app */
+  businessName: string;
+  /** settlement wallet shown in profile menu + settings */
+  settlementWallet: string;
 };
 
-const EMPTY: Brand = { avatar: null, logo: null, product: null };
+export const DEFAULT_WALLET = "0x8fA2b41c7Dd90E5a3f77C29b104e0B96b7bb4c19";
+
+const EMPTY: Brand = {
+  avatar: null,
+  logo: null,
+  product: null,
+  businessName: "Nova Studio",
+  settlementWallet: DEFAULT_WALLET,
+};
+
+type ImageKey = "avatar" | "logo" | "product";
 
 type Ctx = Brand & {
-  setImage: (key: keyof Brand, value: string | null) => void;
+  setImage: (key: ImageKey, value: string | null) => void;
+  setProfile: (patch: Partial<Pick<Brand, "businessName" | "settlementWallet">>) => void;
+  initials: string;
 };
 
-const BrandContext = createContext<Ctx>({ ...EMPTY, setImage: () => {} });
+export function toInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "NS";
+  return (parts[0]![0]! + (parts[1]?.[0] ?? parts[0]![1] ?? "")).toUpperCase();
+}
+
+const BrandContext = createContext<Ctx>({
+  ...EMPTY,
+  setImage: () => {},
+  setProfile: () => {},
+  initials: "NS",
+});
 
 export function BrandProvider({ children }: { children: ReactNode }) {
   const [brand, setBrand] = useState<Brand>(EMPTY);
