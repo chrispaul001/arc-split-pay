@@ -9,15 +9,42 @@ export type Brand = {
   logo: string | null;
   /** product image attached to a checkout session (data URL) */
   product: string | null;
+  /** merchant business name — single source of truth across the app */
+  businessName: string;
+  /** settlement wallet shown in profile menu + settings */
+  settlementWallet: string;
 };
 
-const EMPTY: Brand = { avatar: null, logo: null, product: null };
+export const DEFAULT_WALLET = "0x8fA2b41c7Dd90E5a3f77C29b104e0B96b7bb4c19";
+
+const EMPTY: Brand = {
+  avatar: null,
+  logo: null,
+  product: null,
+  businessName: "Nova Studio",
+  settlementWallet: DEFAULT_WALLET,
+};
+
+type ImageKey = "avatar" | "logo" | "product";
 
 type Ctx = Brand & {
-  setImage: (key: keyof Brand, value: string | null) => void;
+  setImage: (key: ImageKey, value: string | null) => void;
+  setProfile: (patch: Partial<Pick<Brand, "businessName" | "settlementWallet">>) => void;
+  initials: string;
 };
 
-const BrandContext = createContext<Ctx>({ ...EMPTY, setImage: () => {} });
+export function toInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "NS";
+  return (parts[0]![0]! + (parts[1]?.[0] ?? parts[0]![1] ?? "")).toUpperCase();
+}
+
+const BrandContext = createContext<Ctx>({
+  ...EMPTY,
+  setImage: () => {},
+  setProfile: () => {},
+  initials: "NS",
+});
 
 export function BrandProvider({ children }: { children: ReactNode }) {
   const [brand, setBrand] = useState<Brand>(EMPTY);
@@ -31,19 +58,33 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setImage = useCallback((key: keyof Brand, value: string | null) => {
-    setBrand((b) => {
-      const next = { ...b, [key]: value };
-      try {
-        window.localStorage.setItem(KEY, JSON.stringify(next));
-      } catch {
-        /* quota exceeded — keep in-memory only */
-      }
-      return next;
-    });
+  const persist = useCallback((next: Brand) => {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(next));
+    } catch {
+      /* quota exceeded — keep in-memory only */
+    }
+    return next;
   }, []);
 
-  return <BrandContext.Provider value={{ ...brand, setImage }}>{children}</BrandContext.Provider>;
+  const setImage = useCallback(
+    (key: ImageKey, value: string | null) => setBrand((b) => persist({ ...b, [key]: value })),
+    [persist],
+  );
+
+  const setProfile = useCallback(
+    (patch: Partial<Pick<Brand, "businessName" | "settlementWallet">>) =>
+      setBrand((b) => persist({ ...b, ...patch })),
+    [persist],
+  );
+
+  return (
+    <BrandContext.Provider
+      value={{ ...brand, setImage, setProfile, initials: toInitials(brand.businessName) }}
+    >
+      {children}
+    </BrandContext.Provider>
+  );
 }
 
 export const useBrand = () => useContext(BrandContext);

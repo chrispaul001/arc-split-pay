@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useBrand } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +50,7 @@ export function PaymentLinks() {
                   navigator.clipboard?.writeText(`https://${l.url}`);
                   toast.success("Link copied");
                 }}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/12 hover:text-primary"
+                className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
               >
                 <Copy className="size-4" />
               </button>
@@ -97,16 +98,43 @@ export function ApiKeys() {
 }
 
 export function SettingsView() {
+  const { businessName, settlementWallet, setProfile } = useBrand();
+  const [name, setName] = useState(businessName);
+  const [wallet, setWallet] = useState(settlementWallet);
+
+  useEffect(() => setName(businessName), [businessName]);
+  useEffect(() => setWallet(settlementWallet), [settlementWallet]);
+
+  const save = () => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      toast.error("Business name can't be empty");
+      return;
+    }
+    setProfile({ businessName: trimmed, settlementWallet: wallet.trim() });
+    toast.success("Settings saved", { description: `Business name updated to ${trimmed}.` });
+  };
+
   return (
     <div className="glass animate-rise w-full max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-5">
       <h3 className="text-lg font-semibold">Settings</h3>
       <div className="space-y-2">
         <Label htmlFor="biz">Business name</Label>
-        <Input id="biz" defaultValue="Nova Studio" className="bg-background/40" />
+        <Input
+          id="biz"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="bg-background/40 transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="settle">Settlement wallet</Label>
-        <Input id="settle" defaultValue="0x8fA2…4c19" className="bg-background/40 font-mono" />
+        <Input
+          id="settle"
+          value={wallet}
+          onChange={(e) => setWallet(e.target.value)}
+          className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
+        />
       </div>
       {[
         ["Auto-split on receipt", "Execute the router the moment funds land."],
@@ -121,7 +149,7 @@ export function SettingsView() {
           <Switch defaultChecked={i < 2} />
         </div>
       ))}
-      <Button onClick={() => toast.success("Settings saved")}>Save changes</Button>
+      <Button onClick={save}>Save changes</Button>
     </div>
   );
 }
