@@ -58,19 +58,33 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setImage = useCallback((key: keyof Brand, value: string | null) => {
-    setBrand((b) => {
-      const next = { ...b, [key]: value };
-      try {
-        window.localStorage.setItem(KEY, JSON.stringify(next));
-      } catch {
-        /* quota exceeded — keep in-memory only */
-      }
-      return next;
-    });
+  const persist = useCallback((next: Brand) => {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(next));
+    } catch {
+      /* quota exceeded — keep in-memory only */
+    }
+    return next;
   }, []);
 
-  return <BrandContext.Provider value={{ ...brand, setImage }}>{children}</BrandContext.Provider>;
+  const setImage = useCallback(
+    (key: ImageKey, value: string | null) => setBrand((b) => persist({ ...b, [key]: value })),
+    [persist],
+  );
+
+  const setProfile = useCallback(
+    (patch: Partial<Pick<Brand, "businessName" | "settlementWallet">>) =>
+      setBrand((b) => persist({ ...b, ...patch })),
+    [persist],
+  );
+
+  return (
+    <BrandContext.Provider
+      value={{ ...brand, setImage, setProfile, initials: toInitials(brand.businessName) }}
+    >
+      {children}
+    </BrandContext.Provider>
+  );
 }
 
 export const useBrand = () => useContext(BrandContext);
