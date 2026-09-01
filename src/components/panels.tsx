@@ -149,7 +149,7 @@ export function SettingsView() {
           <Switch defaultChecked={i < 2} />
         </div>
       ))}
-      <Button onClick={() => toast.success("Settings saved")}>Save changes</Button>
+      <Button onClick={save}>Save changes</Button>
     </div>
   );
 }
