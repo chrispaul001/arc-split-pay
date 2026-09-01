@@ -33,7 +33,7 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
         <DropdownMenuTrigger asChild>
           <button
             aria-label="Open merchant menu"
-            className="group flex items-center gap-2 rounded-2xl bg-secondary/50 py-1 pr-2 pl-1 transition-colors hover:bg-secondary/80 data-[state=open]:bg-secondary/90"
+            className="motion-press group flex items-center gap-2 rounded-2xl bg-secondary/50 py-1 pr-2 pl-1 hover:bg-secondary/80 data-[state=open]:bg-secondary/90"
           >
             <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary/20 font-display text-xs font-bold text-primary">
               {avatar ? (
@@ -78,7 +78,7 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
               <button
                 onClick={copyWallet}
                 aria-label="Copy wallet address"
-                className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                className="motion-press shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-primary/15 hover:text-primary"
               >
                 <Copy className="size-3.5" />
               </button>
@@ -86,16 +86,16 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
           </div>
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-2 rounded-xl" onSelect={() => setProfileOpen(true)}>
+          <DropdownMenuItem className="gap-2 rounded-xl transition-transform duration-200 focus:translate-x-0.5" onSelect={() => setProfileOpen(true)}>
             <Users className="size-4" /> Merchant profile & branding
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="gap-2 rounded-xl"
+            className="gap-2 rounded-xl transition-transform duration-200 focus:translate-x-0.5"
             onSelect={() => toast("Team access", { description: "3 members · 1 pending invite." })}
           >
             <Users className="size-4" /> Team access
           </DropdownMenuItem>
-          <DropdownMenuItem className="gap-2 rounded-xl" onSelect={onOpenSettings}>
+          <DropdownMenuItem className="gap-2 rounded-xl transition-transform duration-200 focus:translate-x-0.5" onSelect={onOpenSettings}>
             <Settings className="size-4" /> Account settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />

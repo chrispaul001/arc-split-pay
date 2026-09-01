@@ -82,7 +82,7 @@ function DashboardShell() {
 
   const nav = (
     <nav className="space-y-1">
-      {NAV.map((item) => {
+      {NAV.map((item, i) => {
         const active = item.key === view;
         return (
           <button
@@ -91,15 +91,16 @@ function DashboardShell() {
               setView(item.key);
               setNavOpen(false);
             }}
-            className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all ${
+            style={{ animationDelay: `${i * 45}ms` }}
+            className={`motion-press animate-rise group/nav flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium ${
               active
                 ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px_var(--glass-border)]"
                 : "text-muted-foreground hover:translate-x-0.5 hover:bg-secondary/60 hover:text-foreground"
             }`}
           >
-            <item.icon className="size-4 shrink-0" />
+            <item.icon className="size-4 shrink-0 transition-transform duration-300 group-hover/nav:scale-110 group-hover/nav:-rotate-6" />
             <span className="truncate">{item.label}</span>
-            {active && <span className="ml-auto size-1.5 shrink-0 rounded-full bg-primary" />}
+            {active && <span className="pulse-dot ml-auto size-1.5 shrink-0 rounded-full bg-primary" />}
           </button>
         );
       })}
@@ -109,7 +110,7 @@ function DashboardShell() {
   const themeToggle = (
     <button
       onClick={toggle}
-      className="flex w-full items-center gap-3 rounded-2xl border border-border bg-secondary/50 px-3 py-2.5 text-sm font-medium transition-colors hover:bg-secondary/80"
+      className="motion-press flex w-full items-center gap-3 rounded-2xl border border-border bg-secondary/50 px-3 py-2.5 text-sm font-medium hover:bg-secondary/80"
       aria-label="Toggle color mode"
     >
       {theme === "dark" ? <Moon className="size-4 text-primary" /> : <Sun className="size-4 text-primary" />}
@@ -138,7 +139,7 @@ function DashboardShell() {
         {/* Sidebar — mobile drawer */}
         {navOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={() => setNavOpen(false)} />
+            <div className="animate-in fade-in absolute inset-0 bg-background/60 backdrop-blur-sm duration-200" onClick={() => setNavOpen(false)} />
             <aside className="glass animate-rise absolute top-4 bottom-4 left-4 flex w-64 flex-col rounded-3xl p-4">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                 <Brand />
@@ -158,7 +159,7 @@ function DashboardShell() {
             <div className="flex min-w-0 items-center gap-3">
               <button
                 onClick={() => setNavOpen(true)}
-                className="shrink-0 rounded-xl p-2 hover:bg-secondary/60 lg:hidden"
+                className="motion-press shrink-0 rounded-xl p-2 hover:bg-secondary/60 lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu className="size-5" />
@@ -191,9 +192,9 @@ function DashboardShell() {
               <button
                 onClick={() => toast("No new alerts", { description: "You're all caught up." })}
                 aria-label="Notifications"
-                className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+                className="motion-press group/bell rounded-xl p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
               >
-                <Bell className="size-5" />
+                <Bell className="size-5 transition-transform duration-300 group-hover/bell:-rotate-12" />
               </button>
               <ProfileMenu onOpenSettings={() => setView("settings")} />
             </div>
@@ -201,6 +202,7 @@ function DashboardShell() {
 
           </header>
 
+          <div key={view} className="animate-rise">
           {view === "overview" && (
             <div className="space-y-6">
               <Overview />
@@ -213,6 +215,7 @@ function DashboardShell() {
           {view === "streams" && <Streams />}
           {view === "keys" && <ApiKeys />}
           {view === "settings" && <SettingsView />}
+          </div>
         </main>
       </div>
     </div>

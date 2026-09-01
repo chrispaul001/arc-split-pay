@@ -39,7 +39,7 @@ export function Overview() {
         {metrics.map((m, i) => (
           <div
             key={m.label}
-            className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5"
+            className="glass animate-rise group/metric w-full max-w-full rounded-3xl px-4 py-5 sm:px-5"
             style={{ animationDelay: `${i * 70}ms` }}
           >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -49,8 +49,8 @@ export function Overview() {
                 </p>
                 <p className="mt-2 font-display text-3xl font-bold">{m.value}</p>
               </div>
-              <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary">
-                <m.icon className="size-5" />
+              <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary transition-transform duration-300 group-hover/metric:scale-110">
+                <m.icon className="size-5 animate-float" />
               </div>
             </div>
             <div className="mt-4 flex items-end justify-between gap-4">
@@ -94,10 +94,11 @@ export function Overview() {
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Live activity</h3>
           <ul className="mt-4 space-y-2.5">
-            {activity.map((a) => (
+            {activity.map((a, i) => (
               <li
                 key={a.id}
-                className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-all hover:-translate-y-0.5 hover:bg-secondary/80"
+                style={{ animationDelay: `${120 + i * 60}ms` }}
+                className="group animate-rise grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-all hover:-translate-y-0.5 hover:bg-secondary/80"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{a.label}</p>

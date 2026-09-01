@@ -50,7 +50,7 @@ export function PaymentLinks() {
                   navigator.clipboard?.writeText(`https://${l.url}`);
                   toast.success("Link copied");
                 }}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/12 hover:text-primary"
+                className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
               >
                 <Copy className="size-4" />
               </button>
