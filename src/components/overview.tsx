@@ -1,4 +1,5 @@
 import { Sparkline } from "./sparkline";
+import { Reveal } from "./reveal";
 import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck } from "lucide-react";
 
 const metrics = [
@@ -65,6 +66,7 @@ export function Overview() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <Reveal>
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <h3 className="truncate text-lg font-semibold">Settlement flow · last 24h</h3>
@@ -90,7 +92,9 @@ export function Overview() {
             ))}
           </div>
         </div>
+        </Reveal>
 
+        <Reveal delay={90}>
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Live activity</h3>
           <ul className="mt-4 space-y-2.5">
@@ -116,6 +120,7 @@ export function Overview() {
             <Zap className="ml-auto size-4 shrink-0 text-mint" />
           </div>
         </div>
+        </Reveal>
       </div>
     </div>
   );
