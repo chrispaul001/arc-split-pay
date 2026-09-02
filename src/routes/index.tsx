@@ -27,6 +27,8 @@ import { BrandProvider } from "@/lib/brand";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
+import { Splash } from "@/components/splash";
+import { Reveal } from "@/components/reveal";
 import logoLight from "@/assets/coindecc-logo-light.png.asset.json";
 import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
 
@@ -127,6 +129,7 @@ function DashboardShell() {
 
   return (
     <div className="app-gradient flex min-h-screen w-full max-w-full flex-col overflow-x-hidden">
+      <Splash />
       <div className="mx-auto flex w-full max-w-[1400px] flex-1 gap-6 px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Sidebar — desktop */}
@@ -206,8 +209,12 @@ function DashboardShell() {
           {view === "overview" && (
             <div className="space-y-6">
               <Overview />
-              <OnchainCheckout />
-              <CheckoutPreview />
+              <Reveal>
+                <OnchainCheckout />
+              </Reveal>
+              <Reveal delay={80}>
+                <CheckoutPreview />
+              </Reveal>
             </div>
           )}
           {view === "links" && <PaymentLinks />}

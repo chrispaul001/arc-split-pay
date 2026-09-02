@@ -4,7 +4,9 @@ import { CurrencyPills } from "@/components/currency-select";
 import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
-import { Check, Fuel, Loader2, Lock, RotateCcw, Timer, Wallet, Zap } from "lucide-react";
+import { Check, Copy, Fuel, Loader2, Lock, RotateCcw, Timer, Wallet, Zap } from "lucide-react";
+import { toast } from "sonner";
+import { Reveal } from "@/components/reveal";
 
 const AMOUNT = 1250;
 
@@ -17,8 +19,28 @@ const SPLIT = [
 export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  const [copied, setCopied] = useState(false);
   const { logo, product, setImage, businessName } = useBrand();
   const c = getCurrency(currency);
+
+  const SNIPPET = `<script src="https://cdn.coindecc.xyz/pay.js"></script>
+<div data-coindecc-pay
+     data-amount="1250"
+     data-display="${currency}"
+     data-network="arc"
+     data-split="7000-2000-1000">
+</div>`;
+
+  const copySnippet = async () => {
+    try {
+      await navigator.clipboard.writeText(SNIPPET);
+      setCopied(true);
+      toast.success("Copied", { description: "Embed snippet copied to clipboard." });
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error("Copy failed", { description: "Clipboard access was blocked by the browser." });
+    }
+  };
 
   const pay = () => {
     setState("paying");
@@ -197,6 +219,7 @@ export function CheckoutPreview() {
       </div>
 
       <div className="w-full min-w-0 space-y-4">
+        <Reveal>
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Why it converts</h3>
           <ul className="mt-4 space-y-3 text-sm">
@@ -217,18 +240,26 @@ export function CheckoutPreview() {
           </ul>
         </div>
 
+        </Reveal>
+
+        <Reveal delay={90}>
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Embed snippet</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Embed snippet</p>
+            <button
+              onClick={copySnippet}
+              aria-label="Copy embed snippet"
+              className="motion-press inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-secondary/50 px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/80 hover:text-foreground"
+            >
+              {copied ? <Check className="size-3.5 text-mint" /> : <Copy className="size-3.5" />}
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
           <pre className="mt-3 w-full max-w-full overflow-hidden rounded-2xl bg-background/50 p-4 font-mono text-[11px] leading-relaxed break-words whitespace-pre-wrap">
-            {`<script src="https://cdn.coindecc.xyz/pay.js"></script>
-<div data-coindecc-pay
-     data-amount="1250"
-     data-display="${currency}"
-     data-network="arc"
-     data-split="7000-2000-1000">
-</div>`}
+            {SNIPPET}
           </pre>
         </div>
+        </Reveal>
       </div>
     </div>
   );
