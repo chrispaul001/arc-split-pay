@@ -190,13 +190,7 @@ function DashboardShell() {
               >
                 <Plus className="size-4" /> New link
               </Button>
-              <button
-                onClick={() => toast("No new alerts", { description: "You're all caught up." })}
-                aria-label="Notifications"
-                className="motion-press group/bell rounded-xl p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-              >
-                <Bell className="size-5 transition-transform duration-300 group-hover/bell:-rotate-12" />
-              </button>
+              <NotificationsBell />
               <ProfileMenu onOpenSettings={() => setView("settings")} />
             </div>
 
