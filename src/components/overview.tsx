@@ -1,11 +1,15 @@
 import { Sparkline } from "./sparkline";
 import { Reveal } from "./reveal";
-import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck, Wallet } from "lucide-react";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { Button } from "./ui/button";
 
 const metrics = [
   {
     label: "Total Volume (USDC)",
     value: "$2,481,930",
+    zero: "$0.00",
     delta: "+18.4%",
     icon: Coins,
     data: [12, 18, 15, 24, 22, 31, 29, 38, 44, 41, 52, 61],
@@ -13,6 +17,7 @@ const metrics = [
   {
     label: "Active Payment Streams",
     value: "1,284",
+    zero: "0",
     delta: "+6.2%",
     icon: Waves,
     data: [30, 28, 33, 31, 36, 34, 40, 44, 42, 48, 47, 53],
@@ -20,6 +25,7 @@ const metrics = [
   {
     label: "Instant Split Executions",
     value: "94,207",
+    zero: "0",
     delta: "+41.9%",
     icon: Split,
     data: [8, 14, 11, 19, 26, 22, 34, 40, 37, 49, 58, 72],
@@ -33,7 +39,12 @@ const activity = [
   { id: "0x91fa…7d10", label: "Checkout · Loop Hardware", amount: "+ 89.99", parties: 2, t: "4m ago" },
 ];
 
+const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
 export function Overview() {
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -48,18 +59,26 @@ export function Overview() {
                 <p className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   {m.label}
                 </p>
-                <p className="mt-2 font-display text-3xl font-bold">{m.value}</p>
+                <p className="mt-2 font-display text-3xl font-bold tabular-nums">
+                  {isConnected ? m.value : m.zero}
+                </p>
               </div>
               <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary transition-transform duration-300 group-hover/metric:scale-110">
                 <m.icon className="size-5 animate-float" />
               </div>
             </div>
             <div className="mt-4 flex items-end justify-between gap-4">
-              <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-xs font-semibold text-mint">
-                <ArrowUpRight className="size-3.5" />
-                {m.delta}
-              </span>
-              <Sparkline data={m.data} className="h-10 w-32" />
+              {isConnected ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-xs font-semibold text-mint">
+                  <ArrowUpRight className="size-3.5" />
+                  {m.delta}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                  No data yet
+                </span>
+              )}
+              <Sparkline data={isConnected ? m.data : EMPTY} className="h-10 w-32" />
             </div>
           </div>
         ))}
@@ -75,15 +94,19 @@ export function Overview() {
             </span>
           </div>
           <Sparkline
-            data={[14, 22, 18, 30, 26, 42, 38, 55, 48, 66, 60, 79, 72, 91, 84, 104]}
+            data={
+              isConnected
+                ? [14, 22, 18, 30, 26, 42, 38, 55, 48, 66, 60, 79, 72, 91, 84, 104]
+                : new Array(16).fill(0)
+            }
             className="mt-5 h-44 w-full"
             filled
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             {[
-              { k: "Avg settle", v: "0.42s" },
+              { k: "Avg settle", v: isConnected ? "0.42s" : "—" },
               { k: "Gas token", v: "USDC" },
-              { k: "Success rate", v: "99.98%" },
+              { k: "Success rate", v: isConnected ? "99.98%" : "—" },
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">
                 <p className="text-[11px] break-words text-muted-foreground">{s.k}</p>
@@ -97,7 +120,21 @@ export function Overview() {
         <Reveal delay={90}>
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Live activity</h3>
-          <ul className="mt-4 space-y-2.5">
+          {!isConnected && (
+            <div className="mt-4 grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-8 text-center">
+              <span className="grid size-10 place-items-center rounded-2xl bg-primary/12 text-primary">
+                <Wallet className="size-5" />
+              </span>
+              <p className="text-sm font-medium">No wallet connected</p>
+              <p className="text-xs break-words text-muted-foreground">
+                Connect your wallet to load live volume, streams and split activity.
+              </p>
+              <Button size="sm" onClick={() => openConnectModal?.()}>
+                <Wallet className="size-4" /> Connect Wallet
+              </Button>
+            </div>
+          )}
+          <ul className={`mt-4 space-y-2.5 ${isConnected ? "" : "hidden"}`}>
             {activity.map((a, i) => (
               <li
                 key={a.id}
