@@ -15,14 +15,12 @@ export type Brand = {
   settlementWallet: string;
 };
 
-export const DEFAULT_WALLET = "0x8fA2b41c7Dd90E5a3f77C29b104e0B96b7bb4c19";
-
 const EMPTY: Brand = {
   avatar: null,
   logo: null,
   product: null,
-  businessName: "Nova Studio",
-  settlementWallet: DEFAULT_WALLET,
+  businessName: "My Business",
+  settlementWallet: "",
 };
 
 type ImageKey = "avatar" | "logo" | "product";
