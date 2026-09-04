@@ -27,7 +27,7 @@ const metrics = [
 ];
 
 const activity = [
-  { id: "0x7ac1…9e2f", label: "Checkout · Nova Studio", amount: "+ 1,240.00", parties: 3, t: "12s ago" },
+  { id: "0x7ac1…9e2f", label: "Checkout · Storefront", amount: "+ 1,240.00", parties: 3, t: "12s ago" },
   { id: "0x4b90…c71a", label: "Split payout · Affiliate", amount: "+ 318.50", parties: 2, t: "48s ago" },
   { id: "0xd33e…0b84", label: "Stream settle · Retainer", amount: "+ 5,000.00", parties: 4, t: "2m ago" },
   { id: "0x91fa…7d10", label: "Checkout · Loop Hardware", amount: "+ 89.99", parties: 2, t: "4m ago" },
