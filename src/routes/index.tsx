@@ -27,6 +27,7 @@ import { BrandProvider } from "@/lib/brand";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { Reveal } from "@/components/reveal";
 import logoLight from "@/assets/coindecc-logo-light.png.asset.json";
 import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
@@ -190,13 +191,7 @@ function DashboardShell() {
               >
                 <Plus className="size-4" /> New link
               </Button>
-              <button
-                onClick={() => toast("No new alerts", { description: "You're all caught up." })}
-                aria-label="Notifications"
-                className="motion-press group/bell rounded-xl p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-              >
-                <Bell className="size-5 transition-transform duration-300 group-hover/bell:-rotate-12" />
-              </button>
+              <NotificationsBell />
               <ProfileMenu onOpenSettings={() => setView("settings")} />
             </div>
 
