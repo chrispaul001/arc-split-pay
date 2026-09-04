@@ -27,6 +27,7 @@ import { BrandProvider } from "@/lib/brand";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { Reveal } from "@/components/reveal";
 import logoLight from "@/assets/coindecc-logo-light.png.asset.json";
 import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
