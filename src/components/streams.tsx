@@ -47,8 +47,10 @@ const INITIAL: Stream[] = [
 ];
 
 export function Streams() {
+  const connected = useWalletGate();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [streams, setStreams] = useState<Stream[]>(INITIAL);
+
 
   useEffect(() => {
     const t = window.setInterval(() => {
