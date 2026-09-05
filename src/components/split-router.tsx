@@ -64,7 +64,13 @@ export function SplitRouter() {
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
+  if (!connected)
+    return (
+      <GuestEmpty description="Connect your wallet to build and manage split-router payment links." />
+    );
+
   return (
+
     <div className="grid w-full max-w-full min-w-0 gap-4 lg:grid-cols-[1.5fr_1fr]">
       <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
         <div className="flex w-full min-w-0 flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
