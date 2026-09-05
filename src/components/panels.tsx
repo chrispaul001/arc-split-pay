@@ -70,12 +70,16 @@ export function PaymentLinks() {
 }
 
 export function ApiKeys() {
+  const connected = useWalletGate();
   const [shown, setShown] = useState(false);
   const keys = [
     { label: "Production", value: "sk_live_arc_9f21c47ba0e8d3", created: "Mar 12, 2026" },
     { label: "Sandbox", value: "sk_test_arc_4b70e19da55c22", created: "Jan 04, 2026" },
   ];
+  if (!connected)
+    return <GuestEmpty description="Connect your wallet to generate and manage API keys." />;
   return (
+
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">API keys</h3>
