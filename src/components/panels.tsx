@@ -109,6 +109,7 @@ export function ApiKeys() {
 }
 
 export function SettingsView() {
+  const connected = useWalletGate();
   const { businessName, settlementWallet, setProfile } = useBrand();
   const [name, setName] = useState(businessName);
   const [wallet, setWallet] = useState(settlementWallet);
@@ -117,6 +118,7 @@ export function SettingsView() {
   useEffect(() => setWallet(settlementWallet), [settlementWallet]);
 
   const save = () => {
+    if (!connected) return;
     const trimmed = name.trim();
     if (!trimmed) {
       toast.error("Business name can't be empty");
@@ -129,11 +131,16 @@ export function SettingsView() {
   return (
     <div className="glass animate-rise w-full max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-5">
       <h3 className="text-lg font-semibold">Settings</h3>
+      {!connected && (
+        <GuestBanner message="Connect your wallet to edit and save your merchant settings." />
+      )}
+      <div className={`space-y-5 ${connected ? "" : "pointer-events-none opacity-50"}`}>
       <div className="space-y-2">
         <Label htmlFor="biz">Business name</Label>
         <Input
           id="biz"
-          value={name}
+          value={connected ? name : ""}
+          disabled={!connected}
           onChange={(e) => setName(e.target.value)}
           className="bg-background/40 transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
         />
@@ -142,7 +149,8 @@ export function SettingsView() {
         <Label htmlFor="settle">Settlement wallet</Label>
         <Input
           id="settle"
-          value={wallet}
+          value={connected ? wallet : ""}
+          disabled={!connected}
           onChange={(e) => setWallet(e.target.value)}
           className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
         />
@@ -157,10 +165,12 @@ export function SettingsView() {
             <p className="truncate font-medium">{t}</p>
             <p className="text-xs break-words text-muted-foreground">{d}</p>
           </div>
-          <Switch defaultChecked={i < 2} />
+          <Switch disabled={!connected} defaultChecked={connected && i < 2} />
         </div>
       ))}
-      <Button onClick={save}>Save changes</Button>
+      <Button onClick={save} disabled={!connected}>Save changes</Button>
+      </div>
     </div>
   );
+
 }
