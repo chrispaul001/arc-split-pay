@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Copy, Eye, EyeOff, KeyRound, Link2, Plus } from "lucide-react";
+import { GuestBanner, GuestEmpty, useWalletGate } from "@/components/guest-gate";
 
 const links = [
   { name: "Studio retainer", amount: "5,000.00", parties: 4, status: "Active", url: "pay.coindecc.xyz/l/rt-4421" },
@@ -14,6 +15,12 @@ const links = [
 ];
 
 export function PaymentLinks() {
+  const connected = useWalletGate();
+  if (!connected)
+    return (
+      <GuestEmpty description="Connect your wallet to view and manage payment links on Arc." />
+    );
+
   return (
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
@@ -63,12 +70,16 @@ export function PaymentLinks() {
 }
 
 export function ApiKeys() {
+  const connected = useWalletGate();
   const [shown, setShown] = useState(false);
   const keys = [
     { label: "Production", value: "sk_live_arc_9f21c47ba0e8d3", created: "Mar 12, 2026" },
     { label: "Sandbox", value: "sk_test_arc_4b70e19da55c22", created: "Jan 04, 2026" },
   ];
+  if (!connected)
+    return <GuestEmpty description="Connect your wallet to generate and manage API keys." />;
   return (
+
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">API keys</h3>
@@ -98,6 +109,7 @@ export function ApiKeys() {
 }
 
 export function SettingsView() {
+  const connected = useWalletGate();
   const { businessName, settlementWallet, setProfile } = useBrand();
   const [name, setName] = useState(businessName);
   const [wallet, setWallet] = useState(settlementWallet);
@@ -106,6 +118,7 @@ export function SettingsView() {
   useEffect(() => setWallet(settlementWallet), [settlementWallet]);
 
   const save = () => {
+    if (!connected) return;
     const trimmed = name.trim();
     if (!trimmed) {
       toast.error("Business name can't be empty");
@@ -118,11 +131,16 @@ export function SettingsView() {
   return (
     <div className="glass animate-rise w-full max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-5">
       <h3 className="text-lg font-semibold">Settings</h3>
+      {!connected && (
+        <GuestBanner message="Connect your wallet to edit and save your merchant settings." />
+      )}
+      <div className={`space-y-5 ${connected ? "" : "pointer-events-none opacity-50"}`}>
       <div className="space-y-2">
         <Label htmlFor="biz">Business name</Label>
         <Input
           id="biz"
-          value={name}
+          value={connected ? name : ""}
+          disabled={!connected}
           onChange={(e) => setName(e.target.value)}
           className="bg-background/40 transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
         />
@@ -131,7 +149,8 @@ export function SettingsView() {
         <Label htmlFor="settle">Settlement wallet</Label>
         <Input
           id="settle"
-          value={wallet}
+          value={connected ? wallet : ""}
+          disabled={!connected}
           onChange={(e) => setWallet(e.target.value)}
           className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
         />
@@ -146,10 +165,12 @@ export function SettingsView() {
             <p className="truncate font-medium">{t}</p>
             <p className="text-xs break-words text-muted-foreground">{d}</p>
           </div>
-          <Switch defaultChecked={i < 2} />
+          <Switch disabled={!connected} defaultChecked={connected && i < 2} />
         </div>
       ))}
-      <Button onClick={save}>Save changes</Button>
+      <Button onClick={save} disabled={!connected}>Save changes</Button>
+      </div>
     </div>
   );
+
 }

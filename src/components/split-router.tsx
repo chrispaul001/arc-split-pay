@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
+import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
+
 
 type Party = { id: number; name: string; address: string; bps: number };
 
@@ -23,7 +25,9 @@ const PRESETS: { label: string; bps: number[] }[] = [
 let nextId = 4;
 
 export function SplitRouter() {
+  const connected = useWalletGate();
   const { product, setImage } = useBrand();
+
   const [total, setTotal] = useState("1250");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [parties, setParties] = useState<Party[]>([
@@ -64,7 +68,13 @@ export function SplitRouter() {
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
+  if (!connected)
+    return (
+      <GuestEmpty description="Connect your wallet to build and manage split-router payment links." />
+    );
+
   return (
+
     <div className="grid w-full max-w-full min-w-0 gap-4 lg:grid-cols-[1.5fr_1fr]">
       <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
         <div className="flex w-full min-w-0 flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
