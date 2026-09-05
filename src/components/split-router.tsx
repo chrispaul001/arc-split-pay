@@ -25,7 +25,9 @@ const PRESETS: { label: string; bps: number[] }[] = [
 let nextId = 4;
 
 export function SplitRouter() {
+  const connected = useWalletGate();
   const { product, setImage } = useBrand();
+
   const [total, setTotal] = useState("1250");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [parties, setParties] = useState<Party[]>([
