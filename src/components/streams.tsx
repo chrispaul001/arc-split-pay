@@ -5,6 +5,8 @@ import { CurrencySelect } from "@/components/currency-select";
 import { formatLocal, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
 import { Activity, Pause, Play, Radio, Square, Timer } from "lucide-react";
+import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
+
 
 type Stream = {
   id: number;
