@@ -55,13 +55,14 @@ export function Streams() {
 
 
   useEffect(() => {
+    if (!connected) return;
     const t = window.setInterval(() => {
       setStreams((ss) =>
         ss.map((s) => (s.running ? { ...s, streamed: s.streamed + s.ratePerSec / 4 } : s)),
       );
     }, 250);
     return () => window.clearInterval(t);
-  }, []);
+  }, [connected]);
 
   const activeRate = streams.filter((s) => s.running).reduce((a, s) => a + s.ratePerSec, 0);
   const totalStreamed = streams.reduce((a, s) => a + s.streamed, 0);
@@ -69,7 +70,13 @@ export function Streams() {
   const update = (id: number, patch: Partial<Stream>) =>
     setStreams((ss) => ss.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 
+  if (!connected)
+    return (
+      <GuestEmpty description="Connect your wallet to view and manage active payment streams." />
+    );
+
   return (
+
     <div className="space-y-4">
       <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
