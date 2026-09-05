@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
+import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
+
 
 type Party = { id: number; name: string; address: string; bps: number };
 
