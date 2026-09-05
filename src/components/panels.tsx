@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Copy, Eye, EyeOff, KeyRound, Link2, Plus } from "lucide-react";
+import { GuestBanner, GuestEmpty, useWalletGate } from "@/components/guest-gate";
 
 const links = [
   { name: "Studio retainer", amount: "5,000.00", parties: 4, status: "Active", url: "pay.coindecc.xyz/l/rt-4421" },
@@ -14,6 +15,12 @@ const links = [
 ];
 
 export function PaymentLinks() {
+  const connected = useWalletGate();
+  if (!connected)
+    return (
+      <GuestEmpty description="Connect your wallet to view and manage payment links on Arc." />
+    );
+
   return (
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
