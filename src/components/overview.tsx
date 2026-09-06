@@ -44,8 +44,14 @@ const activity = [
 const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 export function Overview() {
-  const { isConnected } = useAccount();
+  const { isConnected, address, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const { formatted } = useUsdc();
+
+  const liveBalance =
+    formatted == null
+      ? "—"
+      : `$${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
   return (
     <div className="space-y-6">
@@ -62,7 +68,7 @@ export function Overview() {
                   {m.label}
                 </p>
                 <p className="mt-2 font-display text-3xl font-bold tabular-nums">
-                  {isConnected ? m.value : m.zero}
+                  {isConnected ? (i === 0 ? liveBalance : m.value) : m.zero}
                 </p>
               </div>
               <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary transition-transform duration-300 group-hover/metric:scale-110">
