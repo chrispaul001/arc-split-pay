@@ -158,6 +158,17 @@
     border-color: var(--color-border);
   }
 
+  /* Smooth global theme transitions: colors fade instead of snapping */
+  html.theme-anim,
+  html.theme-anim *,
+  html.theme-anim *::before,
+  html.theme-anim *::after {
+    transition-property:
+      background-color, color, border-color, fill, stroke, box-shadow, background-image;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+  }
+
   html {
     color-scheme: light;
     width: 100%;
