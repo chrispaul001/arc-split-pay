@@ -5,66 +5,113 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Copy, Eye, EyeOff, KeyRound, Link2, Plus } from "lucide-react";
+import { Copy, Eye, EyeOff, KeyRound, Link2, Plus, Trash2 } from "lucide-react";
 import { GuestBanner, GuestEmpty, useWalletGate } from "@/components/guest-gate";
+import { randomId, timeAgo, useMerchantStore } from "@/lib/merchant-store";
 
-const links = [
-  { name: "Studio retainer", amount: "5,000.00", parties: 4, status: "Active", url: "pay.coindecc.xyz/l/rt-4421" },
-  { name: "Hardware bundle", amount: "89.99", parties: 2, status: "Active", url: "pay.coindecc.xyz/l/hw-0912" },
-  { name: "Course access", amount: "249.00", parties: 3, status: "Paused", url: "pay.coindecc.xyz/l/cs-7730" },
-];
+function EmptyCard({ title, hint, action }: { title: string; hint: string; action?: React.ReactNode }) {
+  return (
+    <div className="grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-10 text-center">
+      <p className="text-sm font-medium">{title}</p>
+      <p className="max-w-sm text-xs break-words text-muted-foreground">{hint}</p>
+      {action}
+    </div>
+  );
+}
 
 export function PaymentLinks() {
   const connected = useWalletGate();
+  const { data, update, notify } = useMerchantStore();
+
   if (!connected)
-    return (
-      <GuestEmpty description="Connect your wallet to view and manage payment links on Arc." />
-    );
+    return <GuestEmpty description="Connect your wallet to view and manage payment links on Arc." />;
+
+  const links = data.links;
 
   return (
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">Payment links</h3>
-        <Button size="sm" className="shrink-0" onClick={() => toast.success("New link draft created")}>
+        <Button
+          size="sm"
+          className="shrink-0"
+          onClick={() =>
+            toast("Use the Split-Router tab", {
+              description: "Build and publish a link there — it saves to this wallet.",
+            })
+          }
+        >
           <Plus className="size-4" /> New link
         </Button>
       </div>
-      <ul className="mt-5 space-y-3">
-        {links.map((l) => (
-          <li
-            key={l.url}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 w-full min-w-0 rounded-2xl bg-secondary/50 p-4 transition-all hover:-translate-y-0.5 hover:bg-secondary/70"
-          >
-            <div className="min-w-0">
-              <p className="truncate font-medium">{l.name}</p>
-              <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
-                <Link2 className="mr-1 inline size-3" />
-                {l.url} · {l.parties} parties
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <span className="font-display text-sm font-bold tabular-nums">{l.amount}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  l.status === "Active" ? "bg-mint/15 text-mint" : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {l.status}
-              </span>
-              <button
-                aria-label="Copy link"
-                onClick={() => {
-                  navigator.clipboard?.writeText(`https://${l.url}`);
-                  toast.success("Link copied");
-                }}
-                className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
-              >
-                <Copy className="size-4" />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+
+      {links.length === 0 ? (
+        <div className="mt-5">
+          <EmptyCard
+            title="No payment links created yet"
+            hint="Publish a link from the Split-Router builder and it will appear here for this wallet."
+          />
+        </div>
+      ) : (
+        <ul className="mt-5 space-y-3">
+          {links.map((l) => (
+            <li
+              key={l.id}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 w-full min-w-0 rounded-2xl bg-secondary/50 p-4 transition-all hover:-translate-y-0.5 hover:bg-secondary/70"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-medium">{l.name}</p>
+                <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
+                  <Link2 className="mr-1 inline size-3" />
+                  {l.reference || l.id} · {l.parties.length} parties · {timeAgo(l.createdAt)}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="font-display text-sm font-bold tabular-nums">
+                  {l.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </span>
+                <button
+                  onClick={() =>
+                    update((p) => ({
+                      ...p,
+                      links: p.links.map((x) =>
+                        x.id === l.id
+                          ? { ...x, status: x.status === "Active" ? "Paused" : "Active" }
+                          : x,
+                      ),
+                    }))
+                  }
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    l.status === "Active" ? "bg-mint/15 text-mint" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {l.status}
+                </button>
+                <button
+                  aria-label="Copy link"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(l.url);
+                    toast.success("Link copied");
+                  }}
+                  className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
+                >
+                  <Copy className="size-4" />
+                </button>
+                <button
+                  aria-label={`Delete ${l.name}`}
+                  onClick={() => {
+                    update((p) => ({ ...p, links: p.links.filter((x) => x.id !== l.id) }));
+                    notify({ kind: "system", title: "Payment link removed", body: l.name });
+                  }}
+                  className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -72,38 +119,92 @@ export function PaymentLinks() {
 export function ApiKeys() {
   const connected = useWalletGate();
   const [shown, setShown] = useState(false);
-  const keys = [
-    { label: "Production", value: "sk_live_arc_9f21c47ba0e8d3", created: "Mar 12, 2026" },
-    { label: "Sandbox", value: "sk_test_arc_4b70e19da55c22", created: "Jan 04, 2026" },
-  ];
+  const { data, update, notify, address } = useMerchantStore();
+
   if (!connected)
     return <GuestEmpty description="Connect your wallet to generate and manage API keys." />;
-  return (
 
+  const keys = data.apiKeys;
+
+  const generate = () => {
+    const live = keys.length === 0;
+    const seed = randomId() + randomId();
+    const key = {
+      id: randomId(),
+      label: live ? "Production" : `Key ${keys.length + 1}`,
+      value: `${live ? "sk_live" : "sk_test"}_arc_${seed.slice(0, 24)}`,
+      createdAt: Date.now(),
+    };
+    update((p) => ({ ...p, apiKeys: [key, ...p.apiKeys] }));
+    notify({
+      kind: "system",
+      title: "API key generated",
+      body: `${key.label} key created for ${address?.slice(0, 6)}…`,
+    });
+    setShown(true);
+    toast.success("API key generated", { description: "Copy it now — it is stored to this wallet." });
+  };
+
+  return (
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">API keys</h3>
-        <Button variant="secondary" size="sm" className="shrink-0" onClick={() => setShown((s) => !s)}>
-          {shown ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          {shown ? "Hide" : "Reveal"}
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          {keys.length > 0 && (
+            <Button variant="secondary" size="sm" onClick={() => setShown((s) => !s)}>
+              {shown ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              {shown ? "Hide" : "Reveal"}
+            </Button>
+          )}
+          <Button size="sm" onClick={generate}>
+            <Plus className="size-4" /> Generate key
+          </Button>
+        </div>
       </div>
-      <ul className="mt-5 space-y-3">
-        {keys.map((k) => (
-          <li key={k.label} className="w-full min-w-0 rounded-2xl bg-secondary/50 p-4">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-              <p className="flex min-w-0 items-center gap-2 font-medium">
-                <KeyRound className="size-4 shrink-0 text-primary" />
-                <span className="truncate">{k.label}</span>
+
+      {keys.length === 0 ? (
+        <div className="mt-5">
+          <EmptyCard
+            title="No API keys generated yet"
+            hint="Generate a key to authenticate server-side calls for this merchant wallet."
+            action={
+              <Button size="sm" className="motion-press" onClick={generate}>
+                <KeyRound className="size-4" /> Generate key
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <ul className="mt-5 space-y-3">
+          {keys.map((k) => (
+            <li key={k.id} className="w-full min-w-0 rounded-2xl bg-secondary/50 p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <p className="flex min-w-0 items-center gap-2 font-medium">
+                  <KeyRound className="size-4 shrink-0 text-primary" />
+                  <span className="truncate">{k.label}</span>
+                </p>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-[11px] break-words text-muted-foreground">
+                    {new Date(k.createdAt).toLocaleDateString()}
+                  </span>
+                  <button
+                    aria-label={`Revoke ${k.label}`}
+                    onClick={() =>
+                      update((p) => ({ ...p, apiKeys: p.apiKeys.filter((x) => x.id !== k.id) }))
+                    }
+                    className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              </div>
+              <p className="mt-2 truncate font-mono text-xs">
+                {shown ? k.value : "•".repeat(k.value.length)}
               </p>
-              <span className="shrink-0 text-[11px] break-words text-muted-foreground">{k.created}</span>
-            </div>
-            <p className="mt-2 truncate font-mono text-xs">
-              {shown ? k.value : "•".repeat(k.value.length)}
-            </p>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -111,11 +212,17 @@ export function ApiKeys() {
 export function SettingsView() {
   const connected = useWalletGate();
   const { businessName, settlementWallet, setProfile } = useBrand();
-  const [name, setName] = useState(businessName);
-  const [wallet, setWallet] = useState(settlementWallet);
+  const { data, ready, update } = useMerchantStore();
+  const [name, setName] = useState("");
+  const [wallet, setWallet] = useState("");
 
-  useEffect(() => setName(businessName), [businessName]);
-  useEffect(() => setWallet(settlementWallet), [settlementWallet]);
+  // hydrate from the wallet-scoped profile, falling back to the global brand
+  useEffect(() => {
+    if (!connected || !ready) return;
+    setName(data.businessName || businessName);
+    setWallet(data.settlementWallet || settlementWallet);
+    if (data.businessName) setProfile({ businessName: data.businessName });
+  }, [connected, ready, data.businessName, data.settlementWallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = () => {
     if (!connected) return;
@@ -124,7 +231,9 @@ export function SettingsView() {
       toast.error("Business name can't be empty");
       return;
     }
-    setProfile({ businessName: trimmed, settlementWallet: wallet.trim() });
+    const w = wallet.trim();
+    setProfile({ businessName: trimmed, settlementWallet: w });
+    update((p) => ({ ...p, businessName: trimmed, settlementWallet: w }));
     toast.success("Settings saved", { description: `Business name updated to ${trimmed}.` });
   };
 
@@ -135,42 +244,48 @@ export function SettingsView() {
         <GuestBanner message="Connect your wallet to edit and save your merchant settings." />
       )}
       <div className={`space-y-5 ${connected ? "" : "pointer-events-none opacity-50"}`}>
-      <div className="space-y-2">
-        <Label htmlFor="biz">Business name</Label>
-        <Input
-          id="biz"
-          value={connected ? name : ""}
-          disabled={!connected}
-          onChange={(e) => setName(e.target.value)}
-          className="bg-background/40 transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="settle">Settlement wallet</Label>
-        <Input
-          id="settle"
-          value={connected ? wallet : ""}
-          disabled={!connected}
-          onChange={(e) => setWallet(e.target.value)}
-          className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
-        />
-      </div>
-      {[
-        ["Auto-split on receipt", "Execute the router the moment funds land."],
-        ["Email receipts", "Send a branded receipt to every payer."],
-        ["Sandbox mode", "Route all traffic to the Arc testnet."],
-      ].map(([t, d], i) => (
-        <div key={t} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full min-w-0 rounded-2xl bg-secondary/50 p-4">
-          <div className="min-w-0">
-            <p className="truncate font-medium">{t}</p>
-            <p className="text-xs break-words text-muted-foreground">{d}</p>
-          </div>
-          <Switch disabled={!connected} defaultChecked={connected && i < 2} />
+        <div className="space-y-2">
+          <Label htmlFor="biz">Business name</Label>
+          <Input
+            id="biz"
+            value={connected ? name : ""}
+            placeholder="Your business name"
+            disabled={!connected}
+            onChange={(e) => setName(e.target.value)}
+            className="bg-background/40 transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
+          />
         </div>
-      ))}
-      <Button onClick={save} disabled={!connected}>Save changes</Button>
+        <div className="space-y-2">
+          <Label htmlFor="settle">Settlement wallet</Label>
+          <Input
+            id="settle"
+            value={connected ? wallet : ""}
+            placeholder="0x…"
+            disabled={!connected}
+            onChange={(e) => setWallet(e.target.value)}
+            className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
+          />
+        </div>
+        {[
+          ["Auto-split on receipt", "Execute the router the moment funds land."],
+          ["Email receipts", "Send a branded receipt to every payer."],
+          ["Sandbox mode", "Route all traffic to the Arc testnet."],
+        ].map(([t, d], i) => (
+          <div
+            key={t}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full min-w-0 rounded-2xl bg-secondary/50 p-4"
+          >
+            <div className="min-w-0">
+              <p className="truncate font-medium">{t}</p>
+              <p className="text-xs break-words text-muted-foreground">{d}</p>
+            </div>
+            <Switch disabled={!connected} defaultChecked={connected && i < 2} />
+          </div>
+        ))}
+        <Button onClick={save} disabled={!connected}>
+          Save changes
+        </Button>
       </div>
     </div>
   );
-
 }
