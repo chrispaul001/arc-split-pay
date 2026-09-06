@@ -5,7 +5,7 @@ import { defineChain } from "viem";
 export const COINDECC_PAY_ADDRESS = "0xbD13692792b8356c142c93Ef5B114166e4Cd2Acd" as const;
 
 /** USDC token used by the CoindeccPay contract on Arc testnet. */
-export const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" as const;
+export const USDC_ADDRESS = "0x3600000000000000000000000000000000000000" as const;
 
 export const ARC_TESTNET = {
   chainIdDecimal: 5042002,
