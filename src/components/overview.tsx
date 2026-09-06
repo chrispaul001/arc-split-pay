@@ -142,23 +142,37 @@ export function Overview() {
               </Button>
             </div>
           )}
-          <ul className={`mt-4 space-y-2.5 ${isConnected ? "" : "hidden"}`}>
-            {activity.map((a, i) => (
-              <li
-                key={a.id}
-                style={{ animationDelay: `${120 + i * 60}ms` }}
-                className="group animate-rise grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-all hover:-translate-y-0.5 hover:bg-secondary/80"
-              >
+          {isConnected && (
+            <div className="animate-rise mt-4 space-y-2.5">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{a.label}</p>
+                  <p className="truncate text-sm font-medium">Connected wallet</p>
                   <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
-                    {a.id} · {a.parties} parties · {a.t}
+                    {address ? shortAddress(address) : "—"} · {chain?.name ?? "Arc Testnet"}
                   </p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-mint">{a.amount}</span>
-              </li>
-            ))}
-          </ul>
+                <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-mint">
+                  <span className="pulse-dot size-1.5 rounded-full bg-mint" /> Live
+                </span>
+              </div>
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">USDC balance</p>
+                  <p className="truncate text-[11px] break-words text-muted-foreground">
+                    Refreshes every 15s from Arc Testnet
+                  </p>
+                </div>
+                <span className="shrink-0 text-sm font-semibold text-mint tabular-nums">
+                  {formatted == null
+                    ? "—"
+                    : `${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`}
+                </span>
+              </div>
+              <p className="rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
+                Your checkouts, splits and streams will appear here as they settle on-chain.
+              </p>
+            </div>
+          )}
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
             <ShieldCheck className="size-4 shrink-0 text-primary" />
             All splits executed atomically on Arc.
