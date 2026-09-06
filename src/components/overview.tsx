@@ -4,23 +4,25 @@ import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck, Wallet } from "luc
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "./ui/button";
+import { useUsdc } from "@/lib/use-usdc";
+import { shortAddress } from "@/lib/web3";
 
 const metrics = [
   {
-    label: "Total Volume (USDC)",
+    label: "Wallet Balance (USDC)",
     value: "$2,481,930",
     zero: "$0.00",
-    delta: "+18.4%",
+    delta: "Live on Arc",
     icon: Coins,
     data: [12, 18, 15, 24, 22, 31, 29, 38, 44, 41, 52, 61],
   },
   {
     label: "Active Payment Streams",
-    value: "1,284",
+    value: "0",
     zero: "0",
-    delta: "+6.2%",
+    delta: "—",
     icon: Waves,
-    data: [30, 28, 33, 31, 36, 34, 40, 44, 42, 48, 47, 53],
+    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
   {
     label: "Instant Split Executions",
