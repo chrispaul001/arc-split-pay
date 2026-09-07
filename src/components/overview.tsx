@@ -7,44 +7,39 @@ import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
 import { shortAddress } from "@/lib/web3";
 
-const metrics = [
-  {
-    label: "Wallet Balance (USDC)",
-    value: "$2,481,930",
-    zero: "$0.00",
-    delta: "Live on Arc",
-    icon: Coins,
-    data: [12, 18, 15, 24, 22, 31, 29, 38, 44, 41, 52, 61],
-  },
-  {
-    label: "Active Payment Streams",
-    value: "0",
-    zero: "0",
-    delta: "—",
-    icon: Waves,
-    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  },
-  {
-    label: "Instant Split Executions",
-    value: "94,207",
-    zero: "0",
-    delta: "+41.9%",
-    icon: Split,
-    data: [8, 14, 11, 19, 26, 22, 34, 40, 37, 49, 58, 72],
-  },
-];
-
 const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 export function Overview() {
   const { isConnected, address, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { formatted } = useUsdc();
+  const { data } = useMerchantStore();
 
   const liveBalance =
     formatted == null
       ? "—"
       : `$${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+
+  const splitExecutions = data.notifications.filter((n) => n.kind === "split").length;
+  const activeStreams = data.streams.filter((s) => s.running).length;
+
+  const metrics = [
+    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins },
+    {
+      label: "Active Payment Streams",
+      value: String(activeStreams),
+      zero: "0",
+      delta: activeStreams ? "Streaming now" : "No streams",
+      icon: Waves,
+    },
+    {
+      label: "Instant Split Executions",
+      value: String(splitExecutions),
+      zero: "0",
+      delta: splitExecutions ? "Settled on Arc" : "None yet",
+      icon: Split,
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -61,8 +56,9 @@ export function Overview() {
                   {m.label}
                 </p>
                 <p className="mt-2 font-display text-3xl font-bold tabular-nums">
-                  {isConnected ? (i === 0 ? liveBalance : m.value) : m.zero}
+                  {isConnected ? m.value : m.zero}
                 </p>
+
               </div>
               <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary transition-transform duration-300 group-hover/metric:scale-110">
                 <m.icon className="size-5 animate-float" />
