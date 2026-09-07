@@ -55,6 +55,11 @@ export type MerchantData = {
   notifications: MerchantNotification[];
   businessName: string;
   settlementWallet: string;
+  webhookUrl: string;
+  defaultCurrency: string;
+  autoSplit: boolean;
+  emailReceipts: boolean;
+  sandboxMode: boolean;
   firstSeenAt: number;
 };
 
@@ -65,6 +70,11 @@ const EMPTY_DATA = (): MerchantData => ({
   notifications: [],
   businessName: "",
   settlementWallet: "",
+  webhookUrl: "",
+  defaultCurrency: "USDC",
+  autoSplit: true,
+  emailReceipts: true,
+  sandboxMode: false,
   firstSeenAt: Date.now(),
 });
 
