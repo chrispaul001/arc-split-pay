@@ -107,7 +107,7 @@ export function CheckoutPreview() {
           {state !== "done" ? (
             <div className="mt-4 space-y-2 text-sm">
               {[
-                ["Order", "order-8842"],
+                ["Order", "—"],
                 ["Network", "Arc Mainnet"],
                 ["Gas paid in", "USDC (zero-gas for buyer)"],
                 ["Settlement currency", `${c.code} → USDC`],
