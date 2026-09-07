@@ -76,7 +76,7 @@ export function Overview() {
                   No data yet
                 </span>
               )}
-              <Sparkline data={isConnected ? m.data : EMPTY} className="h-10 w-32" />
+              <Sparkline data={EMPTY} className="h-10 w-32" />
             </div>
           </div>
         ))}
@@ -94,7 +94,7 @@ export function Overview() {
           <Sparkline
             data={
               isConnected
-                ? [14, 22, 18, 30, 26, 42, 38, 55, 48, 66, 60, 79, 72, 91, 84, 104]
+                ? new Array(16).fill(0)
                 : new Array(16).fill(0)
             }
             className="mt-5 h-44 w-full"
