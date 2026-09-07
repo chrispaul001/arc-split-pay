@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,8 @@ import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
+import { randomId, useMerchantStore } from "@/lib/merchant-store";
+
 
 
 type Party = { id: number; name: string; address: string; bps: number };
@@ -27,14 +29,24 @@ let nextId = 4;
 export function SplitRouter() {
   const connected = useWalletGate();
   const { product, setImage } = useBrand();
+  const { address, update, notify } = useMerchantStore();
 
-  const [total, setTotal] = useState("1250");
+  const [total, setTotal] = useState("");
+  const [reference, setReference] = useState("");
+  const [linkName, setLinkName] = useState("");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [parties, setParties] = useState<Party[]>([
-    { id: 1, name: "Merchant treasury", address: "0x8fA2…4c19", bps: 7000 },
-    { id: 2, name: "Co-creator", address: "0x21Bd…9e07", bps: 2000 },
-    { id: 3, name: "Tax vault", address: "0xC730…11aa", bps: 1000 },
+    { id: 1, name: "", address: "", bps: 10000 },
+    { id: 2, name: "", address: "", bps: 0 },
   ]);
+
+  useEffect(() => {
+    if (address)
+      setParties((ps) =>
+        ps.map((p, i) => (i === 0 && !p.address ? { ...p, address, name: p.name || "Merchant treasury" } : p)),
+      );
+  }, [address]);
+
 
   const totalBps = parties.reduce((s, p) => s + p.bps, 0);
   const amount = Number(total) || 0;
@@ -121,8 +133,25 @@ export function SplitRouter() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="ref">Reference</Label>
-            <Input id="ref" defaultValue="order-8842" className="bg-background/40" />
+            <Input
+              id="ref"
+              value={reference}
+              placeholder="e.g. invoice number"
+              onChange={(e) => setReference(e.target.value)}
+              className="bg-background/40"
+            />
           </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="link-name">Link name</Label>
+            <Input
+              id="link-name"
+              value={linkName}
+              placeholder="What is this link for?"
+              onChange={(e) => setLinkName(e.target.value)}
+              className="bg-background/40"
+            />
+          </div>
+
         </div>
 
         <ImageUpload
@@ -268,14 +297,37 @@ export function SplitRouter() {
 
         <Button
           className="w-full"
-          disabled={!balanced}
+          disabled={!balanced || amount <= 0 || !linkName.trim()}
           onClick={() => {
+            const saved = {
+              id: randomId(),
+              name: linkName.trim(),
+              reference: reference.trim(),
+              amount,
+              currency,
+              parties: parties.map(({ name, address, bps }) => ({ name, address, bps })),
+              url: link,
+              status: "Active" as const,
+              createdAt: Date.now(),
+            };
+            update((p) => ({ ...p, links: [saved, ...p.links] }));
+            notify({
+              kind: "split",
+              title: "Payment link published",
+              body: `${saved.name} · ${amount} USDC across ${parties.length} recipients.`,
+            });
             navigator.clipboard?.writeText(link);
-            toast.success("Payment link copied", { description: "Ready to share with your customer." });
+            toast.success("Payment link published", {
+              description: "Saved to this wallet and copied to your clipboard.",
+            });
+            setLinkName("");
+            setReference("");
+            setTotal("");
           }}
         >
-          <Copy className="size-4" /> Copy payment link
+          <Copy className="size-4" /> Publish &amp; copy link
         </Button>
+
       </div>
     </div>
   );
