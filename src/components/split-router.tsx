@@ -310,7 +310,7 @@ export function SplitRouter() {
               status: "Active" as const,
               createdAt: Date.now(),
             };
-            update((p) => ({ ...p, links: [saved, ...p.links] }));
+            saveMerchant((p) => ({ ...p, links: [saved, ...p.links] }));
             notify({
               kind: "split",
               title: "Payment link published",
