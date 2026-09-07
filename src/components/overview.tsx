@@ -102,9 +102,9 @@ export function Overview() {
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             {[
-              { k: "Avg settle", v: isConnected ? "0.42s" : "—" },
+              { k: "Avg settle", v: "—" },
               { k: "Gas token", v: "USDC" },
-              { k: "Success rate", v: isConnected ? "99.98%" : "—" },
+              { k: "Success rate", v: "—" },
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">
                 <p className="text-[11px] break-words text-muted-foreground">{s.k}</p>
