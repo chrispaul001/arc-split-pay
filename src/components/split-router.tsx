@@ -29,7 +29,7 @@ let nextId = 4;
 export function SplitRouter() {
   const connected = useWalletGate();
   const { product, setImage } = useBrand();
-  const { address, update, notify } = useMerchantStore();
+  const { address, update: saveMerchant, notify } = useMerchantStore();
 
   const [total, setTotal] = useState("");
   const [reference, setReference] = useState("");
