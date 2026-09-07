@@ -6,6 +6,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
 import { shortAddress } from "@/lib/web3";
+import { useMerchantStore } from "@/lib/merchant-store";
 
 const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
