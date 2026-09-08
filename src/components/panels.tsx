@@ -209,20 +209,47 @@ export function ApiKeys() {
   );
 }
 
+const ETH_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
+
 export function SettingsView() {
   const connected = useWalletGate();
   const { businessName, settlementWallet, setProfile } = useBrand();
-  const { data, ready, update } = useMerchantStore();
+  const { data, ready, update, address } = useMerchantStore();
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
+  const [webhook, setWebhook] = useState("");
+  const [currency, setCurrency] = useState("USDC");
+  const [autoSplit, setAutoSplit] = useState(true);
+  const [emailReceipts, setEmailReceipts] = useState(true);
+  const [sandbox, setSandbox] = useState(false);
+  const [walletError, setWalletError] = useState("");
 
   // hydrate from the wallet-scoped profile, falling back to the global brand
   useEffect(() => {
     if (!connected || !ready) return;
     setName(data.businessName || businessName);
     setWallet(data.settlementWallet || settlementWallet);
+    setWebhook(data.webhookUrl);
+    setCurrency(data.defaultCurrency || "USDC");
+    setAutoSplit(data.autoSplit);
+    setEmailReceipts(data.emailReceipts);
+    setSandbox(data.sandboxMode);
     if (data.businessName) setProfile({ businessName: data.businessName });
-  }, [connected, ready, data.businessName, data.settlementWallet]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [connected, ready, data.businessName, data.settlementWallet, data.webhookUrl,
+      data.defaultCurrency, data.autoSplit, data.emailReceipts, data.sandboxMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const useConnectedWallet = () => {
+    if (!address) return;
+    setWallet(address);
+    setWalletError("");
+    toast.success("Settlement wallet set to connected wallet");
+  };
+
+  const onWalletChange = (v: string) => {
+    setWallet(v);
+    const t = v.trim();
+    setWalletError(t && !ETH_ADDRESS_RE.test(t) ? "Enter a valid 0x address (42 characters)." : "");
+  };
 
   const save = () => {
     if (!connected) return;
@@ -232,14 +259,45 @@ export function SettingsView() {
       return;
     }
     const w = wallet.trim();
+    if (w && !ETH_ADDRESS_RE.test(w)) {
+      setWalletError("Enter a valid 0x address (42 characters).");
+      toast.error("Invalid settlement wallet address");
+      return;
+    }
+    const wh = webhook.trim();
+    if (wh && !/^https?:\/\/.+/i.test(wh)) {
+      toast.error("Webhook URL must start with http:// or https://");
+      return;
+    }
     setProfile({ businessName: trimmed, settlementWallet: w });
-    update((p) => ({ ...p, businessName: trimmed, settlementWallet: w }));
+    update((p) => ({
+      ...p,
+      businessName: trimmed,
+      settlementWallet: w,
+      webhookUrl: wh,
+      defaultCurrency: currency,
+      autoSplit,
+      emailReceipts,
+      sandboxMode: sandbox,
+    }));
     toast.success("Settings saved", { description: `Business name updated to ${trimmed}.` });
   };
 
+  const toggles: [string, string, boolean, (v: boolean) => void][] = [
+    ["Auto-split on receipt", "Execute the router the moment funds land.", autoSplit, setAutoSplit],
+    ["Email receipts", "Send a branded receipt to every payer.", emailReceipts, setEmailReceipts],
+    ["Sandbox mode", "Route all traffic to the Arc testnet.", sandbox, setSandbox],
+  ];
+
   return (
     <div className="glass animate-rise w-full max-w-2xl space-y-5 rounded-3xl px-4 py-5 sm:px-5">
-      <h3 className="text-lg font-semibold">Settings</h3>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-lg font-semibold">Settings</h3>
+        <span className="inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1.5 text-[11px] font-semibold text-mint">
+          <span className="pulse-dot size-1.5 rounded-full bg-mint" />
+          Connected to Arc Testnet · Chain ID: 5042002
+        </span>
+      </div>
       {!connected && (
         <GuestBanner message="Connect your wallet to edit and save your merchant settings." />
       )}
@@ -257,20 +315,64 @@ export function SettingsView() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="settle">Settlement wallet</Label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="settle"
+              value={connected ? wallet : ""}
+              placeholder="0x…"
+              disabled={!connected}
+              onChange={(e) => onWalletChange(e.target.value)}
+              className={`bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50 ${walletError ? "border-destructive" : ""}`}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!connected || !address}
+              onClick={useConnectedWallet}
+              className="shrink-0"
+            >
+              <Link2 className="size-4" /> Use connected wallet
+            </Button>
+          </div>
+          {walletError ? (
+            <p className="text-xs text-destructive">{walletError}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Where settled funds are sent. Must be a valid Ethereum-compatible address.
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="webhook">Webhook URL</Label>
           <Input
-            id="settle"
-            value={connected ? wallet : ""}
-            placeholder="0x…"
+            id="webhook"
+            type="url"
+            value={connected ? webhook : ""}
+            placeholder="https://your-server.com/webhooks/coindecc"
             disabled={!connected}
-            onChange={(e) => setWallet(e.target.value)}
+            onChange={(e) => setWebhook(e.target.value)}
             className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
           />
+          <p className="text-xs text-muted-foreground">
+            Receive server-to-server POST notifications for payment events.
+          </p>
         </div>
-        {[
-          ["Auto-split on receipt", "Execute the router the moment funds land."],
-          ["Email receipts", "Send a branded receipt to every payer."],
-          ["Sandbox mode", "Route all traffic to the Arc testnet."],
-        ].map(([t, d], i) => (
+        <div className="space-y-2">
+          <Label htmlFor="currency">Default currency</Label>
+          <select
+            id="currency"
+            value={currency}
+            disabled={!connected}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="w-full appearance-none rounded-xl border border-input bg-background/40 px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+          >
+            {["USDC", "USDT"].map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">Primary currency for settlements.</p>
+        </div>
+        {toggles.map(([t, d, v, set]) => (
           <div
             key={t}
             className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full min-w-0 rounded-2xl bg-secondary/50 p-4"
@@ -279,7 +381,7 @@ export function SettingsView() {
               <p className="truncate font-medium">{t}</p>
               <p className="text-xs break-words text-muted-foreground">{d}</p>
             </div>
-            <Switch disabled={!connected} defaultChecked={connected && i < 2} />
+            <Switch disabled={!connected} checked={connected ? v : false} onCheckedChange={set} />
           </div>
         ))}
         <Button onClick={save} disabled={!connected}>
