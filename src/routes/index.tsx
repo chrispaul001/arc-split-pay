@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Bell,
@@ -201,6 +202,7 @@ function DashboardShell() {
           </header>
 
            <div key={view} className="animate-rise w-full min-w-0 max-w-[100vw] overflow-x-hidden">
+          <ErrorBoundary resetKey={view}>
           {view === "overview" && (
             <div className="space-y-6">
               <Overview />
@@ -221,6 +223,7 @@ function DashboardShell() {
           {view === "streams" && <Streams />}
           {view === "keys" && <ApiKeys />}
           {view === "settings" && <SettingsView />}
+          </ErrorBoundary>
           </div>
         </main>
       </div>
