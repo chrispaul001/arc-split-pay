@@ -71,6 +71,29 @@ export function SplitRouter() {
       return ps.map((p, i) => ({ ...p, bps: i === 0 ? 10000 - even * (ps.length - 1) : even }));
     });
 
+  const clampBps = (n: number) => (Number.isFinite(n) ? Math.max(0, Math.min(10000, Math.round(n))) : 0);
+
+  const setPct = (id: number, raw: string) => {
+    const n = parseFloat(raw.replace(/[^\d.]/g, ""));
+    update(id, { bps: clampBps((Number.isFinite(n) ? n : 0) * 100) });
+  };
+
+  const maxRemainder = () =>
+    setParties((ps) => {
+      const last = ps[ps.length - 1];
+      if (!last) return ps;
+      const others = ps.slice(0, -1).reduce((s, p) => s + p.bps, 0);
+      if (others <= 10000) return ps.map((p) => (p.id === last.id ? { ...p, bps: 10000 - others } : p));
+      // others exceed total: scale them down proportionally, last gets 0
+      let acc = 0;
+      return ps.map((p, i) => {
+        if (p.id === last.id) return { ...p, bps: 0 };
+        const v = i === ps.length - 2 ? 10000 - acc : Math.floor((p.bps / others) * 10000);
+        acc += v;
+        return { ...p, bps: v };
+      });
+    });
+
   const applyPreset = (bps: number[]) =>
     setParties((ps) => {
       const base = ps.slice(0, bps.length);
@@ -180,7 +203,18 @@ export function SplitRouter() {
                     />
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                    <span className="font-display text-sm font-bold tabular-nums">{pct.toFixed(2)}%</span>
+                    <div className="flex items-center rounded-lg bg-background/50 px-2 py-1 focus-within:ring-2 focus-within:ring-ring">
+                      <input
+                        key={`pct-${p.bps}`}
+                        defaultValue={pct.toFixed(2).replace(/\.?0+$/, "")}
+                        inputMode="decimal"
+                        aria-label={`Percentage for recipient ${i + 1}`}
+                        onBlur={(e) => setPct(p.id, e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+                        className="w-14 bg-transparent text-right font-display text-sm font-bold tabular-nums outline-none"
+                      />
+                      <span className="font-display text-sm font-bold">%</span>
+                    </div>
                     {parties.length > 2 && (
                       <button
                         onClick={() => setParties((ps) => ps.filter((x) => x.id !== p.id))}
@@ -211,9 +245,19 @@ export function SplitRouter() {
                     step={25}
                     onValueChange={([v]) => update(p.id, { bps: v ?? 0 })}
                   />
-                  <span className="shrink-0 rounded-full bg-background/50 px-2 py-1 font-mono text-[11px] tabular-nums">
-                    {p.bps} bps
-                  </span>
+                  <label className="flex shrink-0 items-center gap-1 rounded-full bg-background/50 px-2 py-1 font-mono text-[11px] tabular-nums focus-within:ring-2 focus-within:ring-ring">
+                    <input
+                      type="number"
+                      min={0}
+                      max={10000}
+                      step={1}
+                      value={p.bps}
+                      aria-label={`Basis points for recipient ${i + 1}`}
+                      onChange={(e) => update(p.id, { bps: clampBps(Number(e.target.value)) })}
+                      className="w-14 bg-transparent text-right outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    bps
+                  </label>
                 </div>
 
                 <p className="mt-2 text-xs break-words text-muted-foreground">
@@ -259,14 +303,31 @@ export function SplitRouter() {
         </div>
 
         <div
-          className={`rounded-2xl px-3 py-2 text-xs font-medium ${
-            balanced ? "bg-mint/15 text-mint" : "bg-destructive/15 text-destructive"
+          className={`rounded-2xl px-3 py-2 text-xs font-medium tabular-nums transition-colors ${
+            balanced
+              ? "bg-mint/15 text-mint"
+              : totalBps > 10000
+                ? "bg-destructive/15 text-destructive"
+                : "bg-electric/15 text-electric"
           }`}
         >
           {balanced
-            ? "Balanced · 10,000 bps allocated"
-            : `${totalBps.toLocaleString()} / 10,000 bps — adjust to publish`}
+            ? "Balanced · 10,000 / 10,000 bps allocated"
+            : totalBps > 10000
+              ? `Over by ${(totalBps - 10000).toLocaleString()} bps · ${totalBps.toLocaleString()} / 10,000`
+              : `Under by ${(10000 - totalBps).toLocaleString()} bps · ${totalBps.toLocaleString()} / 10,000`}
         </div>
+
+        {!balanced && (
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" size="sm" onClick={rebalance}>
+              Balance evenly
+            </Button>
+            <Button variant="secondary" size="sm" onClick={maxRemainder}>
+              {totalBps > 10000 ? "Trim last" : "Remainder → last"}
+            </Button>
+          </div>
+        )}
 
         <ul className="space-y-2">
           {parties.map((p, i) => (
