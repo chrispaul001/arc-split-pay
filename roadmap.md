@@ -1,0 +1,3 @@
+- [x] Constrain Overview and dashboard wrappers to phone width without horizontal overflow.
+- [x] Let settlement headings wrap cleanly on small screens.
+- [x] Remove zero-value metric pills and verify the mobile Overview.

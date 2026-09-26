@@ -36,14 +36,16 @@ export function Overview() {
       zero: "$0.00",
       delta: t ? `${t.payers} payers on-chain` : "Syncing Arc logs",
       icon: Zap,
+      hasValue: Boolean(t && t.volume > 0),
     },
-    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins },
+    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0 },
     {
       label: "Active Payment Streams",
       value: String(activeStreams),
       zero: "0",
       delta: activeStreams ? "Streaming now" : "No streams",
       icon: Waves,
+      hasValue: activeStreams > 0,
     },
     {
       label: "Instant Split Executions",
@@ -51,16 +53,17 @@ export function Overview() {
       zero: "0",
       delta: splitExecutions ? "Settled on Arc" : "None yet",
       icon: Split,
+      hasValue: splitExecutions > 0,
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-[100vw] space-y-6 overflow-x-hidden">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((m, i) => (
           <div
             key={m.label}
-            className="glass animate-rise group/metric w-full max-w-full rounded-3xl px-4 py-5 sm:px-5"
+             className="glass animate-rise group/metric w-full min-w-0 max-w-[100vw] overflow-x-hidden rounded-3xl px-4 py-5 sm:px-5"
             style={{ animationDelay: `${i * 70}ms` }}
           >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -77,28 +80,26 @@ export function Overview() {
                 <m.icon className="size-5 animate-float" />
               </div>
             </div>
-            <div className="mt-4 flex items-end justify-between gap-4">
-              {isConnected ? (
+            <div className="mt-4 flex min-w-0 items-end justify-between gap-3">
+              {isConnected && m.hasValue ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-xs font-semibold text-mint">
                   <ArrowUpRight className="size-3.5" />
                   {m.delta}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-                  No data yet
-                </span>
+                <span aria-hidden="true" />
               )}
-              <Sparkline data={EMPTY} className="h-10 w-32" />
+              <Sparkline data={EMPTY} className="h-10 w-32 max-w-[45%] shrink-0" />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+       <div className="grid min-w-0 gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Reveal>
-        <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-            <h3 className="truncate text-lg font-semibold">Settlement flow · last 24h</h3>
+         <div className="glass animate-rise w-full min-w-0 max-w-[100vw] overflow-x-hidden rounded-3xl px-4 py-5 sm:px-5">
+           <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+             <h3 className="min-w-0 text-base leading-snug font-semibold wrap-break-word sm:text-lg">Settlement flow · last 24h</h3>
             <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] break-words text-muted-foreground">
               Arc · sub-second
             </span>
@@ -124,7 +125,7 @@ export function Overview() {
         </Reveal>
 
         <Reveal delay={90}>
-        <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
+         <div className="glass animate-rise w-full min-w-0 max-w-[100vw] overflow-x-hidden rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Live activity</h3>
           {!isConnected && (
             <div className="mt-4 grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-8 text-center">
