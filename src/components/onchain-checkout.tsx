@@ -11,6 +11,7 @@ import { useUsdc } from "@/lib/use-usdc";
 import {
   COINDECC_PAY_ABI,
   COINDECC_PAY_ADDRESS,
+  DEFAULT_SPLIT_ID,
   ERC20_ABI,
   USDC_ADDRESS,
   arcTestnet,
@@ -143,7 +144,7 @@ export function OnchainCheckout() {
           address: COINDECC_PAY_ADDRESS,
           abi: COINDECC_PAY_ABI,
           functionName: "pay",
-          args: [value],
+          args: [DEFAULT_SPLIT_ID, value],
           chainId: arcTestnet.id,
         });
         setPay({ status: "pending", hash });

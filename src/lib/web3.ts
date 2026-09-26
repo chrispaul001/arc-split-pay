@@ -71,13 +71,39 @@ export const ERC20_ABI = [
   },
 ] as const;
 
+/** Active split configured on-chain by the contract owner (50/50 split). */
+export const DEFAULT_SPLIT_ID =
+  "0x0000000000000000000000000000000000000000000000000000000000000001" as const;
+
+// Verified ABI (Arcscan): pay(bytes32 splitId, uint256 amount)
 export const COINDECC_PAY_ABI = [
   {
     type: "function",
     name: "pay",
     stateMutability: "nonpayable",
-    inputs: [{ name: "amount", type: "uint256" }],
+    inputs: [
+      { name: "splitId", type: "bytes32" },
+      { name: "amount", type: "uint256" },
+    ],
     outputs: [],
+  },
+  {
+    type: "function",
+    name: "getSplit",
+    stateMutability: "view",
+    inputs: [{ name: "splitId", type: "bytes32" }],
+    outputs: [
+      { name: "recipients", type: "address[]" },
+      { name: "sharesBps", type: "uint16[]" },
+      { name: "active", type: "bool" },
+    ],
+  },
+  {
+    type: "function",
+    name: "paused",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "bool" }],
   },
 ] as const;
 
