@@ -172,8 +172,8 @@
   html {
     color-scheme: light;
     width: 100%;
-    max-width: 100%;
-    overflow-x: clip;
+    max-width: 100vw;
+    overflow-x: hidden;
     scroll-behavior: smooth;
   }
 
@@ -183,9 +183,9 @@
 
   body {
     width: 100%;
-    max-width: 100%;
+    max-width: 100vw;
     min-height: 100vh;
-    overflow-x: clip;
+    overflow-x: hidden;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -387,6 +387,7 @@
 }
 
 @layer base {
-  #root, main, .glass { max-width: 100%; }
-  main { overflow-x: clip; }
+  #root { width: 100%; max-width: 100vw; overflow-x: hidden; }
+  main, .glass { max-width: 100vw; }
+  main { overflow-x: hidden; }
 }
