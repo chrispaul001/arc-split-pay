@@ -7,13 +7,13 @@ type Props = { children: ReactNode; resetKey?: unknown };
 type State = { error: Error | null };
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  override state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  override componentDidCatch(error: Error, info: ErrorInfo) {
     console.error(error, info.componentStack);
     try {
       reportLovableError(error, { boundary: "dashboard_view" });
@@ -22,11 +22,11 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prev: Props) {
+  override componentDidUpdate(prev: Props) {
     if (this.state.error && prev.resetKey !== this.props.resetKey) this.setState({ error: null });
   }
 
-  render() {
+  override render() {
     if (!this.state.error) return this.props.children;
     return (
       <div className="glass grid place-items-center gap-3 rounded-3xl px-4 py-10 text-center">
