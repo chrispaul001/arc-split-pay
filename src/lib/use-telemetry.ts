@@ -73,7 +73,8 @@ export function useTelemetry() {
       for (const e of events) {
         const age = now - e.timestamp;
         if (age < 0 || age >= 24 * 3600 * 1000) continue;
-        buckets[15 - Math.floor(age / bucketMs)] += e.amount;
+        const i = 15 - Math.floor(age / bucketMs);
+        buckets[i] = (buckets[i] ?? 0) + e.amount;
       }
 
       return {
