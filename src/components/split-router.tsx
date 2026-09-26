@@ -121,8 +121,14 @@ export function SplitRouter() {
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <CurrencySelect value={currency} onChange={setCurrency} />
-            <Button variant="secondary" size="sm" onClick={rebalance}>
-              Even
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={rebalance}
+              title="Divides the split equally across all recipients"
+              aria-label="Split evenly across all recipients"
+            >
+              Split Evenly
             </Button>
           </div>
         </div>
@@ -196,11 +202,12 @@ export function SplitRouter() {
                       className="size-2.5 shrink-0 rounded-full"
                       style={{ background: PALETTE[i % PALETTE.length] }}
                     />
-                    <input
-                      value={p.name}
-                      onChange={(e) => update(p.id, { name: e.target.value })}
-                      className="w-full min-w-0 bg-transparent text-sm font-semibold outline-none"
-                    />
+                      <input
+                        value={p.name}
+                        placeholder="Recipient name or role, e.g. Creator / Treasury"
+                        onChange={(e) => update(p.id, { name: e.target.value })}
+                        className="w-full min-w-0 bg-transparent text-sm font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground/70"
+                      />
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                     <div className="flex items-center rounded-lg bg-background/50 px-2 py-1 focus-within:ring-2 focus-within:ring-ring">
