@@ -36,14 +36,16 @@ export function Overview() {
       zero: "$0.00",
       delta: t ? `${t.payers} payers on-chain` : "Syncing Arc logs",
       icon: Zap,
+      hasValue: Boolean(t && t.volume > 0),
     },
-    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins },
+    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0 },
     {
       label: "Active Payment Streams",
       value: String(activeStreams),
       zero: "0",
       delta: activeStreams ? "Streaming now" : "No streams",
       icon: Waves,
+      hasValue: activeStreams > 0,
     },
     {
       label: "Instant Split Executions",
@@ -51,6 +53,7 @@ export function Overview() {
       zero: "0",
       delta: splitExecutions ? "Settled on Arc" : "None yet",
       icon: Split,
+      hasValue: splitExecutions > 0,
     },
   ];
 
@@ -78,7 +81,7 @@ export function Overview() {
               </div>
             </div>
             <div className="mt-4 flex min-w-0 items-end justify-between gap-3">
-              {isConnected && m.value !== m.zero && m.value !== "—" && m.value !== "…" ? (
+              {isConnected && m.hasValue ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-xs font-semibold text-mint">
                   <ArrowUpRight className="size-3.5" />
                   {m.delta}
