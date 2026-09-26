@@ -5,7 +5,9 @@ import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { shortAddress } from "@/lib/web3";
+import { explorerTx, shortAddress } from "@/lib/web3";
+import { useTelemetry } from "@/lib/use-telemetry";
+import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
 
 const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -21,10 +23,20 @@ export function Overview() {
       ? "—"
       : `$${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
-  const splitExecutions = data.notifications.filter((n) => n.kind === "split").length;
+  const tele = useTelemetry();
+  const t = tele.data;
+  const fmt = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  const splitExecutions = t ? t.events.length : data.notifications.filter((n) => n.kind === "split").length;
   const activeStreams = data.streams.filter((s) => s.running).length;
 
   const metrics = [
+    {
+      label: "Contract Volume (USDC)",
+      value: t ? fmt(t.volume) : tele.isLoading ? "…" : "—",
+      zero: "$0.00",
+      delta: t ? `${t.payers} payers on-chain` : "Syncing Arc logs",
+      icon: Zap,
+    },
     { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins },
     {
       label: "Active Payment Streams",
@@ -44,7 +56,7 @@ export function Overview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((m, i) => (
           <div
             key={m.label}
@@ -92,19 +104,15 @@ export function Overview() {
             </span>
           </div>
           <Sparkline
-            data={
-              isConnected
-                ? new Array(16).fill(0)
-                : new Array(16).fill(0)
-            }
+            data={isConnected && t ? t.buckets : new Array(16).fill(0)}
             className="mt-5 h-44 w-full"
             filled
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             {[
-              { k: "Avg settle", v: "—" },
-              { k: "Gas token", v: "USDC" },
-              { k: "Success rate", v: "—" },
+              { k: "Avg settle", v: t ? `${t.blockTime.toFixed(2)}s` : "…" },
+              { k: "Payments", v: t ? String(t.events.length) : "…" },
+              { k: "Avg ticket", v: t && t.events.length ? fmt(t.volume / t.events.length) : "—" },
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">
                 <p className="text-[11px] break-words text-muted-foreground">{s.k}</p>
@@ -158,9 +166,31 @@ export function Overview() {
                     : `${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`}
                 </span>
               </div>
-              <p className="rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
-                Your checkouts, splits and streams will appear here as they settle on-chain.
-              </p>
+              {t && t.events.length > 0 ? (
+                t.events.slice(0, 6).map((e) => (
+                  <a
+                    key={e.hash + e.from}
+                    href={explorerTx(e.hash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-colors hover:bg-secondary/80"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">pay() from {shortAddress(e.from)}</p>
+                      <p className="truncate font-mono text-[11px] text-muted-foreground">
+                        {shortAddress(e.hash)} · {timeAgo(e.timestamp)}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold text-mint tabular-nums">
+                      +{e.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </span>
+                  </a>
+                ))
+              ) : (
+                <p className="rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
+                  {tele.isLoading ? "Reading contract events from Arc…" : "No pay() events found on the CoindeccPay contract yet."}
+                </p>
+              )}
             </div>
           )}
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">

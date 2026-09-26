@@ -19,7 +19,7 @@ function EmptyCard({ title, hint, action }: { title: string; hint: string; actio
   );
 }
 
-export function PaymentLinks() {
+export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
   const connected = useWalletGate();
   const { data, update, notify } = useMerchantStore();
 
@@ -35,11 +35,7 @@ export function PaymentLinks() {
         <Button
           size="sm"
           className="shrink-0"
-          onClick={() =>
-            toast("Use the Split-Router tab", {
-              description: "Build and publish a link there — it saves to this wallet.",
-            })
-          }
+          onClick={() => onNewLink?.()}
         >
           <Plus className="size-4" /> New link
         </Button>
@@ -70,23 +66,23 @@ export function PaymentLinks() {
                 <span className="font-display text-sm font-bold tabular-nums">
                   {l.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </span>
-                <button
-                  onClick={() =>
-                    update((p) => ({
-                      ...p,
-                      links: p.links.map((x) =>
-                        x.id === l.id
-                          ? { ...x, status: x.status === "Active" ? "Paused" : "Active" }
-                          : x,
-                      ),
-                    }))
-                  }
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    l.status === "Active" ? "bg-mint/15 text-mint" : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {l.status}
-                </button>
+                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-background/50 py-1 pr-2.5 pl-1.5">
+                  <Switch
+                    checked={l.status === "Active"}
+                    aria-label={`Toggle ${l.name} status`}
+                    onCheckedChange={(on) =>
+                      update((p) => ({
+                        ...p,
+                        links: p.links.map((x) =>
+                          x.id === l.id ? { ...x, status: on ? "Active" : "Paused" } : x,
+                        ),
+                      }))
+                    }
+                  />
+                  <span className={`text-[11px] font-semibold ${l.status === "Active" ? "text-mint" : "text-muted-foreground"}`}>
+                    {l.status}
+                  </span>
+                </label>
                 <button
                   aria-label="Copy link"
                   onClick={() => {

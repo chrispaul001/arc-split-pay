@@ -173,8 +173,7 @@
     color-scheme: light;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow-x: clip;
     scroll-behavior: smooth;
   }
 
@@ -186,7 +185,7 @@
     width: 100%;
     max-width: 100%;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -385,4 +384,9 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+@layer base {
+  #root, main, .glass { max-width: 100%; }
+  main { overflow-x: clip; }
 }

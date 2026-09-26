@@ -12,6 +12,7 @@ import {
   Settings,
   Split,
   Sun,
+  Wallet,
   X,
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
@@ -58,6 +59,7 @@ const NAV = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "links", label: "Payment Links", icon: CreditCard },
   { key: "split", label: "Split Router", icon: Split },
+  { key: "checkout", label: "Checkout", icon: Wallet },
   { key: "streams", label: "Streams", icon: Radio },
   { key: "keys", label: "API Keys", icon: KeyRound },
   { key: "settings", label: "Settings", icon: Settings },
@@ -128,7 +130,7 @@ function DashboardShell() {
   );
 
   return (
-    <div className="app-gradient flex min-h-screen w-full max-w-full flex-col overflow-x-hidden">
+    <div className="app-gradient flex min-h-screen w-full max-w-full flex-col overflow-x-clip">
       <div className="mx-auto flex w-full max-w-[1400px] flex-1 gap-6 px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Sidebar — desktop */}
@@ -155,7 +157,7 @@ function DashboardShell() {
           </div>
         )}
 
-        <main className="min-w-0 w-full max-w-full flex-1 space-y-6 overflow-x-hidden">
+        <main className="min-w-0 w-full max-w-full flex-1 space-y-6 overflow-x-clip">
           <header className="glass grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl px-4 py-3 sm:px-6 sm:py-4">
 
             <div className="flex min-w-0 items-center gap-3">
@@ -202,6 +204,10 @@ function DashboardShell() {
           {view === "overview" && (
             <div className="space-y-6">
               <Overview />
+            </div>
+          )}
+          {view === "checkout" && (
+            <div className="space-y-6">
               <Reveal>
                 <OnchainCheckout />
               </Reveal>
@@ -210,7 +216,7 @@ function DashboardShell() {
               </Reveal>
             </div>
           )}
-          {view === "links" && <PaymentLinks />}
+          {view === "links" && <PaymentLinks onNewLink={() => setView("split")} />}
           {view === "split" && <SplitRouter />}
           {view === "streams" && <Streams />}
           {view === "keys" && <ApiKeys />}
