@@ -158,13 +158,17 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
           <DropdownMenuItem className="gap-2 rounded-xl transition-transform duration-200 focus:translate-x-0.5" onSelect={onOpenSettings}>
             <Settings className="size-4" /> Account settings
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="gap-2 rounded-xl text-destructive focus:text-destructive"
-            onSelect={signOut}
-          >
-            <LogOut className="size-4" /> {isConnected ? "Disconnect wallet" : "Sign out"}
-          </DropdownMenuItem>
+          {isConnected && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="gap-2 rounded-xl text-destructive focus:text-destructive"
+                onSelect={signOut}
+              >
+                <LogOut className="size-4" /> Disconnect wallet
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
