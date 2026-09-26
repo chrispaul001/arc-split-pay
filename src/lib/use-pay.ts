@@ -2,7 +2,7 @@ import { useState } from "react";
 import { parseUnits } from "viem";
 import { useAccount, useConfig, useSwitchChain, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
-import { COINDECC_PAY_ABI, COINDECC_PAY_ADDRESS, ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
+import { COINDECC_PAY_ABI, COINDECC_PAY_ADDRESS, DEFAULT_SPLIT_ID, ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 import type { TxStatus } from "@/components/tx-progress";
 
 export type StepState = { status: TxStatus; hash?: string; error?: string };
@@ -30,7 +30,7 @@ export function usePay() {
   };
 
   /** Resolves to the pay tx hash; throws on failure. */
-  const execute = async (amount: string): Promise<`0x${string}`> => {
+  const execute = async (amount: string, splitId: `0x${string}` = DEFAULT_SPLIT_ID): Promise<`0x${string}`> => {
     if (!address) throw new Error("Connect a wallet first");
     if (wrongNetwork) await switchChainAsync({ chainId: arcTestnet.id });
     const n = Number(amount);
@@ -74,9 +74,18 @@ export function usePay() {
 
       setPay({ status: "wallet" });
       try {
+        const [, , active] = (await readContract(config, {
+          address: COINDECC_PAY_ADDRESS, abi: COINDECC_PAY_ABI, functionName: "getSplit",
+          args: [splitId], chainId: arcTestnet.id,
+        })) as readonly [readonly string[], readonly number[], boolean];
+        if (!active) throw new Error("This split is not active on the contract");
+        const paused = await readContract(config, {
+          address: COINDECC_PAY_ADDRESS, abi: COINDECC_PAY_ABI, functionName: "paused", chainId: arcTestnet.id,
+        });
+        if (paused) throw new Error("Payments are paused on the contract");
         const hash = await writeContractAsync({
           address: COINDECC_PAY_ADDRESS, abi: COINDECC_PAY_ABI, functionName: "pay",
-          args: [value], chainId: arcTestnet.id,
+          args: [splitId, value], chainId: arcTestnet.id,
         });
         setPay({ status: "pending", hash });
         const r = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
