@@ -11,7 +11,6 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { errMessage, usePay } from "@/lib/use-pay";
 import { TxProgress } from "@/components/tx-progress";
 
-const AMOUNT = 1250;
 
 const SPLIT = [
   { name: "Merchant treasury", address: "0x8fA2…4c19", bps: 7000 },
@@ -23,13 +22,16 @@ export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [copied, setCopied] = useState(false);
+  const [amountInput, setAmountInput] = useState("10");
+  const parsedAmount = Number(amountInput);
+  const AMOUNT = Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0;
   const { openConnectModal } = useConnectModal();
   const { logo, product, setImage, businessName } = useBrand();
   const c = getCurrency(currency);
 
   const SNIPPET = `<script src="https://cdn.coindecc.xyz/pay.js"></script>
 <div data-coindecc-pay
-     data-amount="1250"
+     data-amount="${AMOUNT}"
      data-display="${currency}"
      data-network="arc"
      data-split="7000-2000-1000">
@@ -50,6 +52,10 @@ export function CheckoutPreview() {
   const pay = async () => {
     if (!payFlow.isConnected) {
       openConnectModal?.();
+      return;
+    }
+    if (AMOUNT <= 0) {
+      toast.error("Enter a valid amount");
       return;
     }
     setState("paying");
@@ -73,6 +79,22 @@ export function CheckoutPreview() {
 
         <div className="mt-4">
           <CurrencyPills value={currency} onChange={setCurrency} />
+        </div>
+
+        <div className="mt-4 space-y-1.5">
+          <label htmlFor="widget-amount" className="text-xs font-medium">Amount (USDC)</label>
+          <input
+            id="widget-amount"
+            inputMode="decimal"
+            value={amountInput}
+            onChange={(e) => {
+              setAmountInput(e.target.value.replace(/[^0-9.]/g, ""));
+              if (state === "done") setState("idle");
+            }}
+            placeholder="0.00"
+            className="w-full rounded-xl border border-input bg-background/60 px-3 py-2 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          <p className="text-[11px] text-muted-foreground">Set any test amount that fits your wallet balance.</p>
         </div>
 
         <div className="mt-4">
@@ -197,7 +219,7 @@ export function CheckoutPreview() {
           <Button
             className="mt-5 w-full transition-transform active:scale-[0.98]"
             size="lg"
-            disabled={state === "paying"}
+            disabled={state === "paying" || AMOUNT <= 0}
             onClick={() => void pay()}
           >
             {state === "idle" && (
