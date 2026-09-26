@@ -4,9 +4,12 @@ import { CurrencyPills } from "@/components/currency-select";
 import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
-import { Check, Copy, Fuel, Loader2, Lock, RotateCcw, Timer, Wallet, Zap } from "lucide-react";
+import { Check, Copy, Fuel, Loader2, Lock, Timer, Wallet, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Reveal } from "@/components/reveal";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { errMessage, usePay } from "@/lib/use-pay";
+import { TxProgress } from "@/components/tx-progress";
 
 const AMOUNT = 1250;
 
@@ -20,6 +23,7 @@ export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [copied, setCopied] = useState(false);
+  const { openConnectModal } = useConnectModal();
   const { logo, product, setImage, businessName } = useBrand();
   const c = getCurrency(currency);
 
@@ -42,9 +46,21 @@ export function CheckoutPreview() {
     }
   };
 
-  const pay = () => {
+  const payFlow = usePay();
+  const pay = async () => {
+    if (!payFlow.isConnected) {
+      openConnectModal?.();
+      return;
+    }
     setState("paying");
-    window.setTimeout(() => setState("done"), 1100);
+    try {
+      await payFlow.execute(String(AMOUNT));
+      setState("done");
+      toast.success("Payment settled on Arc");
+    } catch (e) {
+      setState("idle");
+      toast.error("Transaction failed", { description: errMessage(e) });
+    }
   };
 
   return (
@@ -181,8 +197,8 @@ export function CheckoutPreview() {
           <Button
             className="mt-5 w-full transition-transform active:scale-[0.98]"
             size="lg"
-            disabled={state !== "idle"}
-            onClick={pay}
+            disabled={state === "paying"}
+            onClick={() => void pay()}
           >
             {state === "idle" && (
               <>
@@ -206,15 +222,15 @@ export function CheckoutPreview() {
           </p>
         </div>
 
-        {state === "done" && (
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => setState("idle")}
-            className="mt-4 w-full border border-border font-semibold transition-transform active:scale-[0.98]"
-          >
-            <RotateCcw className="size-4" /> Reset preview
-          </Button>
+        {(payFlow.approve.status !== "idle" || payFlow.pay.status !== "idle") && (
+          <div className="mt-4">
+            <TxProgress
+              steps={[
+                { key: "approve", label: "Approve USDC spend", description: "Allow CoindeccPay to move USDC", ...payFlow.approve },
+                { key: "pay", label: "Execute pay()", description: "Settle on the CoindeccPay contract", ...payFlow.pay },
+              ]}
+            />
+          </div>
         )}
       </div>
 
