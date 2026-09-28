@@ -6,6 +6,7 @@ import {
   CreditCard,
   KeyRound,
   LayoutDashboard,
+  Mail,
   Menu,
   Moon,
   Plus,
@@ -138,6 +139,7 @@ function DashboardShell() {
         <aside className="glass sticky top-6 hidden h-[calc(100vh-3rem)] w-64 shrink-0 flex-col rounded-3xl p-4 lg:flex">
           <Brand />
           <div className="mt-6 flex-1">{nav}</div>
+          <SidebarFooter />
           {themeToggle}
         </aside>
 
@@ -153,6 +155,7 @@ function DashboardShell() {
                 </button>
               </div>
               <div className="mt-6 flex-1">{nav}</div>
+              <SidebarFooter />
               {themeToggle}
             </aside>
           </div>
@@ -227,6 +230,37 @@ function DashboardShell() {
           </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+function XLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function SidebarFooter() {
+  const link =
+    "motion-press flex w-full min-w-0 items-center gap-3 rounded-2xl px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground";
+  return (
+    <div className="mt-3 w-full min-w-0 space-y-0.5 border-t border-border pt-3">
+      <a
+        href="https://x.com/coindecc"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={link}
+        aria-label="Coindecc on X (Twitter)"
+      >
+        <XLogo className="size-3.5 shrink-0" />
+        <span className="truncate">@coindecc</span>
+      </a>
+      <a href="mailto:coindeccpay@gmail.com" className={link} aria-label="Email Coindecc Pay support">
+        <Mail className="size-3.5 shrink-0" />
+        <span className="min-w-0 break-all">coindeccpay@gmail.com</span>
+      </a>
     </div>
   );
 }
