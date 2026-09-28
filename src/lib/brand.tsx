@@ -23,6 +23,22 @@ const EMPTY: Brand = {
   settlementWallet: "",
 };
 
+function normalizeBrand(value: unknown): Brand {
+  if (!value || typeof value !== "object") return EMPTY;
+  const saved = value as Partial<Brand>;
+  return {
+    avatar: typeof saved.avatar === "string" ? saved.avatar : null,
+    logo: typeof saved.logo === "string" ? saved.logo : null,
+    product: typeof saved.product === "string" ? saved.product : null,
+    businessName:
+      typeof saved.businessName === "string" && saved.businessName.trim()
+        ? saved.businessName
+        : EMPTY.businessName,
+    settlementWallet:
+      typeof saved.settlementWallet === "string" ? saved.settlementWallet : "",
+  };
+}
+
 type ImageKey = "avatar" | "logo" | "product";
 
 type Ctx = Brand & {
@@ -32,7 +48,7 @@ type Ctx = Brand & {
 };
 
 export function toInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const parts = (typeof name === "string" ? name : "").trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "NS";
   return (parts[0]![0]! + (parts[1]?.[0] ?? parts[0]![1] ?? "")).toUpperCase();
 }
@@ -50,7 +66,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(KEY);
-      if (raw) setBrand({ ...EMPTY, ...(JSON.parse(raw) as Partial<Brand>) });
+      if (raw) setBrand(normalizeBrand(JSON.parse(raw)));
     } catch {
       /* ignore corrupt storage */
     }

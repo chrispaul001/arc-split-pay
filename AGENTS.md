@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Normalize all browser-persisted profile and merchant data at read time because older or malformed values must never crash app startup.
