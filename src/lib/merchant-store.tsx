@@ -252,9 +252,10 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
           token = (await signIn({ data: { address, issuedAt, signature } })).token;
           window.localStorage.setItem(tokenKey(address), token);
         }
-        let res;
+        let res: { exists: boolean; data: unknown; brand: unknown };
         try {
-          res = await load({ data: { token } });
+          const r = await load({ data: { token } });
+          res = { exists: r.exists, ...(JSON.parse(r.json) as { data: unknown; brand: unknown }) };
         } catch (e) {
           window.localStorage.removeItem(tokenKey(address));
           throw e;
@@ -268,11 +269,11 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
           write(address, remote);
           setData(remote);
           const rb = (res.brand ?? {}) as Record<string, unknown>;
-          b.setImage("avatar", typeof rb.avatar === "string" ? rb.avatar : null);
-          b.setImage("logo", typeof rb.logo === "string" ? rb.logo : null);
+          b.setImage("avatar", typeof rb["avatar"] === "string" ? rb["avatar"] : null);
+          b.setImage("logo", typeof rb["logo"] === "string" ? rb["logo"] : null);
           b.setProfile({
-            businessName: typeof rb.businessName === "string" && rb.businessName ? rb.businessName : "My Business",
-            settlementWallet: typeof rb.settlementWallet === "string" ? rb.settlementWallet : "",
+            businessName: typeof rb["businessName"] === "string" && rb["businessName"] ? rb["businessName"] : "My Business",
+            settlementWallet: typeof rb["settlementWallet"] === "string" ? rb["settlementWallet"] : "",
           });
         } else {
           // brand-new wallet: clean default profile, nothing carried over

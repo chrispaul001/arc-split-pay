@@ -55,7 +55,7 @@ export const loadProfile = createServerFn({ method: "POST" })
       .eq("address", address)
       .maybeSingle();
     if (error) throw new Error("Could not load profile");
-    return { exists: Boolean(row), data: (row?.data ?? null) as unknown, brand: (row?.brand ?? null) as unknown };
+    return { exists: Boolean(row), json: JSON.stringify({ data: row?.data ?? null, brand: row?.brand ?? null }) };
   });
 
 export const saveProfile = createServerFn({ method: "POST" })
