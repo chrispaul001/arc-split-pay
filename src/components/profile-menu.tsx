@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { TeamAccessDialog } from "@/components/team-access";
+import { useSaveGate } from "@/components/guest-gate";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +28,25 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
   const { openConnectModal } = useConnectModal();
   const { formatted } = useUsdc();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
+  const [draftLogo, setDraftLogo] = useState<string | null>(logo);
+  const canSave = useSaveGate();
+
+  useEffect(() => {
+    if (profileOpen) {
+      setDraftAvatar(avatar);
+      setDraftLogo(logo);
+    }
+  }, [profileOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const saveBranding = () => {
+    if (!canSave()) return;
+    setImage("avatar", draftAvatar);
+    setImage("logo", draftLogo);
+    setProfileOpen(false);
+    toast.success("Branding saved");
+  };
 
   const copyWallet = () => {
     if (!address) return;
@@ -151,7 +172,7 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-2 rounded-xl transition-transform duration-200 focus:translate-x-0.5"
-            onSelect={() => toast("Team access", { description: "3 members · 1 pending invite." })}
+            onSelect={() => setTeamOpen(true)}
           >
             <Users className="size-4" /> Team access
           </DropdownMenuItem>
@@ -183,14 +204,24 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
           <div className="space-y-4">
             <ImageUpload
               label="Change profile avatar"
-              value={avatar}
+              value={draftAvatar}
               round
-              onChange={(v) => setImage("avatar", v)}
+              onChange={setDraftAvatar}
             />
-            <ImageUpload label="Upload custom logo" value={logo} onChange={(v) => setImage("logo", v)} />
+            <ImageUpload label="Upload custom logo" value={draftLogo} onChange={setDraftLogo} />
+            {!isConnected && (
+              <p className="rounded-xl bg-secondary/50 p-2.5 text-xs text-muted-foreground">
+                Guest preview — connect your wallet to save changes.
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setProfileOpen(false)}>Cancel</Button>
+              <Button onClick={saveBranding}>Save changes</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+      <TeamAccessDialog open={teamOpen} onOpenChange={setTeamOpen} />
     </>
   );
 }

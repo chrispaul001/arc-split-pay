@@ -2,10 +2,25 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function useWalletGate() {
   const { isConnected } = useAccount();
   return isConnected;
+}
+
+/** Returns a guard: true when connected, otherwise shows a "Connect wallet to save changes" toast. */
+export function useSaveGate() {
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  return () => {
+    if (isConnected) return true;
+    toast("Connect wallet to save changes", {
+      description: "You can browse freely — saving needs a connected wallet.",
+      action: { label: "Connect", onClick: () => openConnectModal?.() },
+    });
+    return false;
+  };
 }
 
 export function GuestEmpty({
