@@ -20,16 +20,17 @@ export function useTheme() {
     }
     ready.current = true;
 
-    // Enable smooth color transitions only after initial paint to avoid a load flash
-    const id = window.setTimeout(() => document.documentElement.classList.add("theme-anim"), 100);
-    return () => window.clearTimeout(id);
-
     const onChange = (e: MediaQueryListEvent) => {
       if (window.localStorage.getItem(KEY)) return;
       setTheme(e.matches ? "dark" : "light");
     };
     mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    // Enable smooth color transitions only after initial paint to avoid a load flash.
+    const id = window.setTimeout(() => document.documentElement.classList.add("theme-anim"), 100);
+    return () => {
+      window.clearTimeout(id);
+      mq.removeEventListener("change", onChange);
+    };
   }, []);
 
   useEffect(() => {

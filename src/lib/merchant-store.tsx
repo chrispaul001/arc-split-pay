@@ -80,10 +80,37 @@ const EMPTY_DATA = (): MerchantData => ({
 
 const keyFor = (address: string) => `coindecc:merchant:${address.toLowerCase()}`;
 
+function normalizeMerchantData(value: unknown): MerchantData {
+  if (!value || typeof value !== "object") return EMPTY_DATA();
+  const saved = value as Partial<MerchantData>;
+  return {
+    links: Array.isArray(saved.links) ? saved.links : [],
+    streams: Array.isArray(saved.streams) ? saved.streams : [],
+    apiKeys: Array.isArray(saved.apiKeys) ? saved.apiKeys : [],
+    notifications: Array.isArray(saved.notifications) ? saved.notifications : [],
+    businessName: typeof saved.businessName === "string" ? saved.businessName : "",
+    settlementWallet:
+      typeof saved.settlementWallet === "string" ? saved.settlementWallet : "",
+    webhookUrl: typeof saved.webhookUrl === "string" ? saved.webhookUrl : "",
+    defaultCurrency:
+      saved.defaultCurrency === "USDT" || saved.defaultCurrency === "USDC"
+        ? saved.defaultCurrency
+        : "USDC",
+    autoSplit: typeof saved.autoSplit === "boolean" ? saved.autoSplit : true,
+    emailReceipts:
+      typeof saved.emailReceipts === "boolean" ? saved.emailReceipts : true,
+    sandboxMode: typeof saved.sandboxMode === "boolean" ? saved.sandboxMode : false,
+    firstSeenAt:
+      typeof saved.firstSeenAt === "number" && Number.isFinite(saved.firstSeenAt)
+        ? saved.firstSeenAt
+        : Date.now(),
+  };
+}
+
 function read(address: string): MerchantData {
   try {
     const raw = window.localStorage.getItem(keyFor(address));
-    if (raw) return { ...EMPTY_DATA(), ...(JSON.parse(raw) as Partial<MerchantData>) };
+    if (raw) return normalizeMerchantData(JSON.parse(raw));
   } catch {
     /* ignore corrupt storage */
   }
