@@ -124,7 +124,7 @@ export function CheckoutPreview() {
                 <span className="truncate">Pay {businessName}</span>
               </p>
 
-              <p className="font-display text-3xl font-bold tabular-nums transition-all duration-300">
+              <p className="font-display text-3xl font-bold tabular-nums">
                 {formatLocal(AMOUNT, currency)}
               </p>
               <p className="text-[11px] break-words text-muted-foreground tabular-nums">
