@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Copy, Eye, EyeOff, KeyRound, Link2, Plus, Trash2 } from "lucide-react";
+import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Link2, Mail, Plus, Trash2 } from "lucide-react";
 import { GuestBanner, GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, timeAgo, useMerchantStore } from "@/lib/merchant-store";
 
@@ -383,6 +383,34 @@ export function SettingsView() {
         <Button onClick={save} disabled={!connected}>
           Save changes
         </Button>
+      </div>
+
+      <div className="w-full min-w-0 rounded-2xl border border-border bg-secondary/40 p-4">
+        <p className="flex min-w-0 items-center gap-2 font-medium">
+          <LifeBuoy className="size-4 shrink-0 text-primary" />
+          <span className="truncate">Support &amp; Community</span>
+        </p>
+        <p className="mt-1 text-xs break-words text-muted-foreground">
+          Questions, integrations or feedback? Reach us on X or by email — we usually reply within a day.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <a
+            href="https://x.com/coindecc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="motion-press inline-flex min-w-0 items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 text-xs font-semibold hover:bg-secondary/60"
+          >
+            <XLogo className="size-3 shrink-0" />
+            <span className="truncate">@coindecc</span>
+          </a>
+          <a
+            href="mailto:coindeccpay@gmail.com"
+            className="motion-press inline-flex min-w-0 items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 text-xs font-semibold hover:bg-secondary/60"
+          >
+            <Mail className="size-3 shrink-0 text-primary" />
+            <span className="min-w-0 break-all">coindeccpay@gmail.com</span>
+          </a>
+        </div>
       </div>
     </div>
   );
