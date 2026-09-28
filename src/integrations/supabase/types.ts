@@ -14,7 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      merchant_profiles: {
+        Row: {
+          address: string
+          brand: Json
+          created_at: string
+          data: Json
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          brand?: Json
+          created_at?: string
+          data?: Json
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          brand?: Json
+          created_at?: string
+          data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
