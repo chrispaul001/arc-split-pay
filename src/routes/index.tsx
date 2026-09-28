@@ -262,7 +262,7 @@ function SidebarFooter() {
         target="_blank"
         rel="noopener noreferrer"
         className={link}
-        aria-label="Email Coindecc Pay support"
+        aria-label="Email CoindeccPay support"
       >
         <Mail className="size-3.5 shrink-0" />
         <span className="min-w-0 break-all">coindeccpay@gmail.com</span>
@@ -276,7 +276,7 @@ function Brand() {
     <div className="flex min-w-0 items-center gap-3">
       <img
         src={logoDark.url}
-        alt="Coindecc Pay logo"
+        alt="CoindeccPay logo"
         className="h-10 w-auto shrink-0 self-center object-contain dark:hidden"
       />
       <img
@@ -290,7 +290,7 @@ function Brand() {
 
 
       <span className="min-w-0">
-        <span className="block truncate font-display text-base font-bold">Coindecc Pay</span>
+        <span className="block truncate font-display text-base font-bold">CoindeccPay</span>
         <span className="block truncate text-[10px] tracking-wider text-muted-foreground uppercase">
           Arc Network
         </span>

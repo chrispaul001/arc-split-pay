@@ -240,7 +240,7 @@ export function CheckoutPreview() {
           </Button>
 
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
-            <Lock className="size-3" /> Secured by Coindecc Pay
+            <Lock className="size-3" /> Secured by CoindeccPay
           </p>
         </div>
 
