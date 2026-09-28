@@ -27,6 +27,7 @@ import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
 import { toast } from "sonner";
 import { ProfileMenu } from "@/components/profile-menu";
 import { BrandProvider } from "@/lib/brand";
+import { MerchantProvider } from "@/lib/merchant-store";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
@@ -73,7 +74,9 @@ function Dashboard() {
   return (
     <Web3Provider>
       <BrandProvider>
-        <DashboardShell />
+        <MerchantProvider>
+          <DashboardShell />
+        </MerchantProvider>
       </BrandProvider>
     </Web3Provider>
   );

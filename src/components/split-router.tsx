@@ -300,7 +300,7 @@ export function SplitRouter() {
           {parties.map((p, i) => (
             <div
               key={p.id}
-              className="h-full transition-all duration-300"
+              className="h-full transition-[width] duration-200"
               style={{
                 width: `${Math.min(100, (p.bps / 10000) * 100)}%`,
                 background: PALETTE[i % PALETTE.length],

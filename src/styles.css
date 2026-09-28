@@ -124,7 +124,6 @@
   background:
     radial-gradient(120% 70% at 80% -10%, oklch(0.65 0.2 254 / 18%) 0%, transparent 60%),
     linear-gradient(180deg, var(--grad-top) 0%, var(--grad-mid) 45%, var(--grad-bottom) 100%);
-  background-attachment: fixed;
 }
 
 @utility glass {
@@ -156,17 +155,6 @@
   *::after {
     box-sizing: border-box;
     border-color: var(--color-border);
-  }
-
-  /* Smooth global theme transitions: colors fade instead of snapping */
-  html.theme-anim,
-  html.theme-anim *,
-  html.theme-anim *::before,
-  html.theme-anim *::after {
-    transition-property:
-      background-color, color, border-color, fill, stroke, box-shadow, background-image;
-    transition-duration: 0.3s;
-    transition-timing-function: ease-in-out;
   }
 
   html {
@@ -291,13 +279,7 @@
 
 /* premium press + lift interaction for any interactive element */
 @utility motion-press {
-  transition:
-    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s ease,
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 
   &:hover {
     transform: translateY(-1.5px);
@@ -346,12 +328,8 @@
   select,
   textarea {
     transition:
-      transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 0.25s ease,
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      color 0.2s ease,
-      opacity 0.2s ease;
+      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.18s ease;
   }
 
   button:not(:disabled):active,
@@ -359,20 +337,21 @@
     transform: scale(0.97);
   }
 
-  .glass {
-    transition:
-      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 0.35s ease,
-      border-color 0.3s ease;
+  @media (hover: hover) {
+    .glass {
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .glass:hover {
+      transform: translateY(-2px);
+    }
   }
 
-  .glass:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 40px -24px color-mix(in oklab, var(--primary) 55%, transparent);
-  }
-
-  svg {
-    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  /* lighter blur on phones keeps scrolling smooth */
+  @media (max-width: 767px) {
+    .glass,
+    .glass-soft {
+      backdrop-filter: blur(8px);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

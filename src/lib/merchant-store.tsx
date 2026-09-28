@@ -1,5 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { useAccount, useSignMessage, useWatchContractEvent } from "wagmi";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
+import { formatUnits, parseAbi } from "viem";
+import { toast } from "sonner";
+import { useBrand } from "@/lib/brand";
+import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
+import { loadProfile, saveProfile, signInMessage, walletSignIn } from "@/lib/profile.functions";
+
+const TRANSFER_ABI = parseAbi([
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+]);
 
 /**
  * Per-wallet persistent merchant state.
@@ -159,31 +179,141 @@ function write(address: string, data: MerchantData) {
 export const randomId = () =>
   `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-export function useMerchantStore() {
+type StoreCtx = {
+  address: string | null;
+  isConnected: boolean;
+  ready: boolean;
+  synced: boolean;
+  data: MerchantData;
+  update: (patch: (prev: MerchantData) => MerchantData) => void;
+  notify: (n: Omit<MerchantNotification, "id" | "createdAt" | "read">) => void;
+};
+
+const MerchantContext = createContext<StoreCtx | null>(null);
+
+const tokenKey = (a: string) => `coindecc:session:${a.toLowerCase()}`;
+
+/**
+ * Wallet-bound store. The connected address is the primary key in the
+ * backend; the wallet signs once per device to prove ownership, then the
+ * profile loads on any browser. localStorage is only a fast offline cache.
+ */
+export function MerchantProvider({ children }: { children: ReactNode }) {
   const { address, isConnected } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const brand = useBrand();
   const [data, setData] = useState<MerchantData | null>(null);
+  const [synced, setSynced] = useState(false);
+  const tokenRef = useRef<string | null>(null);
+  const dataRef = useRef<MerchantData | null>(null);
+  const brandRef = useRef(brand);
+  brandRef.current = brand;
+  const saveTimer = useRef<number | undefined>(undefined);
+  const signIn = useServerFn(walletSignIn);
+  const load = useServerFn(loadProfile);
+  const save = useServerFn(saveProfile);
+
+  const pushRemote = useCallback(() => {
+    window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      const token = tokenRef.current;
+      const d = dataRef.current;
+      if (!token || !d) return;
+      const b = brandRef.current;
+      void save({
+        data: {
+          token,
+          data: d as unknown as Record<string, unknown>,
+          brand: { avatar: b.avatar, logo: b.logo, businessName: b.businessName, settlementWallet: b.settlementWallet },
+        },
+      }).catch(() => toast.error("Couldn't sync to the cloud", { description: "Saved on this device; will retry on next change." }));
+    }, 700);
+  }, [save]);
 
   useEffect(() => {
+    tokenRef.current = null;
+    setSynced(false);
     if (!isConnected || !address) {
+      dataRef.current = null;
       setData(null);
       return;
     }
-    const loaded = read(address);
-    // first-time merchants get their profile captured immediately
-    if (!window.localStorage.getItem(keyFor(address))) write(address, loaded);
-    setData(loaded);
-  }, [address, isConnected]);
+    let cancelled = false;
+    const cached = read(address);
+    dataRef.current = cached;
+    setData(cached);
+
+    (async () => {
+      try {
+        let token = window.localStorage.getItem(tokenKey(address));
+        if (!token) {
+          const issuedAt = Date.now();
+          const signature = await signMessageAsync({ message: signInMessage(address, issuedAt) });
+          token = (await signIn({ data: { address, issuedAt, signature } })).token;
+          window.localStorage.setItem(tokenKey(address), token);
+        }
+        let res: { exists: boolean; data: unknown; brand: unknown };
+        try {
+          const r = await load({ data: { token } });
+          res = { exists: r.exists, ...(JSON.parse(r.json) as { data: unknown; brand: unknown }) };
+        } catch (e) {
+          window.localStorage.removeItem(tokenKey(address));
+          throw e;
+        }
+        if (cancelled) return;
+        tokenRef.current = token;
+        const b = brandRef.current;
+        if (res.exists) {
+          const remote = normalizeMerchantData(res.data);
+          dataRef.current = remote;
+          write(address, remote);
+          setData(remote);
+          const rb = (res.brand ?? {}) as Record<string, unknown>;
+          b.setImage("avatar", typeof rb["avatar"] === "string" ? rb["avatar"] : null);
+          b.setImage("logo", typeof rb["logo"] === "string" ? rb["logo"] : null);
+          b.setProfile({
+            businessName: typeof rb["businessName"] === "string" && rb["businessName"] ? rb["businessName"] : "My Business",
+            settlementWallet: typeof rb["settlementWallet"] === "string" ? rb["settlementWallet"] : "",
+          });
+        } else {
+          // brand-new wallet: clean default profile, nothing carried over
+          const fresh = EMPTY_DATA();
+          dataRef.current = fresh;
+          write(address, fresh);
+          setData(fresh);
+          b.setImage("avatar", null);
+          b.setImage("logo", null);
+          b.setProfile({ businessName: "My Business", settlementWallet: "" });
+          pushRemote();
+        }
+        setSynced(true);
+      } catch {
+        if (!cancelled)
+          toast("Using this device's copy", {
+            description: "Sign the wallet message to sync your profile across browsers.",
+          });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // brand edits (avatar, logo, name) also sync to the wallet record
+  useEffect(() => {
+    if (synced) pushRemote();
+  }, [brand.avatar, brand.logo, brand.businessName, brand.settlementWallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = useCallback(
     (patch: (prev: MerchantData) => MerchantData) => {
       if (!address) return;
-      setData((prev) => {
-        const next = patch(prev ?? read(address));
-        write(address, next);
-        return next;
-      });
+      const next = patch(dataRef.current ?? read(address));
+      dataRef.current = next;
+      write(address, next);
+      setData(next);
+      pushRemote();
     },
-    [address],
+    [address, pushRemote],
   );
 
   const notify = useCallback(
@@ -198,17 +328,58 @@ export function useMerchantStore() {
     [update],
   );
 
-  return useMemo(
+  // live on-chain listener: every payment into the contract pops a notification instantly
+  const queryClient = useQueryClient();
+  useWatchContractEvent({
+    address: USDC_ADDRESS,
+    abi: TRANSFER_ABI,
+    eventName: "Transfer",
+    args: { to: COINDECC_PAY_ADDRESS },
+    chainId: arcTestnet.id,
+    enabled: Boolean(isConnected && address),
+    pollingInterval: 4_000,
+    onLogs: (logs) => {
+      for (const log of logs) {
+        const amount = Number(formatUnits(log.args.value ?? 0n, 6));
+        const from = log.args.from ?? "0x";
+        const mine = address && from.toLowerCase() === address.toLowerCase();
+        const title = mine ? "Payment sent & split" : "Payment received";
+        const body = `${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC from ${from.slice(0, 6)}…${from.slice(-4)}`;
+        notify({ kind: "payment", title, body });
+        toast.success(title, { description: body });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["coindecc-telemetry"] });
+    },
+  });
+
+  const value = useMemo<StoreCtx>(
     () => ({
       address: address ?? null,
       isConnected: Boolean(isConnected && address),
       ready: data !== null,
+      synced,
       data: data ?? EMPTY_DATA(),
       update,
       notify,
     }),
-    [address, isConnected, data, update, notify],
+    [address, isConnected, data, synced, update, notify],
   );
+
+  return <MerchantContext.Provider value={value}>{children}</MerchantContext.Provider>;
+}
+
+const FALLBACK: StoreCtx = {
+  address: null,
+  isConnected: false,
+  ready: false,
+  synced: false,
+  data: EMPTY_DATA(),
+  update: () => {},
+  notify: () => {},
+};
+
+export function useMerchantStore() {
+  return useContext(MerchantContext) ?? FALLBACK;
 }
 
 export function timeAgo(ts: number) {

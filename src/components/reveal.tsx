@@ -38,8 +38,8 @@ export function Reveal({ children, delay = 0, className = "" }: RevealProps) {
     <div
       ref={ref}
       style={{ transitionDelay: `${delay}ms` }}
-      className={`w-full max-w-full transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        shown ? "translate-y-0 opacity-100 blur-0" : "translate-y-6 opacity-0 blur-[2px]"
+      className={`w-full max-w-full transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       } ${className}`}
     >
       {children}

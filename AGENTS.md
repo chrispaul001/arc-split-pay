@@ -10,3 +10,6 @@
 <!-- LOVABLE:END -->
 
 - Normalize all browser-persisted profile and merchant data at read time because older or malformed values must never crash app startup.
+
+- Merchant data is keyed by wallet address in the `merchant_profiles` table, reached only via server functions that check a wallet-signed session token (HMAC with WALLET_SESSION_SECRET); localStorage is just an offline cache. Why: anyone can type an address, so ownership must be proven.
+- One `MerchantProvider` (in the dashboard route) holds merchant state and the live on-chain payment listener. Why: a single sync source avoids duplicate saves and duplicate listeners.
