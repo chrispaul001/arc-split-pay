@@ -257,7 +257,13 @@ function SidebarFooter() {
         <XLogo className="size-3.5 shrink-0" />
         <span className="truncate">@coindecc</span>
       </a>
-      <a href="mailto:coindeccpay@gmail.com" className={link} aria-label="Email Coindecc Pay support">
+      <a
+        href="mailto:coindeccpay@gmail.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={link}
+        aria-label="Email Coindecc Pay support"
+      >
         <Mail className="size-3.5 shrink-0" />
         <span className="min-w-0 break-all">coindeccpay@gmail.com</span>
       </a>

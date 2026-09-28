@@ -413,6 +413,8 @@ export function SettingsView() {
           </a>
           <a
             href="mailto:coindeccpay@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
             className="motion-press inline-flex min-w-0 items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 text-xs font-semibold hover:bg-secondary/60"
           >
             <Mail className="size-3 shrink-0 text-primary" />
