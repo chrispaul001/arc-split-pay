@@ -48,11 +48,22 @@ export type MerchantNotification = {
   read: boolean;
 };
 
+export type TeamRole = "Admin" | "Developer" | "Viewer";
+
+export type TeamMember = {
+  id: string;
+  email: string;
+  role: TeamRole;
+  status: "Pending";
+  createdAt: number;
+};
+
 export type MerchantData = {
   links: PaymentLink[];
   streams: MerchantStream[];
   apiKeys: ApiKey[];
   notifications: MerchantNotification[];
+  team: TeamMember[];
   businessName: string;
   settlementWallet: string;
   webhookUrl: string;
@@ -68,6 +79,7 @@ const EMPTY_DATA = (): MerchantData => ({
   streams: [],
   apiKeys: [],
   notifications: [],
+  team: [],
   businessName: "",
   settlementWallet: "",
   webhookUrl: "",
@@ -80,6 +92,24 @@ const EMPTY_DATA = (): MerchantData => ({
 
 const keyFor = (address: string) => `coindecc:merchant:${address.toLowerCase()}`;
 
+const ROLES: TeamRole[] = ["Admin", "Developer", "Viewer"];
+
+function normalizeTeam(value: unknown): TeamMember[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((m) => {
+    if (!m || typeof m !== "object") return [];
+    const t = m as Partial<TeamMember>;
+    if (typeof t.email !== "string" || !t.email) return [];
+    return [{
+      id: typeof t.id === "string" ? t.id : randomId(),
+      email: t.email,
+      role: ROLES.includes(t.role as TeamRole) ? (t.role as TeamRole) : "Viewer",
+      status: "Pending" as const,
+      createdAt: typeof t.createdAt === "number" ? t.createdAt : Date.now(),
+    }];
+  });
+}
+
 function normalizeMerchantData(value: unknown): MerchantData {
   if (!value || typeof value !== "object") return EMPTY_DATA();
   const saved = value as Partial<MerchantData>;
@@ -88,6 +118,7 @@ function normalizeMerchantData(value: unknown): MerchantData {
     streams: Array.isArray(saved.streams) ? saved.streams : [],
     apiKeys: Array.isArray(saved.apiKeys) ? saved.apiKeys : [],
     notifications: Array.isArray(saved.notifications) ? saved.notifications : [],
+    team: normalizeTeam(saved.team),
     businessName: typeof saved.businessName === "string" ? saved.businessName : "",
     settlementWallet:
       typeof saved.settlementWallet === "string" ? saved.settlementWallet : "",
