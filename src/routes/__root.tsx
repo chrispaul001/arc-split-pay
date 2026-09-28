@@ -78,11 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Coindecc Pay" },
-      { name: "description", content: "Merchant payments and split routing on the Arc network." },
-      { name: "author", content: "Coindecc" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
+      {
+        name: "description",
+        content:
+          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
+      },
+      { property: "og:title", content: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
+      {
+        property: "og:description",
+        content:
+          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
+      },
     ],
     links: [
       {
