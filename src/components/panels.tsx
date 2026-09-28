@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Link2, Mail, Plus, Trash2 } from "lucide-react";
-import { GuestBanner, GuestEmpty, useWalletGate } from "@/components/guest-gate";
+import { GuestBanner, GuestEmpty, useSaveGate, useWalletGate } from "@/components/guest-gate";
 import { randomId, timeAgo, useMerchantStore } from "@/lib/merchant-store";
 
 function XLogo({ className }: { className?: string }) {
@@ -227,6 +227,7 @@ export function SettingsView() {
   const [emailReceipts, setEmailReceipts] = useState(true);
   const [sandbox, setSandbox] = useState(false);
   const [walletError, setWalletError] = useState("");
+  const canSave = useSaveGate();
 
   // hydrate from the wallet-scoped profile, falling back to the global brand
   useEffect(() => {
@@ -256,7 +257,7 @@ export function SettingsView() {
   };
 
   const save = () => {
-    if (!connected) return;
+    if (!canSave()) return;
     const trimmed = name.trim();
     if (!trimmed) {
       toast.error("Business name can't be empty");
@@ -303,16 +304,15 @@ export function SettingsView() {
         </span>
       </div>
       {!connected && (
-        <GuestBanner message="Connect your wallet to edit and save your merchant settings." />
+        <GuestBanner message="Guest preview — explore freely. Connect your wallet to save changes." />
       )}
-      <div className={`space-y-5 ${connected ? "" : "pointer-events-none opacity-50"}`}>
+      <div className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="biz">Business name</Label>
           <Input
             id="biz"
-            value={connected ? name : ""}
+            value={name}
             placeholder="Your business name"
-            disabled={!connected}
             onChange={(e) => setName(e.target.value)}
             className="bg-background/40 transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
           />
@@ -322,9 +322,8 @@ export function SettingsView() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               id="settle"
-              value={connected ? wallet : ""}
+              value={wallet}
               placeholder="0x…"
-              disabled={!connected}
               onChange={(e) => onWalletChange(e.target.value)}
               className={`bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50 ${walletError ? "border-destructive" : ""}`}
             />
@@ -351,9 +350,8 @@ export function SettingsView() {
           <Input
             id="webhook"
             type="url"
-            value={connected ? webhook : ""}
+            value={webhook}
             placeholder="https://your-server.com/webhooks/coindecc"
-            disabled={!connected}
             onChange={(e) => setWebhook(e.target.value)}
             className="bg-background/40 font-mono transition-all focus-visible:ring-2 focus-visible:ring-primary/50"
           />
@@ -366,7 +364,6 @@ export function SettingsView() {
           <select
             id="currency"
             value={currency}
-            disabled={!connected}
             onChange={(e) => setCurrency(e.target.value)}
             className="w-full appearance-none rounded-xl border border-input bg-background/40 px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
           >
@@ -385,10 +382,10 @@ export function SettingsView() {
               <p className="truncate font-medium">{t}</p>
               <p className="text-xs break-words text-muted-foreground">{d}</p>
             </div>
-            <Switch disabled={!connected} checked={connected ? v : false} onCheckedChange={set} />
+            <Switch checked={v} onCheckedChange={set} />
           </div>
         ))}
-        <Button onClick={save} disabled={!connected}>
+        <Button onClick={save}>
           Save changes
         </Button>
       </div>
