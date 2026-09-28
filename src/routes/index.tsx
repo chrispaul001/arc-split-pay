@@ -37,17 +37,17 @@ import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Coindecc Pay — Arc Merchant Dashboard & Checkout" },
+      { title: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
       {
         name: "description",
         content:
-          "Coindecc Pay: merchant dashboard, split-router payment links and embedded USDC checkout on the Arc network with sub-second settlement.",
+          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
       },
-      { property: "og:title", content: "Coindecc Pay — Arc Merchant Dashboard & Checkout" },
+      { property: "og:title", content: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
       {
         property: "og:description",
         content:
-          "Track USDC volume, build split-router payment links and preview a sub-second Arc checkout widget.",
+          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
