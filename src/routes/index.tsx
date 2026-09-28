@@ -132,8 +132,8 @@ function DashboardShell() {
   );
 
   return (
-    <div className="app-gradient flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-hidden">
-      <div className="mx-auto flex w-full min-w-0 max-w-[1400px] flex-1 gap-6 overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6">
+    <div className="app-gradient flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip">
+      <div className="mx-auto flex w-full min-w-0 max-w-[1400px] flex-1 gap-6 overflow-x-clip px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Sidebar — desktop */}
         <aside className="glass sticky top-6 hidden h-[calc(100vh-3rem)] w-64 shrink-0 flex-col rounded-3xl p-4 lg:flex">
@@ -161,7 +161,7 @@ function DashboardShell() {
           </div>
         )}
 
-        <main className="min-w-0 w-full max-w-[100vw] flex-1 space-y-6 overflow-x-hidden">
+        <main className="min-w-0 w-full max-w-[100vw] flex-1 space-y-6 overflow-x-clip">
           <header className="glass grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl px-4 py-3 sm:px-6 sm:py-4">
 
             <div className="flex min-w-0 items-center gap-3">
@@ -204,7 +204,7 @@ function DashboardShell() {
 
           </header>
 
-           <div key={view} className="animate-rise w-full min-w-0 max-w-[100vw] overflow-x-hidden">
+           <div key={view} className="animate-rise w-full min-w-0 max-w-[100vw] overflow-x-clip">
           <ErrorBoundary resetKey={view}>
           {view === "overview" && (
             <div className="space-y-6">
