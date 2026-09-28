@@ -279,13 +279,7 @@
 
 /* premium press + lift interaction for any interactive element */
 @utility motion-press {
-  transition:
-    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s ease,
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 
   &:hover {
     transform: translateY(-1.5px);
