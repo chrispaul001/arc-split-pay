@@ -46,7 +46,7 @@ export function TeamAccessDialog({ open, onOpenChange }: { open: boolean; onOpen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass w-[calc(100vw-2rem)] max-w-md rounded-3xl px-4 py-5 sm:px-6">
+      <DialogContent className="glass w-[calc(100vw-2.5rem)] max-w-md rounded-3xl px-5 pt-6 sm:px-6">
         <DialogHeader>
           <DialogTitle>Team access</DialogTitle>
           <DialogDescription>
