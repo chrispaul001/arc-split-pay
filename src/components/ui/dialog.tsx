@@ -29,16 +29,45 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/** Tracks the visible area (shrinks when the phone keyboard opens) so dialogs stay centered and scrollable above it. */
+function useKeyboardViewport() {
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    const sync = () => {
+      root.style.setProperty("--vv-h", `${vv.height}px`);
+      root.style.setProperty("--vv-top", `${vv.offsetTop}px`);
+    };
+    const onFocus = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t?.closest?.("[role=dialog]") && t.matches("input,textarea,select"))
+        window.setTimeout(() => t.scrollIntoView({ block: "center", behavior: "smooth" }), 250);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    document.addEventListener("focusin", onFocus);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      document.removeEventListener("focusin", onFocus);
+    };
+  }, []);
+}
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  useKeyboardViewport();
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
+        "fixed left-[50%] top-[calc(var(--vv-top,0px)+var(--vv-h,100dvh)/2)] z-50 grid max-h-[calc(var(--vv-h,100dvh)-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))] [transition:top_150ms_ease-out,max-height_150ms_ease-out] sm:max-h-[calc(100dvh-4rem)] border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
         className,
       )}
       {...props}
@@ -50,7 +79,8 @@ const DialogContent = React.forwardRef<
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
