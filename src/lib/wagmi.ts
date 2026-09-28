@@ -22,7 +22,7 @@ const connectors = connectorsForWallets(
       wallets: [metaMaskWallet, rainbowWallet, coinbaseWallet, walletConnectWallet, injectedWallet],
     },
   ],
-  { appName: "Coindecc Pay", projectId },
+  { appName: "CoindeccPay", projectId },
 );
 
 export const wagmiConfig = createConfig({

@@ -1,4 +1,4 @@
-// On-chain configuration for Coindecc Pay (Arc Network Testnet).
+// On-chain configuration for CoindeccPay (Arc Network Testnet).
 
 import { defineChain } from "viem";
 
