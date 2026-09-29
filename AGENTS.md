@@ -14,3 +14,4 @@
 - Merchant data is keyed by wallet address in the `merchant_profiles` table, reached only via server functions that check a wallet-signed session token (HMAC with WALLET_SESSION_SECRET); localStorage is just an offline cache. Why: anyone can type an address, so ownership must be proven.
 - One `MerchantProvider` (in the dashboard route) holds merchant state and the live on-chain payment listener. Why: a single sync source avoids duplicate saves and duplicate listeners.
 - The root error screen hard-reloads on retry and only clears `coindecc*` local data during emergency recovery. Why: failed mobile module imports and malformed caches must be recoverable without deleting unrelated browser data.
+- Vite preloads TanStack Router core, `isServer`, SSR client, React Router, and Seroval modules. Why: late discovery forces a preview reload that can strand mobile clients behind the proxy.

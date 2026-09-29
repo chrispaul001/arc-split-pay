@@ -4,3 +4,4 @@
 - [x] Repair older saved profile and merchant data instead of crashing during startup.
 - [x] Make the root loading error recoverable with hard reload, safe cache reset, and visible details.
 - [x] Preload critical router dependencies to avoid mid-session optimization interruptions.
+- [x] Preload TanStack Router's client submodules so the mobile preview does not trigger a second forced reload.
