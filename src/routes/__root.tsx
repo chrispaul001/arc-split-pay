@@ -3,13 +3,13 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
-  useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { Button } from "../components/ui/button";
 import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -37,10 +37,22 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
-  const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  const reloadPage = () => {
+    window.location.reload();
+  };
+
+  const clearSavedDataAndReload = () => {
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index);
+      if (key?.startsWith("coindecc")) window.localStorage.removeItem(key);
+    }
+    reset();
+    window.location.assign("/");
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -52,22 +64,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
+          <Button onClick={reloadPage}>
             Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
+          </Button>
+          <Button asChild variant="outline">
+            <a href="/">Go home</a>
+          </Button>
         </div>
+        <details className="mx-auto mt-5 max-w-full text-left text-xs text-muted-foreground">
+          <summary className="cursor-pointer text-center font-medium">Show error details</summary>
+          <p className="mt-2 max-h-24 overflow-auto break-words rounded-md border border-border bg-muted p-3 font-mono">
+            {error.message || "An unknown loading error occurred."}
+          </p>
+        </details>
+        <Button className="mt-4" variant="ghost" size="sm" onClick={clearSavedDataAndReload}>
+          Clear saved app data &amp; reload
+        </Button>
       </div>
     </div>
   );

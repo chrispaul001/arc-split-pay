@@ -2,3 +2,5 @@
 - [x] Let settlement headings wrap cleanly on small screens.
 - [x] Remove zero-value metric pills and verify the mobile Overview.
 - [x] Repair older saved profile and merchant data instead of crashing during startup.
+- [x] Make the root loading error recoverable with hard reload, safe cache reset, and visible details.
+- [x] Preload critical router dependencies to avoid mid-session optimization interruptions.
