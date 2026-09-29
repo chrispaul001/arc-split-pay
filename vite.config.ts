@@ -9,7 +9,13 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   vite: {
     optimizeDeps: {
-      include: ["@tanstack/router-core", "@tanstack/react-router", "seroval"],
+      include: [
+        "@tanstack/router-core",
+        "@tanstack/router-core/isServer",
+        "@tanstack/router-core/ssr/client",
+        "@tanstack/react-router",
+        "seroval",
+      ],
     },
   },
   tanstackStart: {
