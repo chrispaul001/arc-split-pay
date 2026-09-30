@@ -6,9 +6,13 @@ import { Slider } from "@/components/ui/slider";
 import { CurrencySelect } from "@/components/currency-select";
 import { formatLocal, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
-import { Activity, Pause, Play, Plus, Radio, Square, Timer } from "lucide-react";
+import { Activity, Pause, Play, Plus, Radio, Send, Square, Timer } from "lucide-react";
+import { isAddress } from "viem";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
-import { randomId, useMerchantStore } from "@/lib/merchant-store";
+import { randomId, useMerchantStore, type MerchantStream } from "@/lib/merchant-store";
+import { useStreamSettle } from "@/lib/use-stream-settle";
+import { errMessage } from "@/lib/use-pay";
+import { explorerTx } from "@/lib/web3";
 
 type PricingMode = "sec" | "hour" | "day" | "budget";
 
@@ -72,6 +76,38 @@ export function Streams() {
       streams: prev.streams.map((s) => (s.id === id ? { ...s, ...p } : s)),
     }));
 
+  const doSettle = async (s: MerchantStream, close: boolean) => {
+    const due = Math.max(0, s.streamed - (s.settled ?? 0));
+    if (due < 0.000001) {
+      if (close) {
+        update((p) => ({ ...p, streams: p.streams.filter((x) => x.id !== s.id) }));
+        toast("Stream closed", { description: "Nothing left to settle." });
+      } else toast("Nothing to settle yet");
+      return;
+    }
+    if (close) patch(s.id, { running: false });
+    const toastId = toast.loading(`Confirm ${due.toFixed(4)} USDC in your wallet…`);
+    try {
+      const hash = await settle(s.id, s.address, due);
+      update((p) => ({
+        ...p,
+        streams: close
+          ? p.streams.filter((x) => x.id !== s.id)
+          : p.streams.map((x) =>
+              x.id === s.id ? { ...x, settled: (x.settled ?? 0) + due, lastSettleTx: hash } : x,
+            ),
+      }));
+      notify({
+        kind: "stream",
+        title: close ? "Stream closed & settled" : "Stream payout settled",
+        body: `${due.toFixed(4)} USDC sent to ${s.address} on Arc.`,
+      });
+      toast.success("Settled on Arc", { id: toastId, description: `${due.toFixed(4)} USDC · ${hash.slice(0, 10)}…` });
+    } catch (e) {
+      toast.error("Settlement failed", { id: toastId, description: errMessage(e) });
+    }
+  };
+
   const create = () => {
     const rate = computedRate;
     if (!form.name.trim() || !rate || rate <= 0) {
@@ -82,11 +118,15 @@ export function Streams() {
       );
       return;
     }
+    if (!isAddress(form.address.trim())) {
+      toast.error("Enter a valid recipient wallet address (0x…)");
+      return;
+    }
     const stream = {
       id: randomId(),
       name: form.name.trim(),
       role: form.role.trim() || "Payment stream",
-      address: form.address.trim() || "0x…",
+      address: form.address.trim(),
       ratePerSec: rate,
       streamed: 0,
       running: true,
@@ -311,27 +351,26 @@ export function Streams() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  onClick={() => {
-                    update((p) => ({ ...p, streams: p.streams.filter((x) => x.id !== s.id) }));
-                    notify({
-                      kind: "stream",
-                      title: "Stream settled",
-                      body: `${s.streamed.toFixed(2)} USDC settled to ${s.address}.`,
-                    });
-                    toast.success("Stream closed", {
-                      description: `${s.streamed.toFixed(2)} USDC settled to ${s.address}.`,
-                    });
-                  }}
+                  disabled={busyId !== null}
+                  onClick={() => void doSettle(s, false)}
                 >
-                  <Square className="size-4" /> Close &amp; settle
+                  <Send className="size-4" /> {busyId === s.id ? "Settling…" : "Settle now"}
                 </Button>
                 <Button
                   size="sm"
-                  variant="ghost"
-                  onClick={() => toast("Live on Arc", { description: "Finality under one second per tick." })}
+                  variant="secondary"
+                  disabled={busyId !== null}
+                  onClick={() => void doSettle(s, true)}
                 >
-                  <Activity className="size-4" /> Activity
+                  <Square className="size-4" /> Close &amp; settle
                 </Button>
+                {s.lastSettleTx && (
+                  <Button size="sm" variant="ghost" asChild>
+                    <a href={explorerTx(s.lastSettleTx)} target="_blank" rel="noreferrer">
+                      <Activity className="size-4" /> Last payout
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           ))}
