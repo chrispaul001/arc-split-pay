@@ -112,7 +112,10 @@ export function SplitRouter() {
 
   const sendNow = async () => {
     const bad = parties.find((p) => p.bps > 0 && !isAddress(p.address));
-    if (bad) return toast.error(`Invalid wallet address for ${bad.name || "a recipient"}`);
+    if (bad) {
+      toast.error(`Invalid wallet address for ${bad.name || "a recipient"}`);
+      return;
+    }
     setSending(true);
     const hashes: string[] = [];
     try {
