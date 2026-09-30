@@ -385,7 +385,7 @@
     padding-right: env(safe-area-inset-right);
   }
   main, .glass, section, header, aside { max-width: 100%; min-width: 0; }
-  main { overflow-x: hidden; overflow-x: clip; }
+  main { overflow: visible; }
   img, svg, video, canvas, pre, table { max-width: 100%; }
   pre, code { overflow-wrap: anywhere; }
 }

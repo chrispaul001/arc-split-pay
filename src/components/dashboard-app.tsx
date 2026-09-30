@@ -144,8 +144,8 @@ function DashboardShell() {
           </div>
         )}
 
-        <main className="min-w-0 w-full max-w-[100vw] flex-1 space-y-6 overflow-x-clip">
-          <header className="glass grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl px-4 py-3 sm:px-6 sm:py-4">
+        <main className="min-w-0 w-full flex-1 space-y-6">
+          <header className="glass relative grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 overflow-visible rounded-3xl py-3 pl-4 pr-5 sm:gap-3 sm:py-4 sm:pl-6 sm:pr-7">
 
             <div className="flex min-w-0 items-center gap-3">
               <button
@@ -164,7 +164,7 @@ function DashboardShell() {
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
               <span className="hidden items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-[11px] font-semibold md:inline-flex">
                 <span className="pulse-dot size-1.5 rounded-full bg-mint" />
                 Arc Mainnet — USDC Gas

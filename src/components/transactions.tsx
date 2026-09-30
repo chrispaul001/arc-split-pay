@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { useOnchainTxs } from "@/lib/use-onchain-txs";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { readTxs, subscribeTxs, type TxKind, type TxRecord } from "@/lib/tx-history";
 import { explorerTx, shortAddress } from "@/lib/web3";
 
@@ -29,8 +30,11 @@ export function Transactions() {
   // Local records carry richer labels/splits; chain logs fill in everything else.
   const txs = useMemo(() => {
     const map = new Map<string, TxRecord>();
-    for (const t of chain.data ?? []) map.set(t.hash.toLowerCase(), t);
-    for (const t of local) map.set(t.hash.toLowerCase(), { ...map.get(t.hash.toLowerCase()), ...t });
+    for (const page of chain.data?.pages ?? []) for (const t of page.records) map.set(t.hash.toLowerCase(), t);
+    for (const t of local) {
+      const found = map.get(t.hash.toLowerCase());
+      map.set(t.hash.toLowerCase(), found ? { ...t, ...found, kind: t.kind, label: t.label ?? found.label, splits: t.splits ?? found.splits } : t);
+    }
     return [...map.values()].sort((a, b) => b.timestamp - a.timestamp);
   }, [chain.data, local]);
 
@@ -64,25 +68,25 @@ export function Transactions() {
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
-          <button
+          <Button
             key={f}
+            size="sm"
+            variant={filter === f ? "default" : "secondary"}
             onClick={() => setFilter(f)}
-            className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-              filter === f ? "bg-primary text-primary-foreground" : "bg-secondary/60 text-muted-foreground hover:text-foreground"
-            }`}
+            className="rounded-full text-[11px]"
           >
             {f === "all" ? "All" : KIND_LABEL[f]}
-          </button>
+          </Button>
         ))}
       </div>
 
-      {chain.isLoading && txs.length === 0 ? (
+      {chain.isPending && txs.length === 0 ? (
         <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/40 p-6 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Loading on-chain history from Arc…
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          No confirmed transactions yet. Payments, split sends and stream payouts from this wallet appear here once they settle on Arc.
+          {chain.isError ? "Could not load Arc history. Try again shortly." : "No confirmed transactions found in the scanned Arc history."}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -107,6 +111,12 @@ export function Transactions() {
                     Split: {t.splits.map((s) => `${s.name || shortAddress(s.address)} ${(s.bps / 100).toFixed(2)}%`).join(" · ")}
                   </p>
                 )}
+                {t.transfers && t.transfers.length > 0 && (
+                  <div className="space-y-1 pt-1">
+                    <p>On-chain split transfers</p>
+                    {t.transfers.map((leg, i) => <p key={`${leg.address}-${i}`} className="break-all">{leg.address} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>)}
+                  </div>
+                )}
                 <a
                   href={explorerTx(t.hash)}
                   target="_blank"
@@ -121,6 +131,10 @@ export function Transactions() {
           ))}
         </ul>
       )}
+      {chain.hasNextPage && <Button variant="secondary" className="w-full" disabled={chain.isFetchingNextPage} onClick={() => void chain.fetchNextPage()}>
+        {chain.isFetchingNextPage ? <><Loader2 className="size-4 animate-spin" /> Loading older activity…</> : "Load older activity"}
+      </Button>}
+      {chain.isError && txs.length > 0 && <p className="text-xs text-destructive">Older activity could not be loaded. Please try again.</p>}
     </div>
   );
 }
