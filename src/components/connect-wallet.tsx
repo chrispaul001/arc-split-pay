@@ -1,36 +1,13 @@
-import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui/button";
 import { useUsdc } from "@/lib/use-usdc";
+import { useConnectWallet } from "@/lib/use-connect";
 import { AlertTriangle, Copy, ExternalLink, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
-/**
- * Mobile OSes block iframes from launching wallet apps via deep links, so the
- * embedded preview silently swallows every wallet tap. Detect that case and
- * point people at the standalone tab instead.
- */
-function useEmbeddedPreview() {
-  const [embedded, setEmbedded] = useState(false);
-
-  useEffect(() => {
-    try {
-      setEmbedded(window.self !== window.top);
-    } catch {
-      setEmbedded(true);
-    }
-  }, []);
-
-  return embedded;
-}
-
-function openStandalone() {
-  window.open(window.location.href, "_blank", "noopener,noreferrer");
-}
-
 export function ConnectWallet({ compact = false }: { compact?: boolean }) {
   const { formatted } = useUsdc();
-  const embedded = useEmbeddedPreview();
+  const { connect, embedded } = useConnectWallet();
 
   return (
     <ConnectButton.Custom>
