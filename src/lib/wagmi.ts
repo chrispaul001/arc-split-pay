@@ -50,11 +50,26 @@ const browserWallet = (...args: Parameters<typeof injectedWallet>): Wallet => ({
   hidden: () => !hasInjectedProvider(),
 });
 
+/**
+ * RainbowKit hands iOS a raw `rainbow://` scheme, which Safari drops silently
+ * when Rainbow isn't installed. The HTTPS universal link works in both cases.
+ */
+const rainbowUniversalWallet = (...args: Parameters<typeof rainbowWallet>): Wallet => {
+  const wallet = rainbowWallet(...args);
+  return {
+    ...wallet,
+    mobile: {
+      getUri: (uri: string) =>
+        `https://rnbwapp.com/wc?uri=${encodeURIComponent(uri)}&connector=rainbowkit`,
+    },
+  };
+};
+
 const connectors = connectorsForWallets(
   [
     {
       groupName: "Popular",
-      wallets: [metaMaskWallet, rainbowWallet, coinbaseWallet, walletConnectWallet],
+      wallets: [metaMaskWallet, rainbowUniversalWallet, coinbaseWallet, walletConnectWallet],
     },
     {
       groupName: "More wallets",
