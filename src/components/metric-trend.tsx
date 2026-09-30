@@ -48,3 +48,20 @@ export function MetricTrend({ points, format, label }: {
     </div>
   );
 }
+
+export function MetricProgress({ value, total, label }: { value: number; total: number; label: string }) {
+  const [active, setActive] = useState(false);
+  const percent = total > 0 ? Math.min(100, Math.max(0, value / total * 100)) : 0;
+  return <div className="relative flex h-12 w-32 max-w-[45%] shrink-0 items-end pb-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    role="img" aria-label={`${label}: ${value} of ${total}`} tabIndex={0}
+    onPointerEnter={() => setActive(true)} onPointerLeave={() => setActive(false)}
+    onPointerDown={() => setActive(true)} onBlur={() => setActive(false)} onFocus={() => setActive(true)}>
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+      <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${percent}%` }} />
+    </div>
+    {active && <div role="tooltip" className="pointer-events-none absolute right-0 bottom-full z-20 mb-1 min-w-max rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-popover-foreground shadow-md">
+      <strong className="block tabular-nums">{value} active / {total} total</strong>
+      <time dateTime={new Date().toISOString()} className="text-muted-foreground">{new Date().toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}</time>
+    </div>}
+  </div>;
+}
