@@ -69,6 +69,16 @@ export const ERC20_ABI = [
     ],
     outputs: [{ type: "bool" }],
   },
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
 ] as const;
 
 /** Active split configured on-chain by the contract owner (50/50 split). */

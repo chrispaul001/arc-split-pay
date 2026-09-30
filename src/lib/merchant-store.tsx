@@ -52,6 +52,9 @@ export type MerchantStream = {
   streamed: number;
   running: boolean;
   createdAt: number;
+  /** USDC already settled on-chain for this stream */
+  settled?: number;
+  lastSettleTx?: string;
 };
 
 export type ApiKey = {
