@@ -89,7 +89,7 @@ export function Streams() {
     if (close) patch(s.id, { running: false });
     const toastId = toast.loading(`Confirm ${due.toFixed(4)} USDC in your wallet…`);
     try {
-      const hash = await settle(s.id, s.address, due);
+      const hash = await settle(s.id, s.address, due, { kind: "stream", label: `Stream · ${s.name}` });
       update((p) => ({
         ...p,
         streams: close

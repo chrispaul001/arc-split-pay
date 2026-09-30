@@ -3,6 +3,7 @@ import { isAddress, parseUnits } from "viem";
 import { useAccount, useConfig, useSwitchChain, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
+import { recordTx, type TxKind, type TxRecord } from "@/lib/tx-history";
 
 /** Non-custodial stream settlement: the connected wallet signs a USDC transfer on Arc Testnet. */
 export function useStreamSettle() {
@@ -12,7 +13,12 @@ export function useStreamSettle() {
   const { writeContractAsync } = useWriteContract();
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const settle = async (streamId: string, recipient: string, amount: number): Promise<`0x${string}`> => {
+  const settle = async (
+    streamId: string,
+    recipient: string,
+    amount: number,
+    meta?: { kind?: TxKind; label?: string; splits?: TxRecord["splits"] },
+  ): Promise<`0x${string}`> => {
     if (!address) throw new Error("Connect a wallet first");
     if (!isAddress(recipient)) throw new Error("Recipient wallet address is invalid");
     if (!(amount > 0)) throw new Error("Nothing to settle yet");
@@ -34,6 +40,7 @@ export function useStreamSettle() {
       });
       const r = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
       if (r.status !== "success") throw new Error("Settlement reverted on-chain");
+      recordTx({ hash, kind: meta?.kind ?? "stream", from: address, to: recipient, amount, label: meta?.label, splits: meta?.splits });
       return hash;
     } finally {
       setBusyId(null);
