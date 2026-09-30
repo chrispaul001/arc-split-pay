@@ -3,6 +3,8 @@ import { useAccount } from "wagmi";
 import { ExternalLink, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
+import { useOnchainTxs } from "@/lib/use-onchain-txs";
+import { Loader2 } from "lucide-react";
 import { readTxs, subscribeTxs, type TxKind, type TxRecord } from "@/lib/tx-history";
 import { explorerTx, shortAddress } from "@/lib/web3";
 
@@ -12,16 +14,25 @@ const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
 export function Transactions() {
   const connected = useWalletGate();
   const { address } = useAccount();
-  const [txs, setTxs] = useState<TxRecord[]>([]);
+  const [local, setLocal] = useState<TxRecord[]>([]);
+  const chain = useOnchainTxs(address);
   const [filter, setFilter] = useState<"all" | TxKind>("all");
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    if (!address) return setTxs([]);
-    const load = () => setTxs(readTxs(address));
+    if (!address) return setLocal([]);
+    const load = () => setLocal(readTxs(address));
     load();
     return subscribeTxs(load);
   }, [address]);
+
+  // Local records carry richer labels/splits; chain logs fill in everything else.
+  const txs = useMemo(() => {
+    const map = new Map<string, TxRecord>();
+    for (const t of chain.data ?? []) map.set(t.hash.toLowerCase(), t);
+    for (const t of local) map.set(t.hash.toLowerCase(), { ...map.get(t.hash.toLowerCase()), ...t });
+    return [...map.values()].sort((a, b) => b.timestamp - a.timestamp);
+  }, [chain.data, local]);
 
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -65,7 +76,11 @@ export function Transactions() {
         ))}
       </div>
 
-      {shown.length === 0 ? (
+      {chain.isLoading && txs.length === 0 ? (
+        <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/40 p-6 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Loading on-chain history from Arc…
+        </p>
+      ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
           No confirmed transactions yet. Payments, split sends and stream payouts from this wallet appear here once they settle on Arc.
         </p>
@@ -85,7 +100,8 @@ export function Transactions() {
                 </p>
               </div>
               <div className="mt-2 space-y-1 font-mono text-[11px] text-muted-foreground">
-                {t.to && <p className="break-all">To {t.to}</p>}
+                {t.from && t.from.toLowerCase() !== address?.toLowerCase() && <p className="break-all">From {t.from}</p>}
+                {t.to && t.to.toLowerCase() !== address?.toLowerCase() && <p className="break-all">To {t.to}</p>}
                 {t.splits && t.splits.length > 0 && (
                   <p className="break-words">
                     Split: {t.splits.map((s) => `${s.name || shortAddress(s.address)} ${(s.bps / 100).toFixed(2)}%`).join(" · ")}
