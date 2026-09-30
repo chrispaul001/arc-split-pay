@@ -82,6 +82,7 @@ export function useTelemetry() {
         volume: events.reduce((s, e) => s + e.amount, 0),
         payers: new Set(events.map((e) => e.from.toLowerCase())).size,
         buckets,
+        bucketStart: now - 24 * 3600 * 1000,
         blockTime,
         latest,
       };
