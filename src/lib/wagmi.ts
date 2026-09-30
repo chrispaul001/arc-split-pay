@@ -65,7 +65,7 @@ const connectors = connectorsForWallets(
     appName: "CoindeccPay",
     appDescription: walletConnectParameters.metadata.description,
     appUrl: APP_URL,
-    appIcon: walletConnectParameters.metadata.icons[0],
+    appIcon: `${APP_URL}/favicon.png`,
     projectId,
     walletConnectParameters,
   },
