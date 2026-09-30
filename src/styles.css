@@ -133,6 +133,11 @@
   box-shadow: var(--glow);
 }
 
+/* Keep overview card depth without the extra one-pixel outer stroke. */
+.glass.overview-surface {
+  box-shadow: 0 18px 45px -18px var(--border);
+}
+
 @utility glass-soft {
   background-color: color-mix(in oklab, var(--glass) 70%, transparent);
   border: 1px solid var(--glass-border);

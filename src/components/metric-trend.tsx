@@ -30,7 +30,7 @@ export function MetricTrend({ points, format, label }: {
           setActive((i) => Math.max(0, Math.min(values.length - 1, (i ?? values.length - 1) + (event.key === "ArrowLeft" ? -1 : 1))));
         }
       }}>
-      <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="h-full w-full overflow-visible" aria-hidden="true">
+       <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="h-full w-full overflow-hidden" aria-hidden="true">
         <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--electric)" stopOpacity="0.32" />
           <stop offset="100%" stopColor="var(--electric)" stopOpacity="0" />

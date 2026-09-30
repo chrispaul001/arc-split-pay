@@ -73,12 +73,12 @@ export function Overview() {
   ];
 
   return (
-    <div className="w-full max-w-[100vw] space-y-6 overflow-x-hidden">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="min-w-0 w-full space-y-6 overflow-x-clip">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((m, i) => (
           <div
             key={m.label}
-             className="glass animate-rise group/metric w-full min-w-0 max-w-[100vw] overflow-x-hidden rounded-3xl px-4 py-5 sm:px-5"
+             className="glass overview-surface animate-rise group/metric w-full min-w-0 rounded-3xl px-4 py-5 sm:px-5"
             style={{ animationDelay: `${i * 70}ms` }}
           >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -113,8 +113,8 @@ export function Overview() {
       </div>
 
        <div className="grid min-w-0 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <Reveal>
-         <div className="glass animate-rise w-full min-w-0 max-w-[100vw] overflow-x-hidden rounded-3xl px-4 py-5 sm:px-5">
+         <Reveal className="min-w-0">
+          <div className="glass overview-surface animate-rise w-full min-w-0 rounded-3xl px-4 py-5 sm:px-5">
            <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
              <h3 className="min-w-0 text-base leading-snug font-semibold wrap-break-word sm:text-lg">Settlement flow · last 24h</h3>
             <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] break-words text-muted-foreground">
@@ -141,8 +141,8 @@ export function Overview() {
         </div>
         </Reveal>
 
-        <Reveal delay={90}>
-         <div className="glass animate-rise w-full min-w-0 max-w-[100vw] overflow-x-hidden rounded-3xl px-4 py-5 sm:px-5">
+         <Reveal delay={90} className="min-w-0">
+          <div className="glass overview-surface animate-rise w-full min-w-0 rounded-3xl px-4 py-5 sm:px-5">
           <h3 className="text-lg font-semibold">Live activity</h3>
           {!isConnected && (
             <div className="mt-4 grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-8 text-center">
