@@ -22,13 +22,13 @@ import { Check, Loader2, ShieldCheck, Wallet } from "lucide-react";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
 
-export function OnchainCheckout() {
+export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefined } = {}) {
   const config = useConfig();
   const { address, chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { formatted, refetch } = useUsdc();
 
-  const [amount, setAmount] = useState("25");
+  const [amount, setAmount] = useState(fixedAmount ? String(fixedAmount) : "25");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [approve, setApprove] = useState<StepState>({ status: "idle" });
@@ -193,6 +193,7 @@ export function OnchainCheckout() {
               id="onchain-amount"
               inputMode="decimal"
               value={amount}
+              readOnly={!!fixedAmount}
               onChange={(e) => {
                 setAmount(e.target.value);
                 reset();
