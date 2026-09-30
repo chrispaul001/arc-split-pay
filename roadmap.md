@@ -3,3 +3,4 @@
 - [x] Add unread badge and clickable transaction details; verify desktop and phone rendering.
 
 - [x] Streams: non-custodial wallet-signed USDC settlement on Arc (no cron/relayer)
+- [x] Unify Transactions with contract pay() activity and on-chain split transfers; keep older history pageable and header actions unclipped.

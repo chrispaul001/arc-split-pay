@@ -19,3 +19,4 @@
 - Every "Connect wallet" affordance calls `useConnectWallet()` from `src/lib/use-connect.ts`, never `useConnectModal` directly. Why: inside an iframe the OS blocks wallet deep links, so the hook must escape to a top-level tab first.
 - Mobile wallet entries in `src/lib/wagmi.ts` override RainbowKit's custom URI schemes with HTTPS universal links, and injected-only entries are hidden when `window.ethereum` is absent. Why: custom schemes and missing providers fail silently, making taps look dead.
 - Confirmed checkouts queue wallet-scoped payment hashes; `MerchantProvider` verifies receipts and deduplicates alerts. Why: checkout links lack the dashboard provider and cross-tab payments must still appear.
+- Transactions page through wallet and CoindeccPay USDC Transfer logs and merge wallet-local labels by hash. Why: the audit trail must include the same pay() receipts shown in Overview plus every atomic split leg without depending on a browser cache.
