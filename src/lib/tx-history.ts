@@ -4,11 +4,11 @@ export type TxRecord = {
   hash: string;
   kind: TxKind;
   from: string;
-  to?: string;
-  label?: string;
+  to?: string | undefined;
+  label?: string | undefined;
   amount: number;
   timestamp: number;
-  splits?: { name: string; address: string; bps: number }[];
+  splits?: { name: string; address: string; bps: number }[] | undefined;
 };
 
 const EVENT = "coindecc:tx-recorded";
