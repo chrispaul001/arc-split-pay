@@ -11,7 +11,7 @@ export function ConnectWallet({ compact = false }: { compact?: boolean }) {
 
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openConnectModal, openChainModal, mounted }) => {
+      {({ account, chain, openChainModal, mounted }) => {
         const ready = mounted;
         const connected = ready && account && chain;
 
@@ -20,21 +20,18 @@ export function ConnectWallet({ compact = false }: { compact?: boolean }) {
         }
 
         if (!connected) {
-          if (embedded) {
-            return (
-              <Button
-                size={compact ? "sm" : "lg"}
-                onClick={openStandalone}
-                title="Wallet apps can't open inside an embedded preview. Opens CoindeccPay in its own tab."
-              >
-                <ExternalLink className="size-4" /> Open to connect
-              </Button>
-            );
-          }
-
           return (
-            <Button size={compact ? "sm" : "lg"} onClick={openConnectModal}>
-              <Wallet className="size-4" /> Connect Wallet
+            <Button
+              size={compact ? "sm" : "lg"}
+              onClick={connect}
+              title={
+                embedded
+                  ? "Wallet apps can't open inside an embedded preview. Opens CoindeccPay in its own tab."
+                  : undefined
+              }
+            >
+              {embedded ? <ExternalLink className="size-4" /> : <Wallet className="size-4" />}
+              {embedded ? "Open to connect" : "Connect Wallet"}
             </Button>
           );
         }
