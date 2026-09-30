@@ -51,19 +51,41 @@ const browserWallet = (...args: Parameters<typeof injectedWallet>): Wallet => ({
 });
 
 /**
- * RainbowKit hands iOS a raw `rainbow://` scheme, which Safari drops silently
- * when Rainbow isn't installed. The HTTPS universal link works in both cases.
+ * RainbowKit hands iOS raw custom schemes (`rainbow://`, `trust://`, …), which
+ * Safari drops silently when the app isn't installed — the tap looks dead.
+ * HTTPS universal links work whether or not the wallet is installed.
  */
-const rainbowUniversalWallet = (...args: Parameters<typeof rainbowWallet>): Wallet => {
-  const wallet = rainbowWallet(...args);
-  return {
-    ...wallet,
-    mobile: {
-      getUri: (uri: string) =>
-        `https://rnbwapp.com/wc?uri=${encodeURIComponent(uri)}&connector=rainbowkit`,
-    },
+type WalletFn = (options: never) => Wallet;
+
+const withUniversalLink =
+  <T extends WalletFn>(walletFn: T, buildUri: (uri: string) => string) =>
+  (...args: Parameters<T>): Wallet => {
+    const wallet = walletFn(...(args as [never]));
+    return { ...wallet, mobile: { getUri: buildUri } };
   };
-};
+
+const rainbowUniversalWallet = withUniversalLink(
+  rainbowWallet,
+  (uri) => `https://rnbwapp.com/wc?uri=${encodeURIComponent(uri)}&connector=rainbowkit`,
+);
+
+const trustUniversalWallet = withUniversalLink(
+  trustWallet,
+  (uri) => `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`,
+);
+
+const zerionUniversalWallet = withUniversalLink(
+  zerionWallet,
+  (uri) => `https://wallet.zerion.io/wc?uri=${encodeURIComponent(uri)}`,
+);
+
+const okxUniversalWallet = withUniversalLink(
+  okxWallet,
+  (uri) =>
+    `https://www.okx.com/download?deeplink=${encodeURIComponent(
+      `okx://wallet/dapp/url?dappUrl=${encodeURIComponent(APP_URL)}&wcUri=${encodeURIComponent(uri)}`,
+    )}`,
+);
 
 const connectors = connectorsForWallets(
   [
