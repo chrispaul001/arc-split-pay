@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/image-upload";
 import { useBrand } from "@/lib/brand";
 import { useAccount, useDisconnect } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useConnectWallet } from "@/lib/use-connect";
 import { useUsdc } from "@/lib/use-usdc";
 import { toast } from "sonner";
 import { ChevronDown, Copy, LogOut, Settings, Users, Wallet } from "lucide-react";
@@ -25,7 +25,7 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
   const { avatar, logo, setImage, businessName, initials } = useBrand();
   const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
-  const { openConnectModal } = useConnectModal();
+  const { connect: connectWallet } = useConnectWallet();
   const { formatted } = useUsdc();
   const [profileOpen, setProfileOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
@@ -160,7 +160,7 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
               <p className="text-[11px] text-muted-foreground">
                 Connect a wallet to see your address, USDC balance and network here.
               </p>
-              <Button size="sm" className="mt-2 w-full" onClick={() => openConnectModal?.()}>
+              <Button size="sm" className="mt-2 w-full" onClick={connectWallet}>
                 <Wallet className="size-4" /> Connect Wallet
               </Button>
             </div>

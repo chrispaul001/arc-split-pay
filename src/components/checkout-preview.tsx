@@ -7,7 +7,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { Check, Copy, Fuel, Loader2, Lock, Timer, Wallet, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Reveal } from "@/components/reveal";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useConnectWallet } from "@/lib/use-connect";
 import { errMessage, usePay } from "@/lib/use-pay";
 import { TxProgress } from "@/components/tx-progress";
 
@@ -25,7 +25,7 @@ export function CheckoutPreview() {
   const [amountInput, setAmountInput] = useState("10");
   const parsedAmount = Number(amountInput);
   const AMOUNT = Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0;
-  const { openConnectModal } = useConnectModal();
+  const { connect: connectWallet } = useConnectWallet();
   const { logo, product, setImage, businessName } = useBrand();
   const c = getCurrency(currency);
 
@@ -51,7 +51,7 @@ export function CheckoutPreview() {
   const payFlow = usePay();
   const pay = async () => {
     if (!payFlow.isConnected) {
-      openConnectModal?.();
+      connectWallet();
       return;
     }
     if (AMOUNT <= 0) {

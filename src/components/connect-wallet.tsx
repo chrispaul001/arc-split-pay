@@ -1,15 +1,17 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { AlertTriangle, Copy, Wallet } from "lucide-react";
+import { useConnectWallet } from "@/lib/use-connect";
+import { AlertTriangle, Copy, ExternalLink, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export function ConnectWallet({ compact = false }: { compact?: boolean }) {
   const { formatted } = useUsdc();
+  const { connect, embedded } = useConnectWallet();
 
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openConnectModal, openChainModal, mounted }) => {
+      {({ account, chain, openChainModal, mounted }) => {
         const ready = mounted;
         const connected = ready && account && chain;
 
@@ -19,8 +21,17 @@ export function ConnectWallet({ compact = false }: { compact?: boolean }) {
 
         if (!connected) {
           return (
-            <Button size={compact ? "sm" : "lg"} onClick={openConnectModal}>
-              <Wallet className="size-4" /> Connect Wallet
+            <Button
+              size={compact ? "sm" : "lg"}
+              onClick={connect}
+              title={
+                embedded
+                  ? "Wallet apps can't open inside an embedded preview. Opens CoindeccPay in its own tab."
+                  : undefined
+              }
+            >
+              {embedded ? <ExternalLink className="size-4" /> : <Wallet className="size-4" />}
+              {embedded ? "Open to connect" : "Connect Wallet"}
             </Button>
           );
         }

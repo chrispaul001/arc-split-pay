@@ -1,4 +1,4 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useConnectWallet } from "@/lib/use-connect";
 import { useAccount } from "wagmi";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,12 @@ export function useWalletGate() {
 /** Returns a guard: true when connected, otherwise shows a "Connect wallet to save changes" toast. */
 export function useSaveGate() {
   const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { connect } = useConnectWallet();
   return () => {
     if (isConnected) return true;
     toast("Connect wallet to save changes", {
       description: "You can browse freely — saving needs a connected wallet.",
-      action: { label: "Connect", onClick: () => openConnectModal?.() },
+      action: { label: "Connect", onClick: connect },
     });
     return false;
   };
@@ -30,7 +30,7 @@ export function GuestEmpty({
   title?: string;
   description: string;
 }) {
-  const { openConnectModal } = useConnectModal();
+  const { connect } = useConnectWallet();
   return (
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-10 sm:px-5">
       <div className="grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-8 text-center">
@@ -39,7 +39,7 @@ export function GuestEmpty({
         </span>
         <p className="text-sm font-medium">{title}</p>
         <p className="max-w-sm text-xs break-words text-muted-foreground">{description}</p>
-        <Button size="sm" className="motion-press" onClick={() => openConnectModal?.()}>
+        <Button size="sm" className="motion-press" onClick={connect}>
           <Wallet className="size-4" /> Connect Wallet
         </Button>
       </div>
@@ -48,11 +48,11 @@ export function GuestEmpty({
 }
 
 export function GuestBanner({ message }: { message: string }) {
-  const { openConnectModal } = useConnectModal();
+  const { connect } = useConnectWallet();
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-dashed border-border bg-secondary/40 px-4 py-3">
       <p className="min-w-0 text-xs break-words text-muted-foreground">{message}</p>
-      <Button size="sm" className="motion-press shrink-0" onClick={() => openConnectModal?.()}>
+      <Button size="sm" className="motion-press shrink-0" onClick={connect}>
         <Wallet className="size-4" /> Connect
       </Button>
     </div>
