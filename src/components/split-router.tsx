@@ -56,7 +56,7 @@ export function SplitRouter() {
 
   const link = useMemo(
     () =>
-      `https://pay.coindecc.xyz/s/${parties
+      `https://coindeccpay.lovable.app/s/${parties
         .map((p) => p.bps)
         .join("-")}?amt=${amount}&cur=${currency}&net=arc`,
     [parties, amount, currency],
