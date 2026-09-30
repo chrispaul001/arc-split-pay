@@ -1,3 +1,5 @@
 - [x] Replace overview placeholder trends with timestamped, interactive data series and live stream progress.
 - [x] Record confirmed payments and link checkouts as deduplicated wallet notifications with receipt data.
 - [x] Add unread badge and clickable transaction details; verify desktop and phone rendering.
+
+- [ ] Streams: non-custodial wallet-signed USDC settlement on Arc (no cron/relayer)
