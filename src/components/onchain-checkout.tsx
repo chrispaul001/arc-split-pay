@@ -22,7 +22,7 @@ import { Check, Loader2, ShieldCheck, Wallet } from "lucide-react";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
 
-export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number } = {}) {
+export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefined } = {}) {
   const config = useConfig();
   const { address, chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();

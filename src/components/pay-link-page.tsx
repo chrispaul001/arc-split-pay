@@ -8,8 +8,8 @@ const PayLinkApp = lazy(() => import("@/components/pay-link-app"));
 const CODES: CurrencyCode[] = ["USD", "NGN", "GHS", "KES", "ZAR"];
 
 export function parsePaySearch(s: Record<string, unknown>) {
-  const amt = Number(s.amt);
-  const cur = String(s.cur ?? "USD").toUpperCase() as CurrencyCode;
+  const amt = Number(s['amt']);
+  const cur = String(s['cur'] ?? "USD").toUpperCase() as CurrencyCode;
   return {
     amt: Number.isFinite(amt) && amt > 0 ? amt : 0,
     cur: CODES.includes(cur) ? cur : ("USD" as CurrencyCode),
