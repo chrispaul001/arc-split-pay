@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import {
   DropdownMenu,
@@ -9,6 +10,9 @@ import {
 import { Bell, CheckCheck, CreditCard, Radio, Split, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { timeAgo, useMerchantStore, type MerchantNotification } from "@/lib/merchant-store";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { explorerTx } from "@/lib/web3";
 
 const ICONS = {
   payment: CreditCard,
@@ -18,11 +22,20 @@ const ICONS = {
 } as const;
 
 export function NotificationsBell() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const { isConnected } = useAccount();
   const { data, update } = useMerchantStore();
 
   const items: MerchantNotification[] = isConnected ? data.notifications : [];
   const unread = items.filter((n) => !n.read).length;
+  const selected = items.find((n) => n.id === selectedId);
+
+  const select = (item: MerchantNotification) => {
+    update((p) => ({ ...p, notifications: p.notifications.map((n) => n.id === item.id ? { ...n, read: true } : n) }));
+    setOpen(false);
+    setSelectedId(item.id);
+  };
 
   const markAll = () => {
     update((p) => ({ ...p, notifications: p.notifications.map((n) => ({ ...n, read: true })) }));
@@ -30,22 +43,20 @@ export function NotificationsBell() {
   };
 
   return (
-    <DropdownMenu
-      onOpenChange={(open) => {
-        if (open && unread > 0)
-          update((p) => ({ ...p, notifications: p.notifications.map((n) => ({ ...n, read: true })) }));
-      }}
-    >
+    <>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button variant="ghost" size="icon"
           aria-label="Notifications"
           className="motion-press group/bell relative rounded-xl p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
         >
           <Bell className="size-5 transition-transform duration-300 group-hover/bell:-rotate-12" />
           {unread > 0 && (
-            <span className="pulse-dot absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" />
+            <span className="absolute -top-1 -right-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground" aria-label={`${unread} unread notifications`}>
+              {unread > 99 ? "99+" : unread}
+            </span>
           )}
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -55,12 +66,12 @@ export function NotificationsBell() {
         <DropdownMenuLabel className="flex items-center justify-between px-2 py-2">
           <span className="text-sm font-semibold">Notifications</span>
           {items.length > 0 && (
-            <button
+            <Button variant="ghost" size="sm"
               onClick={markAll}
               className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
             >
               <CheckCheck className="size-3.5" /> Mark all read
-            </button>
+            </Button>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -75,23 +86,44 @@ export function NotificationsBell() {
             items.map((a) => {
               const Icon = ICONS[a.kind] ?? Wallet;
               return (
-                <div key={a.id} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-secondary/60">
+                <Button key={a.id} variant="ghost" onClick={() => select(a)} className="flex h-auto w-full items-start justify-start gap-3 rounded-md px-2 py-2.5 text-left whitespace-normal hover:bg-secondary/60">
                   <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
                     <Icon className="size-4" />
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-semibold">{a.title}</span>
                     <span className="block text-[11px] break-words text-muted-foreground">{a.body}</span>
                     <span className="mt-0.5 block text-[10px] text-muted-foreground/70">
                       {timeAgo(a.createdAt)}
                     </span>
                   </span>
-                </div>
+                  {!a.read && <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" aria-label="Unread" />}
+                </Button>
               );
             })
           )}
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+    <Dialog open={selectedId !== null} onOpenChange={(isOpen) => { if (!isOpen) setSelectedId(null); }}>
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-md">
+        <DialogHeader>
+          <DialogTitle>{selected?.title ?? "Notification"}</DialogTitle>
+          <DialogDescription>{selected?.body}</DialogDescription>
+        </DialogHeader>
+        {selected && <div className="space-y-3 text-sm">
+          <div><p className="text-xs text-muted-foreground">Settled at</p><p>{new Date(selected.createdAt).toLocaleString(undefined, { dateStyle: "full", timeStyle: "medium" })}</p></div>
+          {selected.payment && <>
+            <div><p className="text-xs text-muted-foreground">Sender</p><p className="break-all font-mono text-xs">{selected.payment.sender}</p></div>
+            <div><p className="text-xs text-muted-foreground">Amount settled</p><p className="font-semibold tabular-nums">{selected.payment.amount.toLocaleString()} {selected.payment.currency}</p></div>
+            <div><p className="text-xs text-muted-foreground">Transaction hash</p><a className="break-all font-mono text-xs text-primary underline" href={explorerTx(selected.payment.hash)} target="_blank" rel="noopener noreferrer">{selected.payment.hash}</a></div>
+            <div><p className="text-xs text-muted-foreground">Atomic split receipt</p>
+              {selected.payment.splits.length ? <ul className="mt-1 divide-y divide-border">{selected.payment.splits.map((s, i) => <li key={`${s.address}-${i}`} className="py-2"><span className="block break-all font-mono text-xs">{s.address}</span><span className="font-semibold tabular-nums">{s.amount.toLocaleString()} USDC</span></li>)}</ul> : <p className="text-muted-foreground">No recipient transfers found in this transaction.</p>}
+            </div>
+          </>}
+        </div>}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

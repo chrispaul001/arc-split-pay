@@ -4,6 +4,7 @@ import { useAccount, useConfig, useSwitchChain, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { COINDECC_PAY_ABI, COINDECC_PAY_ADDRESS, DEFAULT_SPLIT_ID, ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 import type { TxStatus } from "@/components/tx-progress";
+import { recordPayment } from "@/lib/payment-events";
 
 export type StepState = { status: TxStatus; hash?: string; error?: string };
 
@@ -91,6 +92,7 @@ export function usePay() {
         const r = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
         if (r.status !== "success") throw new Error("Payment reverted on-chain");
         setPay({ status: "confirmed", hash });
+        recordPayment({ hash, sender: address, amount: n });
         return hash;
       } catch (e) {
         setPay((s) => ({ ...s, status: "failed", error: errMessage(e) }));

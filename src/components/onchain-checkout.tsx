@@ -19,6 +19,7 @@ import {
 } from "@/lib/web3";
 import { toast } from "sonner";
 import { Check, Loader2, ShieldCheck, Wallet } from "lucide-react";
+import { recordPayment } from "@/lib/payment-events";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
 
@@ -151,6 +152,7 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
         const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
         if (receipt.status !== "success") throw new Error("Payment reverted on-chain");
         setPay({ status: "confirmed", hash });
+        recordPayment({ hash, sender: address, amount: parsed });
         setDone(true);
         toast.success("Payment settled on Arc");
         void refetch();

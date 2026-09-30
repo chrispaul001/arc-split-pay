@@ -9,8 +9,7 @@ import { explorerTx, shortAddress } from "@/lib/web3";
 import { useTelemetry } from "@/lib/use-telemetry";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
-
-const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";
 
 export function Overview() {
   const { isConnected, address, chain } = useAccount();
@@ -26,19 +25,33 @@ export function Overview() {
   const tele = useTelemetry();
   const t = tele.data;
   const fmt = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-  const splitExecutions = t ? t.events.length : data.notifications.filter((n) => n.kind === "split").length;
+  const splitExecutions = t ? t.events.filter((e) => e.timestamp >= Date.now() - 86400000).length : data.notifications.filter((n) => n.kind === "split").length;
   const activeStreams = data.streams.filter((s) => s.running).length;
+  const now = Date.now();
+  const start = now - 24 * 3600 * 1000;
+  const times = Array.from({ length: 16 }, (_, i) => start + (i + 1) * 24 * 3600 * 1000 / 16);
+  const events = isConnected ? (t?.events ?? []) : [];
+  const volumePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
+    value: events.filter((e) => e.timestamp >= start && e.timestamp <= timestamp).reduce((sum, e) => sum + e.amount, 0) }));
+  const balance = isConnected ? Number(formatted) || 0 : 0;
+  // Reconstruct only confirmed outgoing pay() activity; do not fabricate a balance history.
+  const mine = events.filter((e) => e.from.toLowerCase() === address?.toLowerCase());
+  const balancePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
+    value: Math.max(0, balance + mine.filter((e) => e.timestamp > timestamp && e.timestamp <= now).reduce((sum, e) => sum + e.amount, 0)) }));
+  const splitPoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
+    value: events.filter((e) => e.timestamp >= start && e.timestamp <= timestamp).length }));
 
   const metrics = [
     {
       label: "Contract Volume (USDC)",
-      value: t ? fmt(t.volume) : tele.isLoading ? "…" : "—",
+      value: t ? fmt(volumePoints[volumePoints.length - 1]?.value ?? 0) : tele.isLoading ? "…" : "—",
       zero: "$0.00",
       delta: t ? `${t.payers} payers on-chain` : "Syncing Arc logs",
       icon: Zap,
-      hasValue: Boolean(t && t.volume > 0),
+      hasValue: Boolean(t && (volumePoints[volumePoints.length - 1]?.value ?? 0) > 0),
+      trend: volumePoints, format: fmt,
     },
-    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0 },
+    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0, trend: balancePoints, format: fmt },
     {
       label: "Active Payment Streams",
       value: String(activeStreams),
@@ -46,6 +59,7 @@ export function Overview() {
       delta: activeStreams ? "Streaming now" : "No streams",
       icon: Waves,
       hasValue: activeStreams > 0,
+      trend: [] as TrendPoint[], format: (n: number) => String(n),
     },
     {
       label: "Instant Split Executions",
@@ -54,6 +68,7 @@ export function Overview() {
       delta: splitExecutions ? "Settled on Arc" : "None yet",
       icon: Split,
       hasValue: splitExecutions > 0,
+      trend: splitPoints, format: (n: number) => String(n),
     },
   ];
 
@@ -89,7 +104,9 @@ export function Overview() {
               ) : (
                 <span aria-hidden="true" />
               )}
-              <Sparkline data={EMPTY} className="h-10 w-32 max-w-[45%] shrink-0" />
+              {m.label === "Active Payment Streams" ?
+                <MetricProgress value={isConnected ? activeStreams : 0} total={isConnected ? data.streams.length : 0} label={m.label} /> :
+                <MetricTrend points={m.trend} format={m.format} label={m.label} />}
             </div>
           </div>
         ))}
