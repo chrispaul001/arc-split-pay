@@ -10,12 +10,33 @@ import { Activity, Pause, Play, Plus, Radio, Square, Timer } from "lucide-react"
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
 
+type PricingMode = "sec" | "hour" | "day" | "budget";
+
+const MODES: Record<PricingMode, { label: string; inputLabel: string; placeholder: string; suffix: string; divisor: number }> = {
+  sec: { label: "Per second", inputLabel: "Rate per second", placeholder: "0.01", suffix: "/sec", divisor: 1 },
+  hour: { label: "Per hour", inputLabel: "Rate per hour", placeholder: "25", suffix: "/hr", divisor: 3600 },
+  day: { label: "Per day", inputLabel: "Rate per day", placeholder: "200", suffix: "/day", divisor: 86400 },
+  budget: { label: "Total fixed budget", inputLabel: "Total budget", placeholder: "1000", suffix: "total", divisor: 0 },
+};
+
+function toPerSecond(mode: PricingMode, amount: string, durationHours: string) {
+  const a = Number(amount);
+  if (!Number.isFinite(a) || a <= 0) return 0;
+  if (mode === "budget") {
+    const h = Number(durationHours);
+    return Number.isFinite(h) && h > 0 ? a / (h * 3600) : 0;
+  }
+  return a / MODES[mode].divisor;
+}
+
 export function Streams() {
   const connected = useWalletGate();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const { data, ready, update, notify } = useMerchantStore();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", role: "", address: "", rate: "0.0100" });
+  const emptyForm = { name: "", role: "", address: "", mode: "hour" as PricingMode, amount: "", duration: "" };
+  const [form, setForm] = useState(emptyForm);
+  const computedRate = toPerSecond(form.mode, form.amount, form.duration);
 
   const streams = data.streams;
 
@@ -52,9 +73,13 @@ export function Streams() {
     }));
 
   const create = () => {
-    const rate = Number(form.rate);
+    const rate = computedRate;
     if (!form.name.trim() || !rate || rate <= 0) {
-      toast.error("Add a recipient name and a rate above zero");
+      toast.error(
+        form.mode === "budget"
+          ? "Add a recipient name, a budget and a duration above zero"
+          : "Add a recipient name and a rate above zero",
+      );
       return;
     }
     const stream = {
@@ -68,8 +93,8 @@ export function Streams() {
       createdAt: Date.now(),
     };
     update((p) => ({ ...p, streams: [stream, ...p.streams] }));
-    notify({ kind: "stream", title: "Stream started", body: `${stream.name} · ${rate} USDC/s` });
-    setForm({ name: "", role: "", address: "", rate: "0.0100" });
+    notify({ kind: "stream", title: "Stream started", body: `${stream.name} · ${rate.toFixed(6)} USDC/s` });
+    setForm(emptyForm);
     setOpen(false);
     toast.success("Stream started");
   };
@@ -125,15 +150,60 @@ export function Streams() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="s-rate">Rate (USDC / sec)</Label>
-              <Input
-                id="s-rate"
-                inputMode="decimal"
-                value={form.rate}
-                placeholder="0.0100"
-                onChange={(e) => setForm((f) => ({ ...f, rate: e.target.value.replace(/[^\d.]/g, "") }))}
-                className="bg-background/40 font-mono"
-              />
+              <Label htmlFor="s-mode">Pricing mode</Label>
+              <select
+                id="s-mode"
+                value={form.mode}
+                onChange={(e) => setForm((f) => ({ ...f, mode: e.target.value as PricingMode }))}
+                className="h-9 w-full rounded-md border border-input bg-background/40 px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              >
+                {(Object.keys(MODES) as PricingMode[]).map((m) => (
+                  <option key={m} value={m}>
+                    {MODES[m].label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="s-rate">{MODES[form.mode].inputLabel}</Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                <Input
+                  id="s-rate"
+                  inputMode="decimal"
+                  value={form.amount}
+                  placeholder={MODES[form.mode].placeholder}
+                  onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value.replace(/[^\d.]/g, "") }))}
+                  className="bg-background/40 pr-14 pl-7 font-mono"
+                />
+                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
+                  {MODES[form.mode].suffix}
+                </span>
+              </div>
+            </div>
+            {form.mode === "budget" && (
+              <div className="space-y-2">
+                <Label htmlFor="s-dur">Duration (hours)</Label>
+                <Input
+                  id="s-dur"
+                  inputMode="decimal"
+                  value={form.duration}
+                  placeholder="e.g. 40"
+                  onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value.replace(/[^\d.]/g, "") }))}
+                  className="bg-background/40 font-mono"
+                />
+              </div>
+            )}
+            <div className="rounded-xl bg-background/40 p-3 text-xs sm:col-span-2">
+              <p className="text-muted-foreground">Equivalent rate</p>
+              <p className="font-mono text-sm font-semibold tabular-nums">
+                {computedRate > 0 ? `${computedRate.toFixed(8)} USDC / sec` : "—"}
+              </p>
+              {computedRate > 0 && (
+                <p className="text-muted-foreground tabular-nums">
+                  ≈ {(computedRate * 3600).toFixed(2)} USDC/hr · {(computedRate * 86400).toFixed(2)} USDC/day
+                </p>
+              )}
             </div>
             <Button className="sm:col-span-2" onClick={create}>
               Start stream
