@@ -2,7 +2,7 @@ import { Sparkline } from "./sparkline";
 import { Reveal } from "./reveal";
 import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck, Wallet } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useConnectWallet } from "@/lib/use-connect";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
 import { explorerTx, shortAddress } from "@/lib/web3";
@@ -14,7 +14,7 @@ const EMPTY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 export function Overview() {
   const { isConnected, address, chain } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { connect: connectWallet } = useConnectWallet();
   const { formatted } = useUsdc();
   const { data } = useMerchantStore();
 
@@ -136,7 +136,7 @@ export function Overview() {
               <p className="text-xs break-words text-muted-foreground">
                 Connect your wallet to load live volume, streams and split activity.
               </p>
-              <Button size="sm" onClick={() => openConnectModal?.()}>
+              <Button size="sm" onClick={connectWallet}>
                 <Wallet className="size-4" /> Connect Wallet
               </Button>
             </div>
