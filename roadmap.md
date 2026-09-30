@@ -1,7 +1,3 @@
-- [x] Constrain Overview and dashboard wrappers to phone width without horizontal overflow.
-- [x] Let settlement headings wrap cleanly on small screens.
-- [x] Remove zero-value metric pills and verify the mobile Overview.
-- [x] Repair older saved profile and merchant data instead of crashing during startup.
-- [x] Make the root loading error recoverable with hard reload, safe cache reset, and visible details.
-- [x] Preload critical router dependencies to avoid mid-session optimization interruptions.
-- [x] Preload TanStack Router's client submodules so the mobile preview does not trigger a second forced reload.
+- [ ] Replace overview placeholder trends with timestamped, interactive data series.
+- [ ] Record confirmed payments and link checkouts as deduplicated wallet notifications with real receipt data.
+- [ ] Add unread badge and clickable transaction details, then verify the flow.
