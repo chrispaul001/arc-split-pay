@@ -49,7 +49,7 @@ export function Sparkline({
       }}
       onPointerLeave={(event) => { if (event.pointerType === "mouse") setActive(null); }}
       onBlur={() => setActive(null)}
-      onFocus={() => { if (data.length > 1) setActive(data.length - 1); }}
+      onFocus={() => { if (data.length > 1) setActive((i) => i ?? data.length - 1); }}
       onKeyDown={(event) => {
         if (data.length < 2 || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
         event.preventDefault();
