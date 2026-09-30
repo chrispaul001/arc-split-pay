@@ -1,3 +1,3 @@
-- [ ] Replace overview placeholder trends with timestamped, interactive data series.
-- [ ] Record confirmed payments and link checkouts as deduplicated wallet notifications with real receipt data.
-- [ ] Add unread badge and clickable transaction details, then verify the flow.
+- [x] Replace overview placeholder trends with timestamped, interactive data series and live stream progress.
+- [x] Record confirmed payments and link checkouts as deduplicated wallet notifications with receipt data.
+- [x] Add unread badge and clickable transaction details; verify desktop and phone rendering.
