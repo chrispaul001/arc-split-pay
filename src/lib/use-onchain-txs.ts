@@ -16,7 +16,6 @@ export function useOnchainTxs(address?: `0x${string}`) {
     enabled: Boolean(client && address),
     refetchInterval: 30_000,
     initialPageParam: null as bigint | null,
-    getNextPageParam: (page) => page.next,
     queryFn: async ({ pageParam }): Promise<{ records: TxRecord[]; next: bigint | undefined }> => {
       if (!client || !address) return { records: [], next: undefined };
       const latest = pageParam ?? await client.getBlockNumber();
@@ -71,5 +70,6 @@ export function useOnchainTxs(address?: `0x${string}`) {
       });
       return { records: records.sort((a, b) => b.timestamp - a.timestamp), next: scanned === CHUNKS && to >= 0n ? to : undefined };
     },
+    getNextPageParam: (page) => page.next,
   });
 }
