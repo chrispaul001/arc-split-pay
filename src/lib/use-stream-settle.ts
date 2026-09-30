@@ -3,7 +3,6 @@ import { isAddress, parseUnits } from "viem";
 import { useAccount, useConfig, useSwitchChain, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
-import { recordPayment } from "@/lib/payment-events";
 
 /** Non-custodial stream settlement: the connected wallet signs a USDC transfer on Arc Testnet. */
 export function useStreamSettle() {
@@ -35,7 +34,6 @@ export function useStreamSettle() {
       });
       const r = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
       if (r.status !== "success") throw new Error("Settlement reverted on-chain");
-      recordPayment({ hash, sender: address, amount });
       return hash;
     } finally {
       setBusyId(null);
