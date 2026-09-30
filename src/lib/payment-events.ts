@@ -1,4 +1,6 @@
 /** Persist a confirmed payment until the wallet's merchant feed can pick it up. */
+import { recordTx } from "@/lib/tx-history";
+import { COINDECC_PAY_ADDRESS } from "@/lib/web3";
 export type SettledPayment = { hash: `0x${string}`; sender: `0x${string}`; amount: number };
 export const paymentQueueKey = (address: string) => `coindecc:payments:${address.toLowerCase()}`;
 
@@ -14,6 +16,7 @@ export function readPayments(address: string): SettledPayment[] {
 }
 
 export function recordPayment(payment: SettledPayment) {
+  recordTx({ hash: payment.hash, kind: "payment", from: payment.sender, to: COINDECC_PAY_ADDRESS, amount: payment.amount, label: "CoindeccPay checkout" });
   const payments = readPayments(payment.sender);
   try {
     localStorage.setItem(paymentQueueKey(payment.sender), JSON.stringify(
