@@ -9,11 +9,12 @@ import {
 import { createConfig, http } from "wagmi";
 import { arcTestnet } from "@/lib/web3";
 
-// Set VITE_WALLETCONNECT_PROJECT_ID to your own WalletConnect Cloud project id
-// to enable the WalletConnect / Rainbow mobile flows in production.
+// Dedicated CoindeccPay WalletConnect (Reown) project id. It is a public,
+// client-side identifier — safe to ship in the bundle. Replace only by rotating
+// the project on cloud.reown.com.
 const projectId =
   (import.meta.env['VITE_WALLETCONNECT_PROJECT_ID'] as string | undefined) ??
-  "3a8170812b534d0ff9d794f19a901d64";
+  "1c7f3b42e7aa4b078b0fd48db8602a9d";
 
 const connectors = connectorsForWallets(
   [
