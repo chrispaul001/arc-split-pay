@@ -81,7 +81,7 @@ export function Sparkline({
           </>
         )}
       </svg>
-      {selected && active !== null && <div role="tooltip" className="pointer-events-none absolute top-2 z-10 min-w-max -translate-x-1/2 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md" style={{ left: `${Math.max(20, Math.min(80, points[active]?.[0] ?? 50))}%` }}>
+      {selected && active !== null && <div role="tooltip" className="pointer-events-none absolute top-2 left-1/2 z-10 w-52 max-w-[calc(100%-1rem)] -translate-x-1/2 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md">
         <strong className="block tabular-nums">{selected.value.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</strong>
         <time dateTime={new Date(selected.timestamp).toISOString()} className="text-muted-foreground">
           {new Date(selected.timestamp).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" })}
