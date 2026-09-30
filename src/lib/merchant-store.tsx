@@ -8,14 +8,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useAccount, useSignMessage, useWatchContractEvent } from "wagmi";
+import { useAccount, useConfig, useSignMessage, useWatchContractEvent } from "wagmi";
+import { getBlock, getTransactionReceipt } from "wagmi/actions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatUnits, parseAbi } from "viem";
+import { decodeEventLog, formatUnits, parseAbi } from "viem";
 import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 import { loadProfile, saveProfile, signInMessage, walletSignIn } from "@/lib/profile.functions";
+import { readPayments, type SettledPayment } from "@/lib/payment-events";
 
 const TRANSFER_ABI = parseAbi([
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -66,6 +68,7 @@ export type MerchantNotification = {
   body: string;
   createdAt: number;
   read: boolean;
+  payment?: { hash: string; sender: string; amount: number; currency: "USDC"; splits: { address: string; amount: number }[] };
 };
 
 export type TeamRole = "Admin" | "Developer" | "Viewer";
@@ -137,7 +140,24 @@ function normalizeMerchantData(value: unknown): MerchantData {
     links: Array.isArray(saved.links) ? saved.links : [],
     streams: Array.isArray(saved.streams) ? saved.streams : [],
     apiKeys: Array.isArray(saved.apiKeys) ? saved.apiKeys : [],
-    notifications: Array.isArray(saved.notifications) ? saved.notifications : [],
+    notifications: Array.isArray(saved.notifications) ? saved.notifications.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const n = item as Partial<MerchantNotification>;
+      if (typeof n.id !== "string" || typeof n.title !== "string" || typeof n.body !== "string") return [];
+      const payment = n.payment;
+      return [{
+        id: n.id, title: n.title, body: n.body,
+        kind: ["payment", "split", "stream", "system"].includes(n.kind ?? "") ? n.kind as MerchantNotification["kind"] : "system" as const,
+        createdAt: typeof n.createdAt === "number" && Number.isFinite(n.createdAt) ? n.createdAt : Date.now(),
+        read: n.read === true,
+        ...(payment && typeof payment.hash === "string" && /^0x[a-f0-9]{64}$/i.test(payment.hash) &&
+          typeof payment.sender === "string" && /^0x[a-f0-9]{40}$/i.test(payment.sender) &&
+          typeof payment.amount === "number" && Number.isFinite(payment.amount) && payment.amount > 0 ? {
+          payment: { hash: payment.hash, sender: payment.sender, amount: payment.amount, currency: "USDC" as const,
+            splits: Array.isArray(payment.splits) ? payment.splits.filter((s) => s && typeof s.address === "string" && typeof s.amount === "number" && Number.isFinite(s.amount)) : [] },
+        } : {}),
+      }];
+    }) : [],
     team: normalizeTeam(saved.team),
     businessName: typeof saved.businessName === "string" ? saved.businessName : "",
     settlementWallet:
@@ -200,6 +220,7 @@ const tokenKey = (a: string) => `coindecc:session:${a.toLowerCase()}`;
  */
 export function MerchantProvider({ children }: { children: ReactNode }) {
   const { address, isConnected } = useAccount();
+  const config = useConfig();
   const { signMessageAsync } = useSignMessage();
   const brand = useBrand();
   const [data, setData] = useState<MerchantData | null>(null);
@@ -328,8 +349,62 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
-  // live on-chain listener: every payment into the contract pops a notification instantly
+  // Confirmed receipts are the source of truth. The queue also bridges a separate checkout tab.
   const queryClient = useQueryClient();
+  const pending = useRef(new Set<string>());
+  const ingestPayment = useCallback(async (payment: SettledPayment) => {
+    if (!address || !isConnected) return;
+    const key = payment.hash.toLowerCase();
+    if (pending.current.has(key) || dataRef.current?.notifications.some((n) => n.payment?.hash.toLowerCase() === key)) return;
+    pending.current.add(key);
+    try {
+      const receipt = await getTransactionReceipt(config, { hash: payment.hash, chainId: arcTestnet.id });
+      if (receipt.status !== "success") return;
+      const block = await getBlock(config, { blockNumber: receipt.blockNumber, chainId: arcTestnet.id });
+      const transfers = receipt.logs.flatMap((log) => {
+        if (log.address.toLowerCase() !== USDC_ADDRESS.toLowerCase()) return [];
+        try {
+          const decoded = decodeEventLog({ abi: TRANSFER_ABI, data: log.data, topics: log.topics });
+          if (decoded.eventName !== "Transfer") return [];
+          return [{ from: decoded.args.from, to: decoded.args.to, amount: Number(formatUnits(decoded.args.value, 6)) }];
+        } catch { return []; }
+      });
+      const sender = transfers.find((t) => t.to.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase())?.from ?? payment.sender;
+      const amount = transfers.find((t) => t.to.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase())?.amount ?? payment.amount;
+      const splits = transfers.filter((t) => t.from.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase() && t.to.toLowerCase() !== COINDECC_PAY_ADDRESS.toLowerCase())
+        .map((t) => ({ address: t.to, amount: t.amount }));
+      // Show only payments sent by this wallet or settled to this wallet.
+      if (sender.toLowerCase() !== address.toLowerCase() && !splits.some((s) => s.address.toLowerCase() === address.toLowerCase())) return;
+      const title = sender.toLowerCase() === address.toLowerCase() ? "Payment sent & split" : "Payment received";
+      const body = `${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC from ${sender.slice(0, 6)}…${sender.slice(-4)}`;
+      update((prev) => prev.notifications.some((n) => n.payment?.hash.toLowerCase() === key) ? prev : ({
+        ...prev,
+        notifications: [{ id: randomId(), kind: "payment", title, body, createdAt: Number(block.timestamp) * 1000,
+          read: false, payment: { hash: payment.hash, sender, amount, currency: "USDC", splits } }, ...prev.notifications].slice(0, 50),
+      }));
+      void queryClient.invalidateQueries({ queryKey: ["coindecc-telemetry"] });
+    } catch { /* RPC may be temporarily unavailable; the queue is retried on next visit */ }
+    finally { pending.current.delete(key); }
+  }, [address, isConnected, config, update, queryClient]);
+
+  useEffect(() => {
+    if (!address || !isConnected) return;
+    const onPayment = (event: Event) => {
+      const payment = (event as CustomEvent<SettledPayment>).detail;
+      if (payment && typeof payment.hash === "string") void ingestPayment(payment);
+    };
+    window.addEventListener("coindecc:payment-settled", onPayment);
+    const sync = () => { for (const payment of readPayments(address)) void ingestPayment(payment); };
+    sync();
+    window.addEventListener("storage", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      window.removeEventListener("coindecc:payment-settled", onPayment);
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, [address, isConnected, ingestPayment]);
+
   useWatchContractEvent({
     address: USDC_ADDRESS,
     abi: TRANSFER_ABI,
@@ -340,15 +415,10 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     pollingInterval: 4_000,
     onLogs: (logs) => {
       for (const log of logs) {
-        const amount = Number(formatUnits(log.args.value ?? 0n, 6));
-        const from = log.args.from ?? "0x";
-        const mine = address && from.toLowerCase() === address.toLowerCase();
-        const title = mine ? "Payment sent & split" : "Payment received";
-        const body = `${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC from ${from.slice(0, 6)}…${from.slice(-4)}`;
-        notify({ kind: "payment", title, body });
-        toast.success(title, { description: body });
+        if (log.transactionHash && log.args.from && log.args.value)
+          void ingestPayment({ hash: log.transactionHash, sender: log.args.from,
+            amount: Number(formatUnits(log.args.value, 6)) });
       }
-      void queryClient.invalidateQueries({ queryKey: ["coindecc-telemetry"] });
     },
   });
 
