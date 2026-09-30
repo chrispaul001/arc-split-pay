@@ -110,6 +110,39 @@ export function SplitRouter() {
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
+  const sendNow = async () => {
+    const bad = parties.find((p) => p.bps > 0 && !isAddress(p.address));
+    if (bad) return toast.error(`Invalid wallet address for ${bad.name || "a recipient"}`);
+    setSending(true);
+    const hashes: string[] = [];
+    try {
+      for (const p of parties) {
+        const share = (amount * p.bps) / 10000;
+        if (share <= 0) continue;
+        if (address && p.address.toLowerCase() === address.toLowerCase()) continue;
+        const id = toast.loading(`Approve ${share.toFixed(2)} USDC to ${p.name || p.address.slice(0, 8)}…`);
+        try {
+          hashes.push(await settle(`split-${p.id}`, p.address, share));
+          toast.success(`Sent to ${p.name || "recipient"}`, { id });
+        } catch (e) {
+          toast.error(errMessage(e), { id });
+          throw e;
+        }
+      }
+      notify({
+        kind: "split",
+        title: "Split sent on-chain",
+        body: `${amount} USDC routed to ${hashes.length} recipient${hashes.length === 1 ? "" : "s"}.`,
+      });
+      setTotal("");
+      setReference("");
+    } catch {
+      if (hashes.length) toast.warning(`${hashes.length} payout(s) completed before stopping.`);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (!connected)
     return (
       <GuestEmpty description="Connect your wallet to build and manage split-router payment links." />
@@ -119,6 +152,24 @@ export function SplitRouter() {
 
     <div className="grid w-full max-w-full min-w-0 gap-4 lg:grid-cols-[1.5fr_1fr]">
       <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
+        <div role="tablist" className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary/60 p-1">
+          {([
+            ["link", "Create Payment Link"],
+            ["send", "Direct Send"],
+          ] as const).map(([m, label]) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                mode === m ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="flex w-full min-w-0 flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold break-words">Split-Router link builder</h3>
