@@ -11,6 +11,10 @@ import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
+import { useStreamSettle } from "@/lib/use-stream-settle";
+import { errMessage } from "@/lib/use-pay";
+import { isAddress } from "viem";
+import { Send } from "lucide-react";
 
 
 
@@ -30,7 +34,10 @@ export function SplitRouter() {
   const connected = useWalletGate();
   const { product, setImage } = useBrand();
   const { address, update: saveMerchant, notify } = useMerchantStore();
+  const { settle } = useStreamSettle();
 
+  const [mode, setMode] = useState<"link" | "send">("link");
+  const [sending, setSending] = useState(false);
   const [total, setTotal] = useState("");
   const [reference, setReference] = useState("");
   const [linkName, setLinkName] = useState("");
