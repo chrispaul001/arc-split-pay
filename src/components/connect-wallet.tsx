@@ -1,11 +1,36 @@
+import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { AlertTriangle, Copy, Wallet } from "lucide-react";
+import { AlertTriangle, Copy, ExternalLink, Wallet } from "lucide-react";
 import { toast } from "sonner";
+
+/**
+ * Mobile OSes block iframes from launching wallet apps via deep links, so the
+ * embedded preview silently swallows every wallet tap. Detect that case and
+ * point people at the standalone tab instead.
+ */
+function useEmbeddedPreview() {
+  const [embedded, setEmbedded] = useState(false);
+
+  useEffect(() => {
+    try {
+      setEmbedded(window.self !== window.top);
+    } catch {
+      setEmbedded(true);
+    }
+  }, []);
+
+  return embedded;
+}
+
+function openStandalone() {
+  window.open(window.location.href, "_blank", "noopener,noreferrer");
+}
 
 export function ConnectWallet({ compact = false }: { compact?: boolean }) {
   const { formatted } = useUsdc();
+  const embedded = useEmbeddedPreview();
 
   return (
     <ConnectButton.Custom>
@@ -18,6 +43,18 @@ export function ConnectWallet({ compact = false }: { compact?: boolean }) {
         }
 
         if (!connected) {
+          if (embedded) {
+            return (
+              <Button
+                size={compact ? "sm" : "lg"}
+                onClick={openStandalone}
+                title="Wallet apps can't open inside an embedded preview. Opens CoindeccPay in its own tab."
+              >
+                <ExternalLink className="size-4" /> Open to connect
+              </Button>
+            );
+          }
+
           return (
             <Button size={compact ? "sm" : "lg"} onClick={openConnectModal}>
               <Wallet className="size-4" /> Connect Wallet
