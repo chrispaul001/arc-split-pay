@@ -228,6 +228,7 @@ export function SplitRouter() {
               className="bg-background/40"
             />
           </div>
+          {mode === "link" && (
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="link-name">Link name</Label>
             <Input
@@ -238,6 +239,7 @@ export function SplitRouter() {
               className="bg-background/40"
             />
           </div>
+          )}
 
         </div>
 
@@ -414,6 +416,17 @@ export function SplitRouter() {
           ))}
         </ul>
 
+        {mode === "send" ? (
+          <>
+            <p className="rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+              Your wallet pays each recipient their share in USDC on Arc Testnet. You'll approve one transfer per recipient.
+            </p>
+            <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
+              <Send className="size-4" /> {sending ? "Sending…" : "Send Now"}
+            </Button>
+          </>
+        ) : (
+        <>
         <div className="space-y-2 w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
           <p className="flex items-center gap-2 text-xs break-words text-muted-foreground">
             <Link2 className="size-3.5" /> Generated payment link
@@ -453,6 +466,9 @@ export function SplitRouter() {
         >
           <Copy className="size-4" /> Publish &amp; copy link
         </Button>
+        </>
+        )}
+
 
       </div>
     </div>
