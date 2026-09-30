@@ -29,7 +29,7 @@ export function CheckoutPreview() {
   const { logo, product, setImage, businessName } = useBrand();
   const c = getCurrency(currency);
 
-  const SNIPPET = `<script src="https://cdn.coindecc.xyz/pay.js"></script>
+  const SNIPPET = `<script src="https://coindeccpay.lovable.app/pay.js"></script>
 <div data-coindecc-pay
      data-amount="${AMOUNT}"
      data-display="${currency}"
