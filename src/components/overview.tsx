@@ -122,7 +122,10 @@ export function Overview() {
             </span>
           </div>
           <Sparkline
-            data={isConnected && t ? t.buckets : new Array(16).fill(0)}
+             points={isConnected && t ? t.buckets.map((value, i) => ({
+               value,
+               timestamp: t.bucketStart + (i + 1) * (24 * 3600 * 1000 / t.buckets.length),
+             })) : []}
             className="mt-5 h-44 w-full"
             filled
           />
