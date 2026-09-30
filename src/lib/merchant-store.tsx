@@ -379,8 +379,8 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       const body = `${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC from ${sender.slice(0, 6)}…${sender.slice(-4)}`;
       update((prev) => prev.notifications.some((n) => n.payment?.hash.toLowerCase() === key) ? prev : ({
         ...prev,
-        notifications: [{ id: randomId(), kind: "payment", title, body, createdAt: Number(block.timestamp) * 1000,
-          read: false, payment: { hash: payment.hash, sender, amount, currency: "USDC", splits } }, ...prev.notifications].slice(0, 50),
+        notifications: [{ id: randomId(), kind: "payment" as const, title, body, createdAt: Number(block.timestamp) * 1000,
+          read: false, payment: { hash: payment.hash, sender, amount, currency: "USDC" as const, splits } }, ...prev.notifications].slice(0, 50),
       }));
       void queryClient.invalidateQueries({ queryKey: ["coindecc-telemetry"] });
     } catch { /* RPC may be temporarily unavailable; the queue is retried on next visit */ }
