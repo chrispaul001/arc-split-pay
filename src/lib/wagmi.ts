@@ -95,7 +95,13 @@ const connectors = connectorsForWallets(
     },
     {
       groupName: "More wallets",
-      wallets: [trustWallet, phantomWallet, okxWallet, zerionWallet, browserWallet],
+      wallets: [
+        trustUniversalWallet,
+        phantomWallet,
+        okxUniversalWallet,
+        zerionUniversalWallet,
+        browserWallet,
+      ],
     },
   ],
   {
