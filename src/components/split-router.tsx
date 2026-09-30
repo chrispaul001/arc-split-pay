@@ -11,6 +11,10 @@ import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
+import { useStreamSettle } from "@/lib/use-stream-settle";
+import { errMessage } from "@/lib/use-pay";
+import { isAddress } from "viem";
+import { Send } from "lucide-react";
 
 
 
@@ -30,7 +34,10 @@ export function SplitRouter() {
   const connected = useWalletGate();
   const { product, setImage } = useBrand();
   const { address, update: saveMerchant, notify } = useMerchantStore();
+  const { settle } = useStreamSettle();
 
+  const [mode, setMode] = useState<"link" | "send">("link");
+  const [sending, setSending] = useState(false);
   const [total, setTotal] = useState("");
   const [reference, setReference] = useState("");
   const [linkName, setLinkName] = useState("");
@@ -103,6 +110,42 @@ export function SplitRouter() {
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
+  const sendNow = async (): Promise<void> => {
+    const bad = parties.find((p) => p.bps > 0 && !isAddress(p.address));
+    if (bad) {
+      toast.error(`Invalid wallet address for ${bad.name || "a recipient"}`);
+      return;
+    }
+    setSending(true);
+    const hashes: string[] = [];
+    try {
+      for (const p of parties) {
+        const share = (amount * p.bps) / 10000;
+        if (share <= 0) continue;
+        if (address && p.address.toLowerCase() === address.toLowerCase()) continue;
+        const id = toast.loading(`Approve ${share.toFixed(2)} USDC to ${p.name || p.address.slice(0, 8)}…`);
+        try {
+          hashes.push(await settle(`split-${p.id}`, p.address, share));
+          toast.success(`Sent to ${p.name || "recipient"}`, { id });
+        } catch (e) {
+          toast.error(errMessage(e), { id });
+          throw e;
+        }
+      }
+      notify({
+        kind: "split",
+        title: "Split sent on-chain",
+        body: `${amount} USDC routed to ${hashes.length} recipient${hashes.length === 1 ? "" : "s"}.`,
+      });
+      setTotal("");
+      setReference("");
+    } catch {
+      if (hashes.length) toast.warning(`${hashes.length} payout(s) completed before stopping.`);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (!connected)
     return (
       <GuestEmpty description="Connect your wallet to build and manage split-router payment links." />
@@ -112,6 +155,24 @@ export function SplitRouter() {
 
     <div className="grid w-full max-w-full min-w-0 gap-4 lg:grid-cols-[1.5fr_1fr]">
       <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
+        <div role="tablist" className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary/60 p-1">
+          {([
+            ["link", "Create Payment Link"],
+            ["send", "Direct Send"],
+          ] as const).map(([m, label]) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className={`rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                mode === m ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="flex w-full min-w-0 flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold break-words">Split-Router link builder</h3>
@@ -170,6 +231,7 @@ export function SplitRouter() {
               className="bg-background/40"
             />
           </div>
+          {mode === "link" && (
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="link-name">Link name</Label>
             <Input
@@ -180,6 +242,7 @@ export function SplitRouter() {
               className="bg-background/40"
             />
           </div>
+          )}
 
         </div>
 
@@ -356,6 +419,17 @@ export function SplitRouter() {
           ))}
         </ul>
 
+        {mode === "send" ? (
+          <>
+            <p className="rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+              Your wallet pays each recipient their share in USDC on Arc Testnet. You'll approve one transfer per recipient.
+            </p>
+            <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
+              <Send className="size-4" /> {sending ? "Sending…" : "Send Now"}
+            </Button>
+          </>
+        ) : (
+        <>
         <div className="space-y-2 w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
           <p className="flex items-center gap-2 text-xs break-words text-muted-foreground">
             <Link2 className="size-3.5" /> Generated payment link
@@ -395,6 +469,9 @@ export function SplitRouter() {
         >
           <Copy className="size-4" /> Publish &amp; copy link
         </Button>
+        </>
+        )}
+
 
       </div>
     </div>
