@@ -371,7 +371,9 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       });
       const sender = transfers.find((t) => t.to.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase())?.from ?? payment.sender;
       const amount = transfers.find((t) => t.to.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase())?.amount ?? payment.amount;
-      const splits = transfers.filter((t) => t.from.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase() && t.to.toLowerCase() !== COINDECC_PAY_ADDRESS.toLowerCase())
+      const splits = transfers.filter((t) =>
+        (t.from.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase() || t.from.toLowerCase() === sender.toLowerCase()) &&
+        t.to.toLowerCase() !== COINDECC_PAY_ADDRESS.toLowerCase() && t.to.toLowerCase() !== sender.toLowerCase())
         .map((t) => ({ address: t.to, amount: t.amount }));
       // Show only payments sent by this wallet or settled to this wallet.
       if (sender.toLowerCase() !== address.toLowerCase() && !splits.some((s) => s.address.toLowerCase() === address.toLowerCase())) return;
@@ -403,7 +405,7 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("storage", sync);
       window.removeEventListener("focus", sync);
     };
-  }, [address, isConnected, ingestPayment]);
+  }, [address, isConnected, synced, ingestPayment]);
 
   useWatchContractEvent({
     address: USDC_ADDRESS,
