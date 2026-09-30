@@ -131,9 +131,10 @@ export function Overview() {
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             {[
-              { k: "Avg settle", v: t ? `${t.blockTime.toFixed(2)}s` : "…" },
-              { k: "Payments", v: t ? String(t.events.length) : "…" },
-              { k: "Avg ticket", v: t && t.events.length ? fmt(t.volume / t.events.length) : "—" },
+              { k: "Avg settle", v: !isConnected ? "—" : t ? `${t.blockTime.toFixed(2)}s` : "…" },
+              { k: "Payments", v: !isConnected ? "0" : t ? String(t.events.length) : "…" },
+              { k: "Avg ticket", v: isConnected && t && t.events.length ? fmt(t.volume / t.events.length) : "—" },
+
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">
                 <p className="text-[11px] break-words text-muted-foreground">{s.k}</p>

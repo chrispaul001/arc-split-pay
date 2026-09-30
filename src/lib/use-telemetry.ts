@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, parseAbiItem } from "viem";
-import { usePublicClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 
 const TRANSFER = parseAbiItem("event Transfer(address indexed from, address indexed to, uint256 value)");
@@ -21,11 +21,14 @@ export type PaymentEvent = {
  */
 export function useTelemetry() {
   const client = usePublicClient({ chainId: arcTestnet.id });
+  const { isConnected } = useAccount();
 
   return useQuery({
     queryKey: ["coindecc-telemetry", COINDECC_PAY_ADDRESS],
-    enabled: Boolean(client),
+    // Guest mode is zero-data: never read contract activity before a wallet connects.
+    enabled: Boolean(client) && isConnected,
     refetchInterval: 20_000,
+
     queryFn: async () => {
       if (!client) throw new Error("No client");
       const latest = await client.getBlockNumber();
