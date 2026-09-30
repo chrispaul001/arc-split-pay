@@ -9,6 +9,7 @@ export type TxRecord = {
   amount: number;
   timestamp: number;
   splits?: { name: string; address: string; bps: number }[] | undefined;
+  transfers?: { address: string; amount: number }[] | undefined;
 };
 
 const EVENT = "coindecc:tx-recorded";
