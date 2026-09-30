@@ -20,6 +20,8 @@ import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Overview } from "@/components/overview";
 import { SplitRouter } from "@/components/split-router";
+import { Transactions } from "@/components/transactions";
+import { History } from "lucide-react";
 import { Streams } from "@/components/streams";
 import { CheckoutPreview } from "@/components/checkout-preview";
 import { ApiKeys, PaymentLinks, SettingsView } from "@/components/panels";
@@ -37,6 +39,7 @@ import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
 
 const NAV = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
+  { key: "transactions", label: "Transactions", icon: History },
   { key: "links", label: "Payment Links", icon: CreditCard },
   { key: "split", label: "Split Router", icon: Split },
   { key: "checkout", label: "Checkout", icon: Wallet },
@@ -203,6 +206,7 @@ function DashboardShell() {
           )}
           {view === "links" && <PaymentLinks onNewLink={() => setView("split")} />}
           {view === "split" && <SplitRouter />}
+          {view === "transactions" && <Transactions />}
           {view === "streams" && <Streams />}
           {view === "keys" && <ApiKeys />}
           {view === "settings" && <SettingsView />}

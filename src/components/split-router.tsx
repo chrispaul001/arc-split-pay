@@ -125,7 +125,13 @@ export function SplitRouter() {
         if (address && p.address.toLowerCase() === address.toLowerCase()) continue;
         const id = toast.loading(`Approve ${share.toFixed(2)} USDC to ${p.name || p.address.slice(0, 8)}…`);
         try {
-          hashes.push(await settle(`split-${p.id}`, p.address, share));
+          hashes.push(
+            await settle(`split-${p.id}`, p.address, share, {
+              kind: "split",
+              label: `Split · ${p.name || "recipient"}${reference ? ` · ${reference}` : ""}`,
+              splits: parties.map(({ name, address, bps }) => ({ name, address, bps })),
+            }),
+          );
           toast.success(`Sent to ${p.name || "recipient"}`, { id });
         } catch (e) {
           toast.error(errMessage(e), { id });
