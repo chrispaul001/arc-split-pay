@@ -37,6 +37,7 @@ export function Streams() {
   const connected = useWalletGate();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const { data, ready, update, notify } = useMerchantStore();
+  const { settle, busyId } = useStreamSettle();
   const [open, setOpen] = useState(false);
   const emptyForm = { name: "", role: "", address: "", mode: "hour" as PricingMode, amount: "", duration: "" };
   const [form, setForm] = useState(emptyForm);
@@ -378,7 +379,7 @@ export function Streams() {
       )}
 
       <p className="flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
-        <Radio className="size-3" /> Streams tick every 250ms against Arc Mainnet · gas paid in USDC
+        <Radio className="size-3" /> Accrues live · payouts are signed by your wallet on Arc Testnet
       </p>
     </div>
   );

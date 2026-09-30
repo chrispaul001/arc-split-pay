@@ -2,4 +2,4 @@
 - [x] Record confirmed payments and link checkouts as deduplicated wallet notifications with receipt data.
 - [x] Add unread badge and clickable transaction details; verify desktop and phone rendering.
 
-- [ ] Streams: non-custodial wallet-signed USDC settlement on Arc (no cron/relayer)
+- [x] Streams: non-custodial wallet-signed USDC settlement on Arc (no cron/relayer)
