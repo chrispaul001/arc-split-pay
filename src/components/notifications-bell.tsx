@@ -48,11 +48,11 @@ export function NotificationsBell() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon"
           aria-label="Notifications"
-          className="motion-press group/bell relative rounded-xl p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+          className="motion-press group/bell relative overflow-visible! rounded-xl p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
         >
           <Bell className="size-5 transition-transform duration-300 group-hover/bell:-rotate-12" />
           {unread > 0 && (
-            <span className="absolute -top-1 -right-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground" aria-label={`${unread} unread notifications`}>
+            <span className="absolute -top-1 -right-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background" aria-label={`${unread} unread notifications`}>
               {unread > 99 ? "99+" : unread}
             </span>
           )}
