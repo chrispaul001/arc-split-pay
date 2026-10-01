@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { ExternalLink, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
-import { useOnchainTxs } from "@/lib/use-onchain-txs";
+import { useTxHistory } from "@/lib/use-tx-history";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { readTxs, subscribeTxs, type TxKind, type TxRecord } from "@/lib/tx-history";
+import type { TxKind } from "@/lib/tx-history";
 import { explorerTx, shortAddress } from "@/lib/web3";
 
 const KIND_LABEL: Record<TxKind, string> = { payment: "Checkout payment", split: "Split payout", stream: "Stream payout" };
