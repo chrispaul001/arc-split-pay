@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutIdRouteImport } from './routes/checkout.$id'
 import { Route as SIdRouteImport } from './routes/s.$id'
+import { Route as ApiOnrampSessionsRouteImport } from './routes/api/onramp/sessions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const SIdRoute = SIdRouteImport.update({
   path: '/s/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOnrampSessionsRoute = ApiOnrampSessionsRouteImport.update({
+  id: '/api/onramp/sessions',
+  path: '/api/onramp/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/s/$id': typeof SIdRoute
+  '/api/onramp/sessions': typeof ApiOnrampSessionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/s/$id': typeof SIdRoute
+  '/api/onramp/sessions': typeof ApiOnrampSessionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/s/$id': typeof SIdRoute
+  '/api/onramp/sessions': typeof ApiOnrampSessionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/checkout/$id' | '/s/$id'
+  fullPaths: '/' | '/checkout/$id' | '/s/$id' | '/api/onramp/sessions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkout/$id' | '/s/$id'
-  id: '__root__' | '/' | '/checkout/$id' | '/s/$id'
+  to: '/' | '/checkout/$id' | '/s/$id' | '/api/onramp/sessions'
+  id: '__root__' | '/' | '/checkout/$id' | '/s/$id' | '/api/onramp/sessions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutIdRoute: typeof CheckoutIdRoute
   SIdRoute: typeof SIdRoute
+  ApiOnrampSessionsRoute: typeof ApiOnrampSessionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/onramp/sessions': {
+      id: '/api/onramp/sessions'
+      path: '/api/onramp/sessions'
+      fullPath: '/api/onramp/sessions'
+      preLoaderRoute: typeof ApiOnrampSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutIdRoute: CheckoutIdRoute,
   SIdRoute: SIdRoute,
+  ApiOnrampSessionsRoute: ApiOnrampSessionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
