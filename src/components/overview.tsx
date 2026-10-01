@@ -10,6 +10,7 @@ import { useTelemetry } from "@/lib/use-telemetry";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
 import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";
+import { useTxHistory } from "@/lib/use-tx-history";
 
 export function Overview() {
   const { isConnected, address, chain } = useAccount();
@@ -25,7 +26,9 @@ export function Overview() {
   const tele = useTelemetry();
   const t = tele.data;
   const fmt = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-  const splitExecutions = t ? t.events.filter((e) => e.timestamp >= Date.now() - 86400000).length : data.notifications.filter((n) => n.kind === "split").length;
+  const history = useTxHistory(isConnected ? address : undefined);
+  // All-time count from the saved wallet history, so it never resets on a new day.
+  const splitExecutions = isConnected ? history.txs.filter((x) => x.kind === "split" || (x.transfers?.length ?? 0) > 0).length : 0;
   const activeStreams = data.streams.filter((s) => s.running).length;
   const now = Date.now();
   const start = now - 24 * 3600 * 1000;
