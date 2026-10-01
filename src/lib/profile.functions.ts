@@ -15,7 +15,7 @@ async function hmac(value: string) {
   return createHmac("sha256", secret).update(value).digest("hex");
 }
 
-async function verifyToken(token: string): Promise<string> {
+export async function verifyToken(token: string): Promise<string> {
   const [address, exp, sig] = token.split(".");
   if (!address || !exp || !sig || !Addr.safeParse(address).success) throw new Error("Invalid session");
   if (Number(exp) < Date.now()) throw new Error("Session expired");
