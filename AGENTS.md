@@ -9,14 +9,12 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Normalize cached profile and merchant data on read to prevent startup crashes.
-
-- Merchant data is keyed by wallet address in the `merchant_profiles` table, reached only via server functions that check a wallet-signed session token (HMAC with WALLET_SESSION_SECRET); localStorage is just an offline cache. Why: anyone can type an address, so ownership must be proven.
-- One `MerchantProvider` (in the dashboard route) holds merchant state and the live on-chain payment listener. Why: a single sync source avoids duplicate saves and duplicate listeners.
-- Error retry hard-reloads; emergency recovery clears only `coindecc*` data to preserve unrelated browser data.
-- Preload router/SSR dependencies to avoid forced mobile preview reloads.
-- The dashboard (all wallet/RainbowKit/Wagmi code) lives in `src/components/dashboard-app.tsx` and is lazy-loaded inside `<ClientOnly>` from `src/routes/index.tsx`; never import wallet modules from a route or `__root`. Why: the MetaMask SDK crashes the edge server at import time, returning 500 on every page.
-- Every "Connect wallet" affordance calls `useConnectWallet()` from `src/lib/use-connect.ts`, never `useConnectModal` directly. Why: inside an iframe the OS blocks wallet deep links, so the hook must escape to a top-level tab first.
-- Mobile wallet entries in `src/lib/wagmi.ts` override RainbowKit's custom URI schemes with HTTPS universal links, and injected-only entries are hidden when `window.ethereum` is absent. Why: custom schemes and missing providers fail silently, making taps look dead.
-- Confirmed checkouts queue wallet-scoped payment hashes; `MerchantProvider` verifies receipts and deduplicates alerts. Why: checkout links lack the dashboard provider and cross-tab payments must still appear.
-- Transactions page through wallet and CoindeccPay USDC Transfer logs and merge wallet-local labels by hash. Why: the audit trail must include the same pay() receipts shown in Overview plus every atomic split leg without depending on a browser cache.
+- Normalize cached profile/merchant data on read to prevent startup crashes.
+- Merchant data (`merchant_profiles`) and wallet history (`wallet_transactions`) are keyed by wallet, reached only via server fns checking a wallet-signed HMAC token; localStorage is an offline cache. Why: ownership must be proven.
+- Transactions merge saved history, local labels and wallet + CoindeccPay USDC Transfer logs by hash; scanned records are persisted. Why: chain scans reach ~1 day; history must survive.
+- One `MerchantProvider` holds merchant state and the payment listener; it verifies queued checkout hashes and dedupes alerts. Why: single sync source; cross-tab payments.
+- Error retry hard-reloads; recovery clears only `coindecc*` data.
+- Preload router/SSR deps to avoid forced mobile preview reloads.
+- Wallet/RainbowKit/Wagmi code lives in `src/components/dashboard-app.tsx`, lazy-loaded in `<ClientOnly>`; never import wallet modules from a route or `__root`. Why: MetaMask SDK crashes the edge server.
+- "Connect wallet" always uses `useConnectWallet()`, never `useConnectModal`. Why: iframes block wallet deep links.
+- `src/lib/wagmi.ts` uses HTTPS universal links and hides injected-only wallets without `window.ethereum`. Why: otherwise taps fail silently.

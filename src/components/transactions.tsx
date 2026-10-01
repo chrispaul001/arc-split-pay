@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { ExternalLink, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
-import { useOnchainTxs } from "@/lib/use-onchain-txs";
+import { useTxHistory } from "@/lib/use-tx-history";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { readTxs, subscribeTxs, type TxKind, type TxRecord } from "@/lib/tx-history";
+import type { TxKind } from "@/lib/tx-history";
 import { explorerTx, shortAddress } from "@/lib/web3";
 
 const KIND_LABEL: Record<TxKind, string> = { payment: "Checkout payment", split: "Split payout", stream: "Stream payout" };
@@ -15,28 +15,9 @@ const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
 export function Transactions() {
   const connected = useWalletGate();
   const { address } = useAccount();
-  const [local, setLocal] = useState<TxRecord[]>([]);
-  const chain = useOnchainTxs(address);
+  const { txs, chain, loading } = useTxHistory(address);
   const [filter, setFilter] = useState<"all" | TxKind>("all");
   const [q, setQ] = useState("");
-
-  useEffect(() => {
-    if (!address) return setLocal([]);
-    const load = () => setLocal(readTxs(address));
-    load();
-    return subscribeTxs(load);
-  }, [address]);
-
-  // Local records carry richer labels/splits; chain logs fill in everything else.
-  const txs = useMemo(() => {
-    const map = new Map<string, TxRecord>();
-    for (const page of chain.data?.pages ?? []) for (const t of page.records) map.set(t.hash.toLowerCase(), t);
-    for (const t of local) {
-      const found = map.get(t.hash.toLowerCase());
-      map.set(t.hash.toLowerCase(), found ? { ...t, ...found, kind: t.kind, label: t.label ?? found.label, splits: t.splits ?? found.splits } : t);
-    }
-    return [...map.values()].sort((a, b) => b.timestamp - a.timestamp);
-  }, [chain.data, local]);
 
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -80,13 +61,13 @@ export function Transactions() {
         ))}
       </div>
 
-      {chain.isPending && txs.length === 0 ? (
+      {loading && txs.length === 0 ? (
         <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/40 p-6 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Loading on-chain history from Arc…
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "Could not load Arc history. Try again shortly." : "No confirmed transactions found in the scanned Arc history."}
+          {chain.isError ? "Could not load Arc history. Try again shortly." : "No transactions recorded for this wallet yet."}
         </p>
       ) : (
         <ul className="space-y-2">
