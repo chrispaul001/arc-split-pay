@@ -11,10 +11,12 @@ import {
 
 type Widget = { close(): void };
 
+const WIDGET_ORIGIN = "https://onramp.arc.io";
+
 /**
- * Fetches an onramp session from the host endpoint and mounts the Circle
- * onramp widget into `container`. The AppKit is loaded lazily so it never
- * runs during SSR.
+ * Fetches an onramp session from the host endpoint and mounts Circle's hosted
+ * onramp widget into `container`. The iframe is built here instead of through
+ * the Circle browser SDK so no heavy SDK bundle is pulled into the app.
  */
 export async function mountOnramp(params: {
   container: HTMLElement;
@@ -27,19 +29,38 @@ export async function mountOnramp(params: {
     body: JSON.stringify({
       appUserId: params.destinationAddress.toLowerCase(),
       destinationAddress: params.destinationAddress,
-      destinationChain: "Arc_Testnet",
-      ...(params.amount ? { amount: params.amount, currency: "USD" } : {}),
-      assets: { tokens: ["USDC"] },
+      ...(params.amount ? { amount: params.amount } : {}),
     }),
   });
-  if (!res.ok) throw new Error(`Could not start card checkout (${res.status})`);
+  if (!res.ok) {
+    const info = (await res.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(info?.message ?? `Could not start card checkout (${res.status})`);
+  }
 
-  const { AppKit } = await import("@circle-fin/app-kit");
-  const kit = new AppKit();
-  const json: unknown = await res.json();
-  const session = (json as { data?: unknown })?.data ?? json;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (kit.onramp as any).mountIframe({ session, container: params.container }) as Widget;
+  const payload = (await res.json()) as { widgetUrl?: string; sessionToken?: string };
+  const widgetUrl =
+    payload.widgetUrl ??
+    (payload.sessionToken
+      ? `${WIDGET_ORIGIN}/?sessionToken=${encodeURIComponent(payload.sessionToken)}`
+      : undefined);
+  if (!widgetUrl) throw new Error("Card checkout session was incomplete");
+
+  // Only ever frame Circle's own widget origin.
+  const parsed = new URL(widgetUrl);
+  if (parsed.origin !== WIDGET_ORIGIN) throw new Error("Unexpected card checkout address");
+
+  const iframe = document.createElement("iframe");
+  iframe.src = parsed.toString();
+  iframe.title = "Card checkout";
+  iframe.setAttribute("allow", "camera; microphone; clipboard-read; clipboard-write; payment");
+  iframe.referrerPolicy = "strict-origin";
+  params.container.appendChild(iframe);
+
+  return {
+    close() {
+      iframe.remove();
+    },
+  };
 }
 
 export function OnrampCheckoutModal({
