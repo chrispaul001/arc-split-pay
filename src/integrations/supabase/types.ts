@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          address: string
+          created_at: string
+          hash: string
+          record: Json
+          tx_time: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          hash: string
+          record: Json
+          tx_time: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          hash?: string
+          record?: Json
+          tx_time?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

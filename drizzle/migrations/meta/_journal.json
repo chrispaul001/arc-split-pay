@@ -8,6 +8,13 @@
       "when": 1790584142405,
       "tag": "0000_merchant_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790843345737,
+      "tag": "0001_wallet_transactions",
+      "breakpoints": true
     }
   ]
 }
