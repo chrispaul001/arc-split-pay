@@ -15,28 +15,9 @@ const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
 export function Transactions() {
   const connected = useWalletGate();
   const { address } = useAccount();
-  const [local, setLocal] = useState<TxRecord[]>([]);
-  const chain = useOnchainTxs(address);
+  const { txs, chain, loading } = useTxHistory(address);
   const [filter, setFilter] = useState<"all" | TxKind>("all");
   const [q, setQ] = useState("");
-
-  useEffect(() => {
-    if (!address) return setLocal([]);
-    const load = () => setLocal(readTxs(address));
-    load();
-    return subscribeTxs(load);
-  }, [address]);
-
-  // Local records carry richer labels/splits; chain logs fill in everything else.
-  const txs = useMemo(() => {
-    const map = new Map<string, TxRecord>();
-    for (const page of chain.data?.pages ?? []) for (const t of page.records) map.set(t.hash.toLowerCase(), t);
-    for (const t of local) {
-      const found = map.get(t.hash.toLowerCase());
-      map.set(t.hash.toLowerCase(), found ? { ...t, ...found, kind: t.kind, label: t.label ?? found.label, splits: t.splits ?? found.splits } : t);
-    }
-    return [...map.values()].sort((a, b) => b.timestamp - a.timestamp);
-  }, [chain.data, local]);
 
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
