@@ -61,13 +61,13 @@ export function Transactions() {
         ))}
       </div>
 
-      {chain.isPending && txs.length === 0 ? (
+      {loading && txs.length === 0 ? (
         <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/40 p-6 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Loading on-chain history from Arc…
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "Could not load Arc history. Try again shortly." : "No confirmed transactions found in the scanned Arc history."}
+          {chain.isError ? "Could not load Arc history. Try again shortly." : "No transactions recorded for this wallet yet."}
         </p>
       ) : (
         <ul className="space-y-2">
