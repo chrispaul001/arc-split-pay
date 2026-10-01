@@ -34,7 +34,7 @@ export function recordTx(tx: Omit<TxRecord, "timestamp"> & { timestamp?: number 
   const list = readTxs(tx.from).filter((t) => t.hash !== tx.hash);
   list.unshift({ ...tx, timestamp: tx.timestamp ?? Date.now() });
   try {
-    localStorage.setItem(key(tx.from), JSON.stringify(list.slice(0, 500)));
+    localStorage.setItem(key(tx.from), JSON.stringify(list.slice(0, 5000)));
   } catch {
     /* storage full */
   }
