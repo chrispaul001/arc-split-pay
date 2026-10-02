@@ -481,7 +481,7 @@ export function SplitRouter() {
             setTotal("");
           }}
         >
-          <Copy className="size-4" /> Publish &amp; copy link
+          <Copy className="size-4" /> Publish link
         </Button>
         </>
         )}
