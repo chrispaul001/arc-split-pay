@@ -3,7 +3,7 @@ import { COINDECC_PAY_ADDRESS, USDC_ADDRESS } from "@/lib/web3";
 import type { TxRecord } from "@/lib/tx-history";
 
 /** Arc Testnet explorer index: complete USDC transfer history (faucet, external, contract). */
-const EXPLORER_API = "https://testnet.arcscan.app/api/v2";
+const EXPLORER_API = "https://explorer.testnet.arc.io/api/v2";
 
 type ExplorerTransfer = {
   transaction_hash: string;
