@@ -4,22 +4,20 @@ import { CurrencyPills } from "@/components/currency-select";
 import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
-import { Check, Copy, Fuel, Loader2, Lock, Timer, Wallet, Zap } from "lucide-react";
+import { Check, Copy, Loader2, Lock, Wallet, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Reveal } from "@/components/reveal";
 import { useConnectWallet } from "@/lib/use-connect";
 import { errMessage, usePay } from "@/lib/use-pay";
 import { TxProgress } from "@/components/tx-progress";
+import { explorerTx } from "@/lib/web3";
+import { useAccount } from "wagmi";
 
-
-const SPLIT = [
-  { name: "Merchant treasury", address: "0x8fA2…4c19", bps: 7000 },
-  { name: "Co-creator", address: "0x21Bd…9e07", bps: 2000 },
-  { name: "Tax vault", address: "0xC730…11aa", bps: 1000 },
-];
 
 export function CheckoutPreview() {
   const [state, setState] = useState<"idle" | "paying" | "done">("idle");
+  const [receipt, setReceipt] = useState<{ hash: string; sender: string; amount: number; timestamp: number } | null>(null);
+  const { address } = useAccount();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [copied, setCopied] = useState(false);
   const [amountInput, setAmountInput] = useState("10");
@@ -34,7 +32,7 @@ export function CheckoutPreview() {
      data-amount="${AMOUNT}"
      data-display="${currency}"
      data-network="arc"
-     data-split="7000-2000-1000">
+      data-split="7000-2000-1000">
 </div>`;
 
   const copySnippet = async () => {
@@ -60,7 +58,8 @@ export function CheckoutPreview() {
     }
     setState("paying");
     try {
-      await payFlow.execute(String(AMOUNT));
+      const hash = await payFlow.execute(String(AMOUNT));
+      setReceipt({ hash, sender: address ?? "", amount: AMOUNT, timestamp: Date.now() });
       setState("done");
       toast.success("Payment settled on Arc");
     } catch (e) {
