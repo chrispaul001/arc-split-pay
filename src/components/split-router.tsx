@@ -10,11 +10,11 @@ import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
-import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
 import { useStreamSettle } from "@/lib/use-stream-settle";
 import { errMessage } from "@/lib/use-pay";
 import { isAddress } from "viem";
+import { showLinkPublished } from "@/components/link-share";
 import { Send } from "lucide-react";
 
 
