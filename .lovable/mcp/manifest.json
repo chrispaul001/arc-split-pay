@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "sdk_version": "3.0.4",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "coindecc-pay-dashboard",
+      "version": "0.1.0",
+      "title": "Coindecc Pay Dashboard"
+    },
+    "tools": [
+      {
+        "name": "get_usdc_balance",
+        "title": "Get USDC balance",
+        "description": "Read the public USDC balance of a wallet address on Arc Testnet.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$",
+              "description": "0x wallet address."
+            }
+          },
+          "required": [
+            "address"
+          ],
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_transaction",
+        "title": "Get transaction",
+        "description": "Look up an Arc Testnet transaction and list its USDC transfers (including CoindeccPay split legs).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{64}$",
+              "description": "Transaction hash."
+            }
+          },
+          "required": [
+            "hash"
+          ],
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_payments",
+        "title": "List recent CoindeccPay payments",
+        "description": "List recent USDC payments into the CoindeccPay contract on Arc Testnet (public on-chain data).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 10,
+              "description": "Max payments to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "build_payment_link",
+        "title": "Build payment link",
+        "description": "Create a shareable CoindeccPay checkout URL for an amount and split percentages.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 10000000,
+              "description": "Amount to charge."
+            },
+            "currency": {
+              "default": "USD",
+              "description": "Currency code, e.g. USD.",
+              "type": "string",
+              "pattern": "^[A-Z]{3,4}$"
+            },
+            "splits": {
+              "default": [
+                100
+              ],
+              "description": "Split percentages summing to 100.",
+              "minItems": 1,
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 100
+              }
+            }
+          },
+          "required": [
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
