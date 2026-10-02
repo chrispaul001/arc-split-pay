@@ -100,7 +100,7 @@ export function Transactions() {
                 {t.transfers && t.transfers.length > 0 && (
                   <div className="space-y-1 pt-1">
                     <p>On-chain split transfers</p>
-                    {t.transfers.map((leg, i) => <p key={`${leg.address}-${i}`} className="break-all">{leg.address} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>)}
+                    {t.transfers.map((leg, i) => { const party = t.splits?.find((s) => s.address.toLowerCase() === leg.address.toLowerCase()); return <p key={`${leg.address}-${i}`} className="break-all">{party?.name || shortAddress(leg.address)} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>; })}
                   </div>
                 )}
                 <a
