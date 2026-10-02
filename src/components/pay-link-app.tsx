@@ -5,6 +5,7 @@ import { formatLocal, useFxRates, type CurrencyCode } from "@/lib/currency";
 export type PayLinkProps = { id: string; amount: number; currency: CurrencyCode };
 
 export default function PayLinkApp({ id, amount, currency }: PayLinkProps) {
+  useFxRates();
   const shares = id
     .split("-")
     .map((n) => Number(n))
