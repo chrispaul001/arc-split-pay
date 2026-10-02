@@ -32,7 +32,7 @@ export const sendTxPush = createServerFn({ method: "POST" })
     if (!lovableKey || !fcmKey) return { sent: 0 };
 
     const { arcClient, TRANSFER } = await import("@/lib/mcp/arc");
-    const { USDC_ADDRESS } = await import("@/lib/web3");
+    const { USDC_ADDRESS, explorerTx } = await import("@/lib/web3");
     const { decodeEventLog, formatUnits } = await import("viem");
     const receipt = await arcClient().getTransactionReceipt({ hash: data.hash as `0x${string}` });
     if (receipt.status !== "success") return { sent: 0 };
@@ -57,7 +57,7 @@ export const sendTxPush = createServerFn({ method: "POST" })
     const amt = amount.toLocaleString("en-US", { maximumFractionDigits: 6 });
     const title = isSplit ? "Split payout received" : "Funds received";
     const body = `+${amt} USDC from ${sender.slice(0, 6)}…${sender.slice(-4)}`;
-    const explorer = `https://testnet.arcscan.app/tx/${data.hash}`;
+    const explorer = explorerTx(data.hash);
     let sent = 0;
     for (const { token } of rows) {
       const res = await fetch(`${GATEWAY_URL}/v1/projects/_/messages:send`, {
