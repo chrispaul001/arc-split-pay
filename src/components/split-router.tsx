@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CurrencySelect } from "@/components/currency-select";
-import { formatLocal, getCurrency, type CurrencyCode } from "@/lib/currency";
+import { formatLocal, getCurrency, useFxRates, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
@@ -59,6 +59,7 @@ export function SplitRouter() {
   const amount = Number(total) || 0;
   const balanced = totalBps === 10000;
 
+  useFxRates();
   const c = getCurrency(currency);
 
   const link = useMemo(

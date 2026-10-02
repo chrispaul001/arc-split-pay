@@ -25,6 +25,7 @@ export function CheckoutPreview() {
   const AMOUNT = Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0;
   const { connect: connectWallet } = useConnectWallet();
   const { logo, product, setImage, businessName } = useBrand();
+  const fx = useFxRates();
   const c = getCurrency(currency);
 
   const SNIPPET = `<script src="https://coindeccpay.lovable.app/pay.js"></script>
@@ -127,13 +128,20 @@ export function CheckoutPreview() {
                 {formatLocal(AMOUNT, currency)}
               </p>
               <p className="text-[11px] break-words text-muted-foreground tabular-nums">
-                ≈ {(AMOUNT * c.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })} {c.code} converted
-                instantly to {formatUsdc(AMOUNT)} at market rate
+                ≈ {(AMOUNT * c.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })} {c.code} settles
+                as {formatUsdc(AMOUNT)}
               </p>
-              <p className="truncate text-[11px] text-muted-foreground tabular-nums">
-                1 USDC = {c.symbol}
-                {c.rate.toLocaleString()}
+              <p className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
+                {fx.source === "live" && <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" aria-hidden="true" />}
+                <span className="truncate">
+                  1 USDC = {c.symbol}{c.rate.toLocaleString(undefined, { maximumFractionDigits: 2 })} ·{" "}
+                  {fx.source === "live" ? "Live rate" : fx.source === "cached" ? "Recent rate" : "Indicative rate"}
+                  {fx.updatedAt > 0 && ` · updated ${new Date(fx.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+                </span>
               </p>
+              {currency !== "USD" && fx.updatedAt > 0 && (
+                <p className="text-[10px] text-muted-foreground">Quote held for 5 minutes during checkout.</p>
+              )}
             </div>
 
           </div>
