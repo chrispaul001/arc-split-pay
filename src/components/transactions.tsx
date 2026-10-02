@@ -72,7 +72,7 @@ export function Transactions() {
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "Could not load Arc history. Try again shortly." : "This wallet has no CoindeccPay or USDC transactions on Arc Testnet yet."}
+          {chain.isError ? "Arc history is temporarily unavailable. It will retry shortly." : "This wallet has no CoindeccPay or USDC transactions on Arc Testnet yet."}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -118,7 +118,12 @@ export function Transactions() {
         </ul>
       )}
 
-      {chain.isError && txs.length > 0 && <p className="text-xs text-destructive">Some older activity could not be loaded yet. It will retry automatically.</p>}
+      {chain.isError && txs.length > 0 && (
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          Arc explorer is slow right now. Showing saved history.
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => void chain.refetch()}>Retry</Button>
+        </p>
+      )}
     </div>
   );
 }

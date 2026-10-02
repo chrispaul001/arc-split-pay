@@ -1,109 +1,117 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { formatUnits, parseAbiItem } from "viem";
-import { usePublicClient } from "wagmi";
-import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { COINDECC_PAY_ADDRESS, USDC_ADDRESS } from "@/lib/web3";
 import type { TxRecord } from "@/lib/tx-history";
 
-const TRANSFER = parseAbiItem("event Transfer(address indexed from, address indexed to, uint256 value)");
-const WINDOW = 9_500n;
-const CHUNKS = 10;
+/** Arc Testnet explorer index: complete USDC transfer history (faucet, external, contract). */
+const EXPLORER_API = "https://testnet.arcscan.app/api/v2";
 
-const scanKey = (a: string) => `coindecc:scan:${a.toLowerCase()}`;
-/** Highest block already fully indexed for this wallet (everything below is saved). */
-export function readSyncedTo(a: string): bigint | null {
-  try { const v = localStorage.getItem(scanKey(a)); return v ? BigInt(v) : null; } catch { return null; }
-}
-export function writeSyncedTo(a: string, block: bigint) {
-  try { localStorage.setItem(scanKey(a), block.toString()); } catch { /* ignore */ }
-}
+type ExplorerTransfer = {
+  transaction_hash: string;
+  timestamp: string;
+  method: string | null;
+  from: { hash: string };
+  to: { hash: string };
+  total: { decimals: string; value: string };
+};
+type ExplorerPage = { items: ExplorerTransfer[]; next_page_params: Record<string, string | number> | null };
+export type TxPage = { records: TxRecord[]; next: string | undefined };
 
-let deployBlock: Promise<bigint> | null = null;
-/** First block where the CoindeccPay contract exists: the floor for history scans. */
-function findDeployBlock(client: NonNullable<ReturnType<typeof usePublicClient>>, latest: bigint) {
-  if (!deployBlock) {
-    deployBlock = (async () => {
-      const cached = typeof window !== "undefined" ? localStorage.getItem("coindecc:deploy-block") : null;
-      if (cached) return BigInt(cached);
-      let lo = 0n, hi = latest;
-      while (lo < hi) {
-        const mid = (lo + hi) / 2n;
-        const code = await client.getCode({ address: COINDECC_PAY_ADDRESS, blockNumber: mid }).catch(() => undefined);
-        if (code && code !== "0x") hi = mid; else lo = mid + 1n;
-      }
-      localStorage.setItem("coindecc:deploy-block", lo.toString());
-      return lo;
-    })().catch((e) => { deployBlock = null; throw e; });
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** GET with exponential backoff; temporary timeouts and rate limits are retried quietly. */
+async function getJson<T>(url: string, attempts = 4): Promise<T> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12_000);
+      const res = await fetch(url, { signal: ctrl.signal, headers: { accept: "application/json" } });
+      clearTimeout(timer);
+      if (res.ok) return (await res.json()) as T;
+      if (res.status === 404) return { items: [], next_page_params: null } as T; // address never seen
+      last = new Error(`HTTP ${res.status}`);
+    } catch (e) {
+      last = e;
+    }
+    await sleep(Math.min(8000, 600 * 2 ** i) + Math.random() * 300);
   }
-  return deployBlock;
+  throw last;
 }
 
-/** Wallet transfers AND contract pay()/split transfers, paged back through Arc logs. */
+const amountOf = (t: ExplorerTransfer) => Number(t.total.value) / 10 ** Number(t.total.decimals || 6);
+
+async function fetchPage(address: string, cursor: string | undefined): Promise<TxPage> {
+  const qs = new URLSearchParams(cursor ? JSON.parse(cursor) : {});
+  qs.set("token", USDC_ADDRESS);
+  const page = await getJson<ExplorerPage>(`${EXPLORER_API}/addresses/${address}/token-transfers?${qs}`);
+  const me = address.toLowerCase();
+  const pay = COINDECC_PAY_ADDRESS.toLowerCase();
+
+  const byHash = new Map<string, ExplorerTransfer[]>();
+  for (const t of page.items ?? []) {
+    const g = byHash.get(t.transaction_hash) ?? [];
+    g.push(t);
+    byHash.set(t.transaction_hash, g);
+  }
+
+  const records = await Promise.all(
+    [...byHash].map(async ([hash, group]): Promise<TxRecord> => {
+      const paid = group.find((t) => t.to.hash.toLowerCase() === pay);
+      const sent = group.filter((t) => t.from.hash.toLowerCase() === me);
+      const recv = group.filter((t) => t.to.hash.toLowerCase() === me);
+      const first = paid ?? sent[0] ?? recv[0] ?? group[0]!;
+      let transfers: { address: string; amount: number }[] = [];
+      // Split legs leave from the contract, so they live on the transaction, not the wallet.
+      if (paid || group.some((t) => t.from.hash.toLowerCase() === pay)) {
+        try {
+          const legs = await getJson<ExplorerPage>(`${EXPLORER_API}/transactions/${hash}/token-transfers?type=ERC-20`, 2);
+          transfers = legs.items
+            .filter((t) => t.from.hash.toLowerCase() === pay)
+            .map((t) => ({ address: t.to.hash, amount: amountOf(t) }));
+        } catch { /* legs are optional detail */ }
+      }
+      const sum = (l: ExplorerTransfer[]) => l.reduce((a, t) => a + amountOf(t), 0);
+      return {
+        hash,
+        kind: paid ? "payment" : "split",
+        from: first.from.hash,
+        to: first.to.hash,
+        amount: paid ? amountOf(paid) : sent.length ? sum(sent) : sum(recv),
+        timestamp: Date.parse(first.timestamp) || 0,
+        label: paid ? "CoindeccPay pay()" : sent.length ? "USDC sent" : "USDC received",
+        transfers,
+      };
+    }),
+  );
+  return {
+    records: records.sort((a, b) => b.timestamp - a.timestamp),
+    next: page.next_page_params ? JSON.stringify(page.next_page_params) : undefined,
+  };
+}
+
+const retry = { retry: 5, retryDelay: (n: number) => Math.min(30_000, 1000 * 2 ** n) };
+
+/** Full wallet USDC history (incl. faucet + external transfers), paged back to the first transfer. */
 export function useOnchainTxs(address?: `0x${string}`) {
-  const client = usePublicClient({ chainId: arcTestnet.id });
   return useInfiniteQuery({
     queryKey: ["coindecc-onchain-txs", address?.toLowerCase()],
-    enabled: Boolean(client && address),
-    // Pause polling while backfilling so older pages are not re-scanned repeatedly.
-    refetchInterval: (q: { state: { data?: { pages: { next: bigint | undefined }[] } | undefined } }) => (q.state.data?.pages.at(-1)?.next !== undefined ? false : 30_000),
-    initialPageParam: null as bigint | null,
-    queryFn: async ({ pageParam }): Promise<{ records: TxRecord[]; next: bigint | undefined; head: bigint }> => {
-      if (!client || !address) return { records: [], next: undefined, head: 0n };
-      const head = await client.getBlockNumber();
-      const latest = pageParam ?? head;
-      // Scan down to the last fully indexed block (or the contract's deployment on first sync).
-      const synced = readSyncedTo(address);
-      const floor = synced !== null ? synced + 1n : await findDeployBlock(client, head);
-      const logs: Awaited<ReturnType<typeof client.getLogs<typeof TRANSFER>>> = [];
-      let to = latest;
-      let scanned = 0;
-      for (let i = 0; i < CHUNKS && to >= floor; i++) {
-        const from = to - floor > WINDOW ? to - WINDOW : floor;
-        const [sent, recv, contractOut, contractIn] = await Promise.all([
-            client.getLogs({ address: USDC_ADDRESS, event: TRANSFER, args: { from: address }, fromBlock: from, toBlock: to }),
-            client.getLogs({ address: USDC_ADDRESS, event: TRANSFER, args: { to: address }, fromBlock: from, toBlock: to }),
-            client.getLogs({ address: USDC_ADDRESS, event: TRANSFER, args: { from: COINDECC_PAY_ADDRESS }, fromBlock: from, toBlock: to }),
-            client.getLogs({ address: USDC_ADDRESS, event: TRANSFER, args: { to: COINDECC_PAY_ADDRESS }, fromBlock: from, toBlock: to }),
-        ]);
-        logs.push(...sent, ...recv, ...contractOut, ...contractIn);
-        scanned++;
-        if (from === floor) { to = floor - 1n; break; }
-        to = from - 1n;
-      }
-      const blocks = [...new Set(logs.map((l) => l.blockNumber).filter((b): b is bigint => b !== null))];
-      const times = new Map(await Promise.all(blocks.map(async (b) => [b, Number((await client.getBlock({ blockNumber: b })).timestamp) * 1000] as const)));
-      const tsOf = (b: bigint | null) => times.get(b ?? -1n) ?? 0;
-      const me = address.toLowerCase();
-      const pay = COINDECC_PAY_ADDRESS.toLowerCase();
-
-      // Deduplicate overlapping queries and group all legs of one atomic pay() receipt.
-      const byHash = new Map<string, typeof logs>();
-      for (const l of logs) {
-        if (!l.transactionHash) continue;
-        const group = byHash.get(l.transactionHash) ?? [];
-        if (!group.some((v) => v.logIndex === l.logIndex && v.blockNumber === l.blockNumber)) group.push(l);
-        byHash.set(l.transactionHash, group);
-      }
-      const records: TxRecord[] = [...byHash].map(([hash, group]) => {
-        const paid = group.find((l) => l.args.to?.toLowerCase() === pay && l.args.from?.toLowerCase() !== pay);
-        const outgoing = group.filter((l) => l.args.from?.toLowerCase() === me && l.args.to?.toLowerCase() !== pay);
-        const splitLegs = group.filter((l) => l.args.from?.toLowerCase() === pay);
-        const first = paid ?? outgoing[0] ?? group[0];
-        const amount = paid ? Number(formatUnits(paid.args.value ?? 0n, 6)) :
-          outgoing.length ? outgoing.reduce((sum, l) => sum + Number(formatUnits(l.args.value ?? 0n, 6)), 0) :
-          group.filter((l) => l.args.to?.toLowerCase() === me).reduce((sum, l) => sum + Number(formatUnits(l.args.value ?? 0n, 6)), 0);
-        return {
-          hash,
-          kind: paid ? "payment" as const : "split" as const,
-          from: first?.args.from ?? "",
-          to: first?.args.to,
-          amount,
-          timestamp: tsOf(first?.blockNumber ?? null),
-          label: paid ? "CoindeccPay pay()" : outgoing.length ? "USDC sent" : "USDC received",
-          transfers: splitLegs.map((l) => ({ address: l.args.to ?? "", amount: Number(formatUnits(l.args.value ?? 0n, 6)) })),
-        };
-      });
-      return { records: records.sort((a, b) => b.timestamp - a.timestamp), next: scanned === CHUNKS && to >= floor ? to : undefined, head };
-    },
+    enabled: Boolean(address),
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => fetchPage(address!, pageParam),
     getNextPageParam: (page) => page.next,
+    staleTime: Infinity,
+    ...retry,
+  });
+}
+
+/** Newest page only, polled every few seconds for real-time arrivals. */
+export function useLatestTxs(address?: string | null) {
+  return useQuery({
+    queryKey: ["coindecc-latest-txs", address?.toLowerCase()],
+    enabled: Boolean(address),
+    queryFn: () => fetchPage(address!, undefined),
+    refetchInterval: 8_000,
+    refetchIntervalInBackground: false,
+    ...retry,
   });
 }
