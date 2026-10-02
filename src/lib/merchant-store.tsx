@@ -18,6 +18,8 @@ import { useBrand } from "@/lib/brand";
 import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 import { loadProfile, saveProfile, signInMessage, walletSignIn } from "@/lib/profile.functions";
 import { readPayments, type SettledPayment } from "@/lib/payment-events";
+import { useLatestTxs } from "@/lib/use-onchain-txs";
+import { mergeTxs } from "@/lib/tx-history";
 
 const TRANSFER_ABI = parseAbi([
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -354,6 +356,27 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
 
   // Confirmed receipts are the source of truth. The queue also bridges a separate checkout tab.
   const queryClient = useQueryClient();
+
+  // Real-time watcher: newest wallet transfers are polled every few seconds; unseen ones alert.
+  const latestTxs = useLatestTxs(isConnected ? address : null);
+  const seenTx = useRef<{ addr: string | null; primed: boolean }>({ addr: null, primed: false });
+  useEffect(() => {
+    if (!address || !latestTxs.data) return;
+    if (seenTx.current.addr !== address) seenTx.current = { addr: address, primed: false };
+    const added = new Set(mergeTxs(address, latestTxs.data.records));
+    if (!seenTx.current.primed) { seenTx.current.primed = true; return; } // first load is history, not news
+    if (!added.size) return;
+    void queryClient.invalidateQueries(); // balances, telemetry and feeds refresh at once
+    for (const r of latestTxs.data.records) {
+      if (!added.has(r.hash.toLowerCase())) continue;
+      const incoming = r.to?.toLowerCase() === address.toLowerCase();
+      const title = incoming ? "Funds received" : "Transaction confirmed";
+      const body = `${incoming ? "+" : ""}${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC ${incoming ? `from ${r.from.slice(0, 6)}…${r.from.slice(-4)}` : r.label ?? ""}`.trim();
+      toast.success(title, { description: body });
+      notify({ kind: r.kind === "payment" ? "payment" : "system", title, body,
+        payment: { hash: r.hash, sender: r.from, amount: r.amount, currency: "USDC", splits: r.transfers ?? [] } });
+    }
+  }, [address, latestTxs.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const pending = useRef(new Set<string>());
   const ingestPayment = useCallback(async (payment: SettledPayment) => {
     if (!address || !isConnected) return;
