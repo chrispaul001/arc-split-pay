@@ -222,7 +222,6 @@ export function SettingsView() {
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
   const [webhook, setWebhook] = useState("");
-  const [currency, setCurrency] = useState("USDC");
   const [autoSplit, setAutoSplit] = useState(true);
   const [emailReceipts, setEmailReceipts] = useState(true);
   const [sandbox, setSandbox] = useState(false);
@@ -235,13 +234,12 @@ export function SettingsView() {
     setName(data.businessName || businessName);
     setWallet(data.settlementWallet || settlementWallet);
     setWebhook(data.webhookUrl);
-    setCurrency(data.defaultCurrency || "USDC");
     setAutoSplit(data.autoSplit);
     setEmailReceipts(data.emailReceipts);
     setSandbox(data.sandboxMode);
     if (data.businessName) setProfile({ businessName: data.businessName });
   }, [connected, ready, data.businessName, data.settlementWallet, data.webhookUrl,
-      data.defaultCurrency, data.autoSplit, data.emailReceipts, data.sandboxMode]); // eslint-disable-line react-hooks/exhaustive-deps
+      data.autoSplit, data.emailReceipts, data.sandboxMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const useConnectedWallet = () => {
     if (!address) return;
