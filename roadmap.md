@@ -8,4 +8,4 @@
 - [x] Verify receipt, history, and notification presentation after the cleanup.
 - [x] Drive the 24-hour settlement chart, volume, count and average from confirmed wallet payments; fix its circular indicator and live badge.
 
-- [ ] Require sign-in (OAuth) before AI assistants can use the CoindeccPay MCP tools
+- [x] Require sign-in (OAuth) before AI assistants can use the CoindeccPay MCP tools
