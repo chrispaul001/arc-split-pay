@@ -15,6 +15,7 @@ import { randomId, useMerchantStore } from "@/lib/merchant-store";
 import { useStreamSettle } from "@/lib/use-stream-settle";
 import { errMessage } from "@/lib/use-pay";
 import { isAddress } from "viem";
+import { showLinkPublished } from "@/components/link-share";
 import { Send } from "lucide-react";
 
 
@@ -466,17 +467,21 @@ export function SplitRouter() {
               kind: "split",
               title: "Payment link published",
               body: `${saved.name} · ${amount} USDC across ${parties.length} recipients.`,
+              linkUrl: saved.url,
             });
-            navigator.clipboard?.writeText(saved.url);
-            toast.success("Payment link published", {
-              description: "Saved to this wallet and copied to your clipboard.",
+            showLinkPublished({
+              url: saved.url,
+              name: saved.name,
+              amount: saved.amount,
+              currency: saved.currency,
+              parties: saved.parties,
             });
             setLinkName("");
             setReference("");
             setTotal("");
           }}
         >
-          <Copy className="size-4" /> Publish &amp; copy link
+          <Copy className="size-4" /> Publish link
         </Button>
         </>
         )}

@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Link2, Mail, Plus, Trash2 } from "lucide-react";
 import { GuestBanner, GuestEmpty, useSaveGate, useWalletGate } from "@/components/guest-gate";
+import { copyPaymentLink } from "@/components/link-share";
 import { randomId, timeAgo, useMerchantStore } from "@/lib/merchant-store";
 
 function XLogo({ className }: { className?: string }) {
@@ -70,6 +71,9 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
                   <Link2 className="mr-1 inline size-3" />
                   {l.reference || l.id} · {l.parties.length} parties · {timeAgo(l.createdAt)}
                 </p>
+                <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground/80" title={l.url}>
+                  {l.url}
+                </p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="font-display text-sm font-bold tabular-nums">
@@ -90,10 +94,7 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
                 </label>
                 <button
                   aria-label="Copy link"
-                  onClick={() => {
-                    navigator.clipboard?.writeText(address ? withLinkParams(l.url, l.id, address) : l.url);
-                    toast.success("Link copied");
-                  }}
+                  onClick={() => copyPaymentLink(address ? withLinkParams(l.url, l.id, address) : l.url)}
                   className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
                 >
                   <Copy className="size-4" />
