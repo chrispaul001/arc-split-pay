@@ -32,7 +32,7 @@ export function CheckoutPreview() {
      data-amount="${AMOUNT}"
      data-display="${currency}"
      data-network="arc"
-      data-split="7000-2000-1000">
+     data-split="5000-5000">
 </div>`;
 
   const copySnippet = async () => {
@@ -88,7 +88,7 @@ export function CheckoutPreview() {
             value={amountInput}
             onChange={(e) => {
               setAmountInput(e.target.value.replace(/[^0-9.]/g, ""));
-              if (state === "done") setState("idle");
+              if (state === "done") { setState("idle"); setReceipt(null); }
             }}
             placeholder="0.00"
             className="w-full rounded-xl border border-input bg-background/60 px-3 py-2 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -114,7 +114,7 @@ export function CheckoutPreview() {
               className="mb-4 h-32 w-full rounded-2xl border border-border object-cover"
             />
           )}
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="min-w-0">
             <div className="min-w-0">
               <p className="flex min-w-0 items-center gap-2 text-xs break-words text-muted-foreground">
                 {logo && (
@@ -136,19 +136,13 @@ export function CheckoutPreview() {
               </p>
             </div>
 
-            <span className="pulse-emerald inline-flex shrink-0 items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
-              <Timer className="size-3.5" /> &lt;1s settle
-            </span>
           </div>
 
           {state !== "done" ? (
             <div className="mt-4 space-y-2 text-sm">
               {[
-                ["Order", "—"],
-                ["Network", "Arc"],
-                ["Gas paid in", "USDC (zero-gas for buyer)"],
-                ["Settlement currency", `${c.code} → USDC`],
-                ["Split parties", String(SPLIT.length)],
+                ["Network", "Arc Testnet"],
+                ["Settlement currency", "USDC"],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between gap-3">
                   <span className="shrink-0 text-muted-foreground">{k}</span>
@@ -156,64 +150,21 @@ export function CheckoutPreview() {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : receipt ? (
             <div className="animate-rise mt-4 space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="pulse-emerald inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
-                  <Check className="size-3.5" /> Final in <1s
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                  <Fuel className="size-3.5" /> Buyer paid 0 gas
-                </span>
-              </div>
-
               <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
                 <p className="flex items-center gap-1.5 text-[11px] tracking-wide text-muted-foreground uppercase">
                   {logo && <img src={logo} alt="" className="size-4 rounded object-cover" />} Receipt
                 </p>
                 <div className="mt-2 space-y-1.5 text-xs">
-                  {[
-                    ["Tx hash", "0x7c41…e9a2"],
-                    ["Block", "18,442,901"],
-                    ["Charged", formatLocal(AMOUNT, currency)],
-                    ["Settled", formatUsdc(AMOUNT)],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex items-center justify-between gap-3">
-                      <span className="shrink-0 text-muted-foreground">{k}</span>
-                      <span className="truncate font-mono tabular-nums">{v}</span>
-                    </div>
-                  ))}
+                  {receipt.sender && <div className="flex justify-between gap-3"><span className="text-muted-foreground">Sender</span><span className="min-w-0 break-all text-right font-mono">{receipt.sender}</span></div>}
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Amount</span><span className="tabular-nums">{formatUsdc(receipt.amount)}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Timestamp</span><span className="text-right">{new Date(receipt.timestamp).toLocaleString()}</span></div>
+                  <div className="flex justify-between gap-3"><span className="shrink-0 text-muted-foreground">Explorer hash</span><a href={explorerTx(receipt.hash)} target="_blank" rel="noopener noreferrer" className="min-w-0 break-all text-right font-mono text-primary hover:underline">{receipt.hash}</a></div>
                 </div>
               </div>
-
-              <div className="w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
-                <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-                  Atomic split executed
-                </p>
-                <ul className="mt-2 divide-y divide-border/60">
-                  {SPLIT.map((s) => (
-                    <li
-                      key={s.name}
-                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 text-xs first:pt-1"
-                    >
-                      <span className="min-w-0 leading-relaxed">
-                        <span className="block truncate font-medium">{s.name}</span>
-                        <span className="block truncate font-mono text-[10px] text-muted-foreground tabular-nums">
-                          {s.address} · {(s.bps / 100).toFixed(2)}%
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-right font-mono leading-relaxed tabular-nums">
-                        <span className="block">{((AMOUNT * s.bps) / 10000).toFixed(2)} USDC</span>
-                        <span className="block font-mono text-[10px] text-muted-foreground tabular-nums">
-                          {formatLocal((AMOUNT * s.bps) / 10000, currency)}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
-          )}
+          ) : null}
 
           <Button
             className="mt-5 w-full transition-transform active:scale-[0.98]"
@@ -233,7 +184,7 @@ export function CheckoutPreview() {
             )}
             {state === "done" && (
               <>
-                <Check className="size-4" /> Paid · split executed
+                 <Check className="size-4" /> Paid
               </>
             )}
           </Button>
