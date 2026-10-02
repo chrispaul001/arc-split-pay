@@ -76,5 +76,6 @@ export function useTxHistory(address?: `0x${string}`) {
     chain,
     loading: !synced || (chain.isPending && txs.length === 0),
     backfilling: synced && (chain.isPending || chain.hasNextPage || chain.isFetchingNextPage),
+    liveUpdatedAt: latest.isError ? 0 : latest.dataUpdatedAt,
   };
 }

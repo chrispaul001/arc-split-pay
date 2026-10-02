@@ -15,7 +15,7 @@ export function Sparkline({
   const gradientId = useId().replace(/:/g, "");
   const w = 100;
   const h = 32;
-  const values = data.length > 1 ? data : Array.from({ length: 16 }, () => ({ value: 0, timestamp: 0 }));
+   const values = data.length > 1 ? data : Array.from({ length: 16 }, () => ({ value: 0, timestamp: 0 }));
   const max = Math.max(...values.map((point) => point.value));
   const min = Math.min(...values.map((point) => point.value));
   const span = max - min || 1;
@@ -37,7 +37,7 @@ export function Sparkline({
     <div
       className={cn("relative min-w-0 touch-none select-none outline-none focus-visible:ring-2 focus-visible:ring-ring", className)}
       role="img"
-      aria-label={data.length > 1 ? `Settlement volume chart, 24 hours, ${data.length} points. Use arrow keys to inspect.` : "Settlement volume chart, connect wallet to inspect."}
+       aria-label={data.length > 1 ? `Settlement volume chart, last 24 hours, ${data.length} points. Use arrow keys to inspect.` : "Settlement volume chart, awaiting wallet history."}
       tabIndex={data.length > 1 ? 0 : -1}
       onPointerMove={onPointer}
       onPointerDown={(event) => {
@@ -74,19 +74,17 @@ export function Sparkline({
           vectorEffect="non-scaling-stroke"
         />
         {!filled && <circle cx={points[points.length - 1]?.[0] ?? 0} cy={points[points.length - 1]?.[1] ?? 0} r={1.8} fill="var(--mint)" />}
-        {selected && active !== null && (
-          <>
-            <path d={`M${points[active]?.[0] ?? 0},0 V32`} fill="none" stroke="var(--electric)" strokeOpacity="0.45" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />
-            <circle cx={points[active]?.[0] ?? 0} cy={points[active]?.[1] ?? 0} r="1.3" fill="var(--mint)" stroke="var(--background)" strokeWidth="0.5" />
-          </>
-        )}
       </svg>
-      {selected && active !== null && <div role="tooltip" className="pointer-events-none absolute top-2 left-1/2 z-10 w-52 max-w-[calc(100%-1rem)] -translate-x-1/2 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md">
-        <strong className="block tabular-nums">{selected.value.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</strong>
-        <time dateTime={new Date(selected.timestamp).toISOString()} className="text-muted-foreground">
-          {new Date(selected.timestamp).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" })}
-        </time>
-      </div>}
+       {selected && active !== null && <>
+         <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 border-l border-dashed border-primary/50" style={{ left: `${points[active]?.[0] ?? 0}%` }} />
+         <div aria-hidden="true" className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-mint shadow-[0_0_0_3px_var(--mint)]" style={{ left: `${points[active]?.[0] ?? 0}%`, top: `${((points[active]?.[1] ?? 0) / h) * 100}%` }} />
+         <div role="tooltip" className="pointer-events-none absolute top-2 z-10 w-max max-w-[calc(100%-1rem)] -translate-x-1/2 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md" style={{ left: `${Math.max(20, Math.min(80, points[active]?.[0] ?? 50))}%` }}>
+           <strong className="block tabular-nums">{selected.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} USDC</strong>
+           <time dateTime={new Date(selected.timestamp).toISOString()} className="text-muted-foreground">
+             {new Date(selected.timestamp).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" })}
+           </time>
+         </div>
+       </>}
     </div>
   );
 }
