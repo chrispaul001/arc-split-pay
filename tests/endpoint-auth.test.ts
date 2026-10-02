@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 // Runs against the dev server (or BASE_URL). Skips cleanly when nothing is listening.
-const BASE = process.env["BASE_URL"] ?? "http://127.0.0.1:8080";
+const BASE = process.env["TEST_BASE_URL"] ?? "http://127.0.0.1:8080";
 let up = false;
 beforeAll(async () => { up = await fetch(BASE).then(() => true, (e) => { console.log("UNREACHABLE", String(e), e?.cause); return false; }); });
 
