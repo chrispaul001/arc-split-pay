@@ -11,7 +11,7 @@
 
 - Normalize cached profile/merchant data on read to prevent startup crashes.
 - Merchant data (`merchant_profiles`) and wallet history (`wallet_transactions`) are keyed by wallet, reached only via server fns checking a wallet-signed HMAC token; localStorage is an offline cache. Why: ownership must be proven.
-- Transactions merge saved history, local labels and wallet + CoindeccPay USDC Transfer logs by hash; scanned records are persisted. Why: chain scans reach ~1 day; history must survive.
+- Transactions merge saved history, local labels and wallet + CoindeccPay USDC Transfer logs by hash; scanned records are persisted, and overview settlement analytics derive from that same wallet history. Why: live analytics and history must agree and survive day changes.
 - One `MerchantProvider` holds merchant state and the payment listener; it verifies queued checkout hashes and dedupes alerts. Why: single sync source; cross-tab payments.
 - Error retry hard-reloads; recovery clears only `coindecc*` data.
 - Preload router/SSR deps to avoid forced mobile preview reloads.
