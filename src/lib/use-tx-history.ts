@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useOnchainTxs } from "@/lib/use-onchain-txs";
+import { useOnchainTxs, writeSyncedTo } from "@/lib/use-onchain-txs";
 import { mergeTxs, readTxs, subscribeTxs, type TxRecord } from "@/lib/tx-history";
 import { loadTxHistory, saveTxHistory } from "@/lib/tx-history.functions";
 
@@ -63,6 +63,21 @@ export function useTxHistory(address?: `0x${string}`) {
     })();
   }, [address, synced, chain.data, txs.length, save]);
 
+  // Keep paging back automatically until the whole wallet history is indexed and saved.
+  useEffect(() => {
+    if (!address || !synced || !chain.data || chain.isFetchingNextPage || chain.isError) return;
+    if (chain.hasNextPage) { void chain.fetchNextPage(); return; }
+    const pages = chain.data.pages;
+    // Everything from the first page's head down is now persisted; next session only scans newer blocks.
+    const head = pages[0]?.head;
+    if (head) writeSyncedTo(address, head);
+  }, [address, synced, chain.data, chain.hasNextPage, chain.isFetchingNextPage, chain.isError]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const sorted = useMemo(() => [...txs].sort((a, b) => b.timestamp - a.timestamp), [txs]);
-  return { txs: sorted, chain, loading: !synced || (chain.isPending && txs.length === 0) };
+  return {
+    txs: sorted,
+    chain,
+    loading: !synced || (chain.isPending && txs.length === 0),
+    backfilling: synced && (chain.isPending || chain.hasNextPage || chain.isFetchingNextPage),
+  };
 }
