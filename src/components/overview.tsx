@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { explorerTx, shortAddress } from "@/lib/web3";
+import { COINDECC_PAY_ADDRESS, explorerTx, shortAddress } from "@/lib/web3";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
 import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";
@@ -37,16 +37,16 @@ export function Overview() {
   const splitExecutions = isConnected ? history.txs.filter((x) => x.kind === "split" || (x.transfers?.length ?? 0) > 0).length : 0;
   const activeStreams = data.streams.filter((s) => s.running).length;
   const start = now - DAY;
-  // Only wallet-initiated, confirmed checkout and routed split payments count as settlement.
-  // The explorer also indexes ordinary sends, faucet funding and incoming payouts as "split";
-  // those are wallet activity, not additional payments made by this merchant.
+  // Count confirmed checkout payments, direct split payouts, and split proceeds
+  // received from the contract. Exclude unrelated sends and faucet deposits.
   const settlements = isConnected && address ? history.txs.filter((tx) =>
-    tx.from.toLowerCase() === address.toLowerCase() &&
     tx.timestamp >= start && tx.timestamp <= now &&
     Number.isFinite(tx.amount) && tx.amount > 0 &&
-    (tx.kind === "payment" || (tx.kind === "split" && (
-      Boolean(tx.splits?.length) || Boolean(tx.transfers?.length) || tx.label?.startsWith("Split ·")
-    )))
+    ((tx.kind === "payment" && tx.from.toLowerCase() === address.toLowerCase()) ||
+      (tx.kind === "split" && (
+        (tx.from.toLowerCase() === address.toLowerCase() && (Boolean(tx.splits?.length) || tx.label?.startsWith("Split ·"))) ||
+        (tx.from.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase() && tx.to?.toLowerCase() === address.toLowerCase())
+      )))
   ) : [];
   const settlementVolume = settlements.reduce((sum, tx) => sum + tx.amount, 0);
   const bucketMs = DAY / BUCKETS;
@@ -60,7 +60,7 @@ export function Overview() {
     value: settlements.filter((e) => e.timestamp <= timestamp).reduce((sum, e) => sum + e.amount, 0) }));
   const balance = isConnected ? Number(formatted) || 0 : 0;
   // Reconstruct only confirmed outgoing settlement activity; do not fabricate a balance history.
-  const mine = settlements;
+  const mine = settlements.filter((tx) => tx.from.toLowerCase() === address?.toLowerCase());
   const balancePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
     value: Math.max(0, balance + mine.filter((e) => e.timestamp > timestamp && e.timestamp <= now).reduce((sum, e) => sum + e.amount, 0)) }));
   const splitPoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
@@ -69,7 +69,7 @@ export function Overview() {
 
   const metrics = [
     {
-      label: "Contract Volume (USDC)",
+      label: "Settlement Volume (USDC)",
       value: history.loading && !history.txs.length ? "…" : fmt(settlementVolume),
       zero: "$0.00",
       delta: `${settlements.length} settled in 24h`,
@@ -149,7 +149,7 @@ export function Overview() {
             </span>
           </div>
           <Sparkline
-              points={isConnected && !history.loading ? settlementPoints : []}
+              points={isConnected && (!history.loading || history.txs.length > 0) ? settlementPoints : []}
             className="mt-5 h-44 w-full"
             filled
           />
