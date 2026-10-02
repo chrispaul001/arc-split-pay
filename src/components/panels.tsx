@@ -222,7 +222,6 @@ export function SettingsView() {
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
   const [webhook, setWebhook] = useState("");
-  const [currency, setCurrency] = useState("USDC");
   const [autoSplit, setAutoSplit] = useState(true);
   const [emailReceipts, setEmailReceipts] = useState(true);
   const [sandbox, setSandbox] = useState(false);
@@ -235,13 +234,12 @@ export function SettingsView() {
     setName(data.businessName || businessName);
     setWallet(data.settlementWallet || settlementWallet);
     setWebhook(data.webhookUrl);
-    setCurrency(data.defaultCurrency || "USDC");
     setAutoSplit(data.autoSplit);
     setEmailReceipts(data.emailReceipts);
     setSandbox(data.sandboxMode);
     if (data.businessName) setProfile({ businessName: data.businessName });
   }, [connected, ready, data.businessName, data.settlementWallet, data.webhookUrl,
-      data.defaultCurrency, data.autoSplit, data.emailReceipts, data.sandboxMode]); // eslint-disable-line react-hooks/exhaustive-deps
+      data.autoSplit, data.emailReceipts, data.sandboxMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const useConnectedWallet = () => {
     if (!address) return;
@@ -280,7 +278,7 @@ export function SettingsView() {
       businessName: trimmed,
       settlementWallet: w,
       webhookUrl: wh,
-      defaultCurrency: currency,
+      defaultCurrency: "USDC",
       autoSplit,
       emailReceipts,
       sandboxMode: sandbox,
@@ -361,17 +359,24 @@ export function SettingsView() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="currency">Default currency</Label>
-          <select
+          <div
             id="currency"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="w-full appearance-none rounded-xl border border-input bg-background/40 px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-secondary/40 px-3 py-2.5"
           >
-            {["USDC", "USDT"].map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <p className="text-xs text-muted-foreground">Primary currency for settlements.</p>
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-[10px] font-bold text-primary">
+                $
+              </span>
+              <span className="truncate font-medium">USDC</span>
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-mint uppercase">
+              <span className="pulse-dot size-1.5 rounded-full bg-mint" />
+              Arc Native
+            </span>
+          </div>
+          <p className="text-xs break-words text-muted-foreground">
+            CoindeccPay operates as a USDC-native gateway on Arc Network for optimized gas and instant settlement.
+          </p>
         </div>
         {toggles.map(([t, d, v, set]) => (
           <div
