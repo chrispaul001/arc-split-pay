@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
+import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
 import { useStreamSettle } from "@/lib/use-stream-settle";
 import { errMessage } from "@/lib/use-pay";
@@ -467,9 +468,12 @@ export function SplitRouter() {
               title: "Payment link published",
               body: `${saved.name} · ${amount} USDC across ${parties.length} recipients.`,
             });
-            navigator.clipboard?.writeText(saved.url);
-            toast.success("Payment link published", {
-              description: "Saved to this wallet and copied to your clipboard.",
+            showLinkPublished({
+              url: saved.url,
+              name: saved.name,
+              amount: saved.amount,
+              currency: saved.currency,
+              parties: saved.parties,
             });
             setLinkName("");
             setReference("");
