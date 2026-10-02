@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
 import { COINDECC_PAY_ADDRESS, ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 import { loadProfile, saveProfile, signInMessage, walletSignIn } from "@/lib/profile.functions";
+import { sendTxPush } from "@/lib/push.functions";
 import { readPayments, type SettledPayment } from "@/lib/payment-events";
 import { useLatestTxs } from "@/lib/use-onchain-txs";
 import { mergeTxs } from "@/lib/tx-history";
@@ -237,6 +238,7 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
   const signIn = useServerFn(walletSignIn);
   const load = useServerFn(loadProfile);
   const save = useServerFn(saveProfile);
+  const pushTx = useServerFn(sendTxPush);
 
   const pushRemote = useCallback(() => {
     window.clearTimeout(saveTimer.current);
@@ -382,7 +384,11 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     for (const r of [...fresh].reverse()) {
       if (known.has(r.hash.toLowerCase())) continue;
       const incoming = r.to?.toLowerCase() === address.toLowerCase() || (r.from.toLowerCase() !== address.toLowerCase() && r.transfers?.some((t) => t.address.toLowerCase() === address.toLowerCase()));
-      if (incoming) lastIncomingAlert.current = Date.now();
+      if (incoming) {
+        lastIncomingAlert.current = Date.now();
+        const session = localStorage.getItem(tokenKey(address));
+        if (session) void pushTx({ data: { token: session, hash: r.hash, origin: window.location.origin } }).catch(() => {});
+      }
       const title = incoming ? "Funds received" : "Transaction confirmed";
       const body = `${incoming ? "+" : ""}${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC ${incoming ? `from ${r.from.slice(0, 6)}…${r.from.slice(-4)}` : r.label ?? ""}`.trim();
       toast.success(title, { description: body });

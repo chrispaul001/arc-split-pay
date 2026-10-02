@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import {
   DropdownMenu,
@@ -7,7 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, CheckCheck, CreditCard, Radio, Split, Wallet } from "lucide-react";
+import { Bell, BellRing, CheckCheck, CreditCard, Radio, Split, Wallet } from "lucide-react";
+import { enablePush, pushEnabled, PUSH_COPY } from "@/lib/push";
 import { toast } from "sonner";
 import { timeAgo, useMerchantStore, type MerchantNotification } from "@/lib/merchant-store";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,16 @@ const ICONS = {
 export function NotificationsBell() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { data, update } = useMerchantStore();
+  const [pushOn, setPushOn] = useState(false);
+  useEffect(() => { setPushOn(address ? pushEnabled(address) : false); }, [address]);
+  const turnOnPush = async () => {
+    if (!address) return;
+    const r = await enablePush(address);
+    if (r.status === "registered") { setPushOn(true); toast.success("Push alerts on", { description: "You'll be alerted on this device when USDC arrives." }); }
+    else toast.error(PUSH_COPY[r.status]);
+  };
 
   const items: MerchantNotification[] = isConnected ? data.notifications : [];
   const unread = items.filter((n) => !n.read).length;
@@ -75,6 +84,12 @@ export function NotificationsBell() {
             </Button>
           )}
         </DropdownMenuLabel>
+        {isConnected && address && (
+          <Button variant="ghost" size="sm" disabled={pushOn} onClick={() => void turnOnPush()}
+            className="mx-1 mb-1 flex h-auto w-[calc(100%-0.5rem)] justify-start gap-2 rounded-md px-2 py-1.5 text-[11px] font-medium text-primary">
+            <BellRing className="size-3.5" /> {pushOn ? "Push alerts on for this device" : "Turn on push alerts"}
+          </Button>
+        )}
         <DropdownMenuSeparator />
         <div className="max-h-72 space-y-1 overflow-y-auto p-1">
           {items.length === 0 ? (
