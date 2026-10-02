@@ -72,7 +72,7 @@ export function Transactions() {
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "History temporarily unavailable. Retrying…" : "No transactions found."}
+          {chain.isError ? "Your history is temporarily unavailable. Please try again shortly." : "No transactions yet."}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -120,7 +120,7 @@ export function Transactions() {
 
       {chain.isError && txs.length > 0 && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          Explorer delayed. Showing cached history.
+          Showing your saved transactions while we reconnect to Arc.
           <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => void chain.refetch()}>Retry</Button>
         </p>
       )}

@@ -10,7 +10,12 @@ export type StepState = { status: TxStatus; hash?: string; error?: string };
 
 export function errMessage(e: unknown) {
   const err = e as { shortMessage?: string; message?: string };
-  return err?.shortMessage ?? err?.message ?? "Unknown error";
+  const message = err?.shortMessage ?? err?.message ?? "";
+  if (/rejected|denied|cancelled/i.test(message)) return "The request was cancelled in your wallet.";
+  if (/insufficient/i.test(message)) return "Your wallet doesn't have enough USDC.";
+  if (/split is not active/i.test(message)) return "This payment option is no longer available.";
+  if (/payments are paused/i.test(message)) return "Payments are temporarily paused.";
+  return "The payment couldn't be completed. Please try again.";
 }
 
 /** Real approve → pay() flow against the CoindeccPay contract on Arc Testnet. */
