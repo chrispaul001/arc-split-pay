@@ -18,3 +18,4 @@
 - Wallet/RainbowKit/Wagmi code lives in `src/components/dashboard-app.tsx`, lazy-loaded in `<ClientOnly>`; never import wallet modules from a route or `__root`. Why: MetaMask SDK crashes the edge server.
 - "Connect wallet" always uses `useConnectWallet()`, never `useConnectModal`. Why: iframes block wallet deep links.
 - `src/lib/wagmi.ts` uses HTTPS universal links and hides injected-only wallets without `window.ethereum`. Why: otherwise taps fail silently.
+- The MCP server requires OAuth via Lovable Cloud auth (consent page at `/.lovable/oauth/consent`, sign-in at `/auth`); tools stay read-only over public chain data. Why: published MCP endpoints must not be callable anonymously.
