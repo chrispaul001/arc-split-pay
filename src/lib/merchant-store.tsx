@@ -357,21 +357,34 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
 
   // Real-time watcher: newest wallet transfers are polled every few seconds; unseen ones alert.
   const latestTxs = useLatestTxs(isConnected ? address : null);
-  const seenTx = useRef<{ addr: string | null; primed: boolean }>({ addr: null, primed: false });
+  // Hashes already alerted, persisted per wallet. Independent of the history cache,
+  // so a record merged first by the Live activity feed still raises a notification.
   useEffect(() => {
     if (!address || !latestTxs.data) return;
-    if (seenTx.current.addr !== address) seenTx.current = { addr: address, primed: false };
-    const added = new Set(mergeTxs(address, latestTxs.data.records));
-    if (!seenTx.current.primed) { seenTx.current.primed = true; return; } // first load is history, not news
-    if (!added.size) return;
-    void queryClient.invalidateQueries(); // balances, telemetry and feeds refresh at once
-    for (const r of latestTxs.data.records) {
-      if (!added.has(r.hash.toLowerCase())) continue;
-      const incoming = r.to?.toLowerCase() === address.toLowerCase();
+    const k = `coindecc:notified:${address.toLowerCase()}`;
+    const records = latestTxs.data.records;
+    mergeTxs(address, records);
+    let seen: string[] | null = null;
+    try { const raw: unknown = JSON.parse(localStorage.getItem(k) ?? "null"); if (Array.isArray(raw)) seen = raw.filter((h): h is string => typeof h === "string"); } catch { /* reset */ }
+    if (!seen) {
+      // First visit on this device: existing activity is history, not news.
+      try { localStorage.setItem(k, JSON.stringify(records.map((r) => r.hash.toLowerCase()))); } catch { /* ignore */ }
+      return;
+    }
+    const seenSet = new Set(seen);
+    const known = new Set((dataRef.current?.notifications ?? []).map((n) => n.payment?.hash?.toLowerCase()).filter(Boolean));
+    const fresh = records.filter((r) => !seenSet.has(r.hash.toLowerCase()));
+    if (!fresh.length) return;
+    fresh.forEach((r) => seenSet.add(r.hash.toLowerCase()));
+    try { localStorage.setItem(k, JSON.stringify([...seenSet].slice(-500))); } catch { /* ignore */ }
+    void queryClient.invalidateQueries(); // balances and feeds refresh at once
+    for (const r of [...fresh].reverse()) {
+      if (known.has(r.hash.toLowerCase())) continue;
+      const incoming = r.to?.toLowerCase() === address.toLowerCase() || (r.from.toLowerCase() !== address.toLowerCase() && r.transfers?.some((t) => t.address.toLowerCase() === address.toLowerCase()));
       const title = incoming ? "Funds received" : "Transaction confirmed";
       const body = `${incoming ? "+" : ""}${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC ${incoming ? `from ${r.from.slice(0, 6)}…${r.from.slice(-4)}` : r.label ?? ""}`.trim();
       toast.success(title, { description: body });
-      notify({ kind: r.kind === "payment" ? "payment" : "system", title, body,
+      notify({ kind: r.kind === "payment" || incoming ? "payment" : "system", title, body,
         payment: { hash: r.hash, sender: r.from, amount: r.amount, currency: "USDC", splits: r.transfers ?? [] } });
     }
   }, [address, latestTxs.data]); // eslint-disable-line react-hooks/exhaustive-deps
