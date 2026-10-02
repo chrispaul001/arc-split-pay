@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 // Runs against the dev server (or BASE_URL). Skips cleanly when nothing is listening.
 const BASE = process.env["BASE_URL"] ?? "http://127.0.0.1:8080";
 let up = false;
-beforeAll(async () => { up = await fetch(BASE).then(() => true, () => false); });
+beforeAll(async () => { up = await fetch(BASE).then(() => true, (e) => { console.log("UNREACHABLE", String(e), e?.cause); return false; }); });
 
 const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = (claims: object) => `${b64({ alg: "RS256", typ: "JWT", kid: "revoked-key" })}.${b64(claims)}.${"x".repeat(43)}`;
