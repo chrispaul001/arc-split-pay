@@ -10,15 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as CheckoutIdRouteImport } from './routes/checkout.$id'
 import { Route as SIdRouteImport } from './routes/s.$id'
+import { Route as Char91DotlovableChar93OauthConsentRouteImport } from './routes/[.lovable]/oauth/consent'
 import { Route as ApiOnrampSessionsRouteImport } from './routes/api/onramp/sessions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -42,6 +49,12 @@ const SIdRoute = SIdRouteImport.update({
   path: '/s/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotlovableChar93OauthConsentRoute =
+  Char91DotlovableChar93OauthConsentRouteImport.update({
+    id: '/.lovable/oauth/consent',
+    path: '/.lovable/oauth/consent',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOnrampSessionsRoute = ApiOnrampSessionsRouteImport.update({
   id: '/api/onramp/sessions',
   path: '/api/onramp/sessions',
@@ -50,62 +63,76 @@ const ApiOnrampSessionsRoute = ApiOnrampSessionsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/mcp': typeof McpRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/s/$id': typeof SIdRoute
+  '/.lovable/oauth/consent': typeof Char91DotlovableChar93OauthConsentRoute
   '/api/onramp/sessions': typeof ApiOnrampSessionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/mcp': typeof McpRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/s/$id': typeof SIdRoute
+  '/.lovable/oauth/consent': typeof Char91DotlovableChar93OauthConsentRoute
   '/api/onramp/sessions': typeof ApiOnrampSessionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/mcp': typeof McpRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/s/$id': typeof SIdRoute
+  '/.lovable/oauth/consent': typeof Char91DotlovableChar93OauthConsentRoute
   '/api/onramp/sessions': typeof ApiOnrampSessionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/mcp'
     | '/.well-known/oauth-protected-resource'
     | '/checkout/$id'
     | '/s/$id'
+    | '/.lovable/oauth/consent'
     | '/api/onramp/sessions'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/mcp'
     | '/.well-known/oauth-protected-resource'
     | '/checkout/$id'
     | '/s/$id'
+    | '/.lovable/oauth/consent'
     | '/api/onramp/sessions'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/mcp'
     | '/.well-known/oauth-protected-resource'
     | '/checkout/$id'
     | '/s/$id'
+    | '/.lovable/oauth/consent'
     | '/api/onramp/sessions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   McpRoute: typeof McpRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   CheckoutIdRoute: typeof CheckoutIdRoute
   SIdRoute: typeof SIdRoute
+  Char91DotlovableChar93OauthConsentRoute: typeof Char91DotlovableChar93OauthConsentRoute
   ApiOnrampSessionsRoute: typeof ApiOnrampSessionsRoute
 }
 
@@ -116,6 +143,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -146,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof Char91DotlovableChar93OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/onramp/sessions': {
       id: '/api/onramp/sessions'
       path: '/api/onramp/sessions'
@@ -158,11 +199,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   McpRoute: McpRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   CheckoutIdRoute: CheckoutIdRoute,
   SIdRoute: SIdRoute,
+  Char91DotlovableChar93OauthConsentRoute:
+    Char91DotlovableChar93OauthConsentRoute,
   ApiOnrampSessionsRoute: ApiOnrampSessionsRoute,
 }
 export const routeTree = rootRouteImport
