@@ -82,8 +82,7 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
                     onCheckedChange={(on) => {
                       update((p) => ({ ...p, links: p.links.map((x) => (x.id === l.id ? { ...x, status: on ? "Active" : "Paused" } : x)) }));
                       toast.success(on ? "Link activated" : "Link paused", { description: on ? `${l.name} can accept payments again.` : `Buyers opening ${l.name} will see it is inactive.` });
-                      }}
-                    }
+                    }}
                   />
                   <span className={`text-[11px] font-semibold ${l.status === "Active" ? "text-mint" : "text-muted-foreground"}`}>
                     {l.status === "Active" ? "Active" : "Inactive"}
