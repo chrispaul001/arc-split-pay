@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { safeRedirect } from "@/lib/safe-redirect";
 
-type Search = { redirect?: string };
+type Search = { redirect?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -57,15 +57,15 @@ function AuthPage() {
     }
   };
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
-    if (!email.trim() || password.length < 8) return toast.error("Enter your email and a password of at least 8 characters.");
+    if (!email.trim() || password.length < 8) { toast.error("Enter your email and a password of at least 8 characters."); return; }
     setBusy(true);
     const { error } = mode === "signin"
       ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
       : await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(target)}` } });
     setBusy(false);
-    if (error) return toast.error(mode === "signin" ? "Those details didn't match an account." : "We couldn't create that account. Please try again.");
+    if (error) { toast.error(mode === "signin" ? "Those details didn't match an account." : "We couldn't create that account. Please try again."); return; }
     if (mode === "signup") toast.success("Check your inbox to confirm your email, then sign in.");
   };
 

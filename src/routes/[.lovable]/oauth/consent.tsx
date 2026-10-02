@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-type Search = { authorization_id?: string };
+type Search = { authorization_id?: string | undefined };
 type Details = { id: string; client: string; email: string; scopes: string[] };
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
@@ -44,8 +44,11 @@ function ConsentPage() {
       const { data, error: err } = await supabase.auth.oauth.getAuthorizationDetails(authorization_id);
       if (!alive) return;
       if (err || !data) return setError("This authorization request has expired. Start again from your AI assistant.");
-      if ("redirect_url" in data && !("authorization_id" in data)) return window.location.replace(data.redirect_url);
-      if ("authorization_id" in data) {
+      if (!("client" in data)) {
+        if ("redirect_url" in data && typeof data.redirect_url === "string") window.location.replace(data.redirect_url);
+        return;
+      }
+      {
         setDetails({
           id: data.authorization_id,
           client: data.client?.name || "An AI assistant",
