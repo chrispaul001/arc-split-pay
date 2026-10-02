@@ -22,10 +22,7 @@ export function Overview() {
   const { formatted } = useUsdc();
   const { data } = useMerchantStore();
 
-  const liveBalance =
-    formatted == null
-      ? "—"
-      : `$${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  const liveBalance = formatted == null ? "—" : fmt(Number(formatted) || 0);
 
   const history = useTxHistory(isConnected ? address : undefined);
   const [now, setNow] = useState(() => Date.now());
@@ -37,17 +34,21 @@ export function Overview() {
   const splitExecutions = isConnected ? history.txs.filter((x) => x.kind === "split" || (x.transfers?.length ?? 0) > 0).length : 0;
   const activeStreams = data.streams.filter((s) => s.running).length;
   const start = now - DAY;
-  // Count confirmed checkout payments, direct split payouts, and split proceeds
-  // received from the contract. Exclude unrelated sends and faucet deposits.
-  const settlements = isConnected && address ? history.txs.filter((tx) =>
-    tx.timestamp >= start && tx.timestamp <= now &&
-    Number.isFinite(tx.amount) && tx.amount > 0 &&
-    ((tx.kind === "payment" && tx.from.toLowerCase() === address.toLowerCase()) ||
-      (tx.kind === "split" && (
-        (tx.from.toLowerCase() === address.toLowerCase() && (Boolean(tx.splits?.length) || tx.label?.startsWith("Split ·"))) ||
-        (tx.from.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase() && tx.to?.toLowerCase() === address.toLowerCase())
-      )))
-  ) : [];
+  const me = address?.toLowerCase();
+  const pay = COINDECC_PAY_ADDRESS.toLowerCase();
+  // Every confirmed USDC settlement processed through this merchant wallet:
+  // checkout payments (sent or received), split payouts and split proceeds.
+  // Faucet drops and unrelated plain transfers are excluded.
+  const allSettlements = isConnected && me ? history.txs.filter((tx) => {
+    if (!Number.isFinite(tx.amount) || tx.amount <= 0) return false;
+    const from = tx.from.toLowerCase();
+    const to = tx.to?.toLowerCase();
+    if (tx.kind === "payment") return from === me || to === me || tx.transfers?.some((t) => t.address.toLowerCase() === me);
+    if (tx.kind === "split") return (from === me && (Boolean(tx.splits?.length) || Boolean(tx.label?.startsWith("Split ·")) || Boolean(tx.transfers?.length))) || (from === pay && to === me);
+    return false;
+  }) : [];
+  const totalVolume = allSettlements.reduce((sum, tx) => sum + tx.amount, 0);
+  const settlements = allSettlements.filter((tx) => tx.timestamp >= start && tx.timestamp <= now);
   const settlementVolume = settlements.reduce((sum, tx) => sum + tx.amount, 0);
   const bucketMs = DAY / BUCKETS;
   const settlementPoints: TrendPoint[] = Array.from({ length: BUCKETS + 1 }, (_, i) => ({
@@ -70,11 +71,11 @@ export function Overview() {
   const metrics = [
     {
       label: "Settlement Volume (USDC)",
-      value: history.loading && !history.txs.length ? "…" : fmt(settlementVolume),
+      value: history.loading && !history.txs.length ? "…" : fmt(totalVolume),
       zero: "$0.00",
-      delta: `${settlements.length} settled in 24h`,
+      delta: `${allSettlements.length} settled · ${fmt(settlementVolume)} in 24h`,
       icon: Zap,
-      hasValue: settlementVolume > 0,
+      hasValue: totalVolume > 0,
       trend: volumePoints, format: fmt,
     },
     { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0, trend: balancePoints, format: fmt },
