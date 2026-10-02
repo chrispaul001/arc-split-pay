@@ -34,7 +34,7 @@ export async function mountOnramp(params: {
   });
   if (!res.ok) {
     const info = (await res.json().catch(() => null)) as { message?: string } | null;
-    throw new Error(info?.message ?? `Could not start card checkout (${res.status})`);
+    throw new Error(info?.message ?? `Failed to start card checkout.`);
   }
 
   const payload = (await res.json()) as { widgetUrl?: string; sessionToken?: string };
@@ -84,7 +84,7 @@ export function OnrampCheckoutModal({
     try {
       widgetRef.current = await mountOnramp({ container, destinationAddress, amount });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Card checkout is unavailable");
+      setError(e instanceof Error ? e.message : "Card checkout is currently unavailable.");
     } finally {
       setLoading(false);
     }

@@ -182,7 +182,7 @@ export function Overview() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">USDC balance</p>
                   <p className="truncate text-[11px] break-words text-muted-foreground">
-                    Refreshes every 15s from Arc Testnet
+                    Refreshes every 15s from Arc
                   </p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-mint tabular-nums">
@@ -216,7 +216,7 @@ export function Overview() {
                 })
               ) : (
                 <p className="rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
-                  {history.loading || history.backfilling ? "Loading this wallet's history from Arc…" : "No transactions found for this wallet on Arc Testnet yet."}
+                  {history.loading || history.backfilling ? "Fetching wallet history…" : "No transactions yet."}
                 </p>
               )}
             </div>

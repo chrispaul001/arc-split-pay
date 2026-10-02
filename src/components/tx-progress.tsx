@@ -14,9 +14,9 @@ export type TxStep = {
 
 const LABEL: Record<TxStatus, string> = {
   idle: "Waiting",
-  wallet: "Awaiting signature",
+  wallet: "Waiting for signature…",
   pending: "Pending",
-  confirmed: "Confirmed",
+  confirmed: "Settled",
   failed: "Failed",
 };
 

@@ -69,14 +69,14 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
       try {
         await switchChainAsync({ chainId: arcTestnet.id });
       } catch {
-        toast.error("Switch to Arc Network Testnet to continue");
+        toast.error("Switch to Arc Network to continue");
       }
       return;
     }
 
     const parsed = Number(amount);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      toast.error("Enter a valid amount");
+      toast.error("Please enter a valid amount.");
       return;
     }
 
@@ -129,7 +129,7 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
           });
           setApprove({ status: "pending", hash });
           const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
-          if (receipt.status !== "success") throw new Error("Approval reverted on-chain");
+          if (receipt.status !== "success") throw new Error("Approval failed on-chain.");
           setApprove({ status: "confirmed", hash });
         } catch (e) {
           const msg = errMessage(e);
@@ -151,7 +151,7 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
         });
         setPay({ status: "pending", hash });
         const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
-        if (receipt.status !== "success") throw new Error("Payment reverted on-chain");
+        if (receipt.status !== "success") throw new Error("Payment failed on-chain.");
         setPay({ status: "confirmed", hash });
         recordPayment({ hash, sender: address, amount: parsed });
         setDone(true);
