@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CurrencyPills } from "@/components/currency-select";
-import { formatLocal, formatUsdc, getCurrency, type CurrencyCode } from "@/lib/currency";
+import { formatLocal, formatUsdc, getCurrency, useFxRates, type CurrencyCode } from "@/lib/currency";
 import { useBrand } from "@/lib/brand";
 import { ImageUpload } from "@/components/image-upload";
 import { Check, Copy, Loader2, Lock, Wallet, Zap } from "lucide-react";
