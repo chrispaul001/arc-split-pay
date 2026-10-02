@@ -8,14 +8,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useAccount, useConfig, useSignMessage, useWatchContractEvent } from "wagmi";
+import { useAccount, useConfig, useReadContract, useSignMessage, useWatchContractEvent } from "wagmi";
 import { getBlock, getTransactionReceipt } from "wagmi/actions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { decodeEventLog, formatUnits, parseAbi } from "viem";
 import { toast } from "sonner";
 import { useBrand } from "@/lib/brand";
-import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
+import { COINDECC_PAY_ADDRESS, ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/web3";
 import { loadProfile, saveProfile, signInMessage, walletSignIn } from "@/lib/profile.functions";
 import { readPayments, type SettledPayment } from "@/lib/payment-events";
 import { useLatestTxs } from "@/lib/use-onchain-txs";
@@ -381,6 +381,7 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     for (const r of [...fresh].reverse()) {
       if (known.has(r.hash.toLowerCase())) continue;
       const incoming = r.to?.toLowerCase() === address.toLowerCase() || (r.from.toLowerCase() !== address.toLowerCase() && r.transfers?.some((t) => t.address.toLowerCase() === address.toLowerCase()));
+      if (incoming) lastIncomingAlert.current = Date.now();
       const title = incoming ? "Funds received" : "Transaction confirmed";
       const body = `${incoming ? "+" : ""}${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC ${incoming ? `from ${r.from.slice(0, 6)}…${r.from.slice(-4)}` : r.label ?? ""}`.trim();
       toast.success(title, { description: body });
@@ -388,6 +389,35 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
         payment: { hash: r.hash, sender: r.from, amount: r.amount, currency: "USDC", splits: r.transfers ?? [] } });
     }
   }, [address, latestTxs.data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Balance watcher: a rise in on-chain USDC balance forces an activity check right away.
+  // If the explorer hasn't indexed the transfer after ~25s, alert from the balance change itself.
+  const lastIncomingAlert = useRef(0);
+  const prevBalance = useRef<{ addr: string; raw: bigint } | null>(null);
+  const balanceQ = useReadContract({
+    address: USDC_ADDRESS, abi: ERC20_ABI, functionName: "balanceOf",
+    args: address ? [address] : undefined, chainId: arcTestnet.id,
+    query: { enabled: Boolean(address) && isConnected, refetchInterval: 8_000 },
+  });
+  useEffect(() => {
+    const raw = balanceQ.data as bigint | undefined;
+    if (!address || raw == null) return;
+    const prev = prevBalance.current;
+    prevBalance.current = { addr: address.toLowerCase(), raw };
+    if (!prev || prev.addr !== address.toLowerCase() || raw <= prev.raw) return;
+    const delta = Number(formatUnits(raw - prev.raw, 6));
+    const startedAt = Date.now();
+    const timers = [1_500, 5_000, 12_000].map((ms) => setTimeout(() => void latestTxs.refetch(), ms));
+    timers.push(setTimeout(() => {
+      if (lastIncomingAlert.current >= startedAt) return;
+      lastIncomingAlert.current = Date.now();
+      const body = `+${delta.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC added to your wallet`;
+      toast.success("Funds received", { description: body });
+      notify({ kind: "payment", title: "Funds received", body });
+    }, 25_000));
+    void queryClient.invalidateQueries();
+    return () => timers.forEach(clearTimeout);
+  }, [balanceQ.data, address]); // eslint-disable-line react-hooks/exhaustive-deps
   const pending = useRef(new Set<string>());
   const ingestPayment = useCallback(async (payment: SettledPayment) => {
     if (!address || !isConnected) return;

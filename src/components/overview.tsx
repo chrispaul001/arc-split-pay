@@ -215,7 +215,9 @@ export function Overview() {
               </div>
               {history.txs.length > 0 ? (
                 history.txs.slice(0, 6).map((e) => {
-                  const incoming = e.from.toLowerCase() !== address?.toLowerCase();
+                  const me = address?.toLowerCase();
+                  const incoming = e.to?.toLowerCase() === me || (e.from.toLowerCase() !== me);
+                  const party = incoming ? e.from : e.to;
                   return (
                     <a
                       key={e.hash}
@@ -225,9 +227,9 @@ export function Overview() {
                       className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-colors hover:bg-secondary/80"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{e.label || (incoming ? `From ${shortAddress(e.from)}` : "Payment sent")}</p>
+                        <p className="truncate text-sm font-medium">{e.label || (incoming ? "USDC received" : "Payment sent")}</p>
                         <p className="truncate font-mono text-[11px] text-muted-foreground">
-                          {shortAddress(e.hash)} · {timeAgo(e.timestamp)}
+                          {party ? `${incoming ? "From" : "To"} ${shortAddress(party)} · ` : ""}{timeAgo(e.timestamp)}
                         </p>
                       </div>
                       <span className={`shrink-0 text-sm font-semibold tabular-nums ${incoming ? "text-mint" : ""}`}>
