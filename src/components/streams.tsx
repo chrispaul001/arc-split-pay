@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { CurrencySelect } from "@/components/currency-select";
-import { formatLocal, type CurrencyCode } from "@/lib/currency";
+import { formatLocal, useFxRates, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
 import { Activity, Pause, Play, Plus, Radio, Send, Square, Timer } from "lucide-react";
 import { isAddress } from "viem";
@@ -36,6 +36,7 @@ function toPerSecond(mode: PricingMode, amount: string, durationHours: string) {
 export function Streams() {
   const connected = useWalletGate();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  useFxRates();
   const { data, ready, update, notify } = useMerchantStore();
   const { settle, busyId } = useStreamSettle();
   const [open, setOpen] = useState(false);

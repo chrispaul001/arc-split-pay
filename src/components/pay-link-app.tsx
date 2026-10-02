@@ -1,10 +1,11 @@
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
-import { formatLocal, type CurrencyCode } from "@/lib/currency";
+import { formatLocal, useFxRates, type CurrencyCode } from "@/lib/currency";
 
 export type PayLinkProps = { id: string; amount: number; currency: CurrencyCode };
 
 export default function PayLinkApp({ id, amount, currency }: PayLinkProps) {
+  useFxRates();
   const shares = id
     .split("-")
     .map((n) => Number(n))
