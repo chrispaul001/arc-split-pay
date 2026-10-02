@@ -168,10 +168,8 @@ function normalizeMerchantData(value: unknown): MerchantData {
     settlementWallet:
       typeof saved.settlementWallet === "string" ? saved.settlementWallet : "",
     webhookUrl: typeof saved.webhookUrl === "string" ? saved.webhookUrl : "",
-    defaultCurrency:
-      saved.defaultCurrency === "USDT" || saved.defaultCurrency === "USDC"
-        ? saved.defaultCurrency
-        : "USDC",
+    // USDC-native: settlement currency is fixed and never read from saved data
+    defaultCurrency: "USDC",
     autoSplit: typeof saved.autoSplit === "boolean" ? saved.autoSplit : true,
     emailReceipts:
       typeof saved.emailReceipts === "boolean" ? saved.emailReceipts : true,
