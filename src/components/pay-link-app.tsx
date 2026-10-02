@@ -1,16 +1,50 @@
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
+import { LinkInactive } from "@/components/link-inactive";
+import { getLinkStatus } from "@/lib/link-status.functions";
 import { formatLocal, useFxRates, type CurrencyCode } from "@/lib/currency";
 
-export type PayLinkProps = { id: string; amount: number; currency: CurrencyCode };
+export type PayLinkProps = {
+  id: string;
+  amount: number;
+  currency: CurrencyCode;
+  link?: { id: string; merchant: string } | undefined;
+};
 
-export default function PayLinkApp({ id, amount, currency }: PayLinkProps) {
+const ADDR = /^0x[0-9a-fA-F]{40}$/;
+
+export default function PayLinkApp({ id, amount, currency, link }: PayLinkProps) {
   useFxRates();
+  const check = useServerFn(getLinkStatus);
+  const valid = !link || (ADDR.test(link.merchant) && /^[A-Za-z0-9_-]{1,64}$/.test(link.id));
+  const status = useQuery({
+    queryKey: ["coindecc-link-status", link?.merchant.toLowerCase(), link?.id],
+    enabled: Boolean(link) && valid,
+    queryFn: () => check({ data: { merchant: link!.merchant, link: link!.id } }),
+    refetchInterval: 15_000,
+    retry: 3,
+  });
+  // Re-verified right before the wallet is asked to pay, so a link paused mid-checkout is blocked.
+  const guard = useCallback(async () => {
+    if (!link) return true;
+    if (!valid) return false;
+    try {
+      const r = await status.refetch();
+      return r.data?.status === "active";
+    } catch {
+      return false;
+    }
+  }, [link, valid, status]);
   const shares = id
     .split("-")
     .map((n) => Number(n))
     .filter((n) => Number.isFinite(n) && n >= 0);
   const total = shares.reduce((a, b) => a + b, 0);
+  const inactive = Boolean(link) && (!valid || status.data?.status === "inactive");
+  const checking = Boolean(link) && valid && !status.data && !status.isError;
   return (
     <Web3Provider>
       <div className="app-gradient flex min-h-screen w-full justify-center px-4 py-10">
@@ -19,6 +53,13 @@ export default function PayLinkApp({ id, amount, currency }: PayLinkProps) {
             <p className="font-display text-xl font-bold text-foreground">CoindeccPay</p>
             <p className="text-xs text-muted-foreground">Secure USDC payment on Arc</p>
           </div>
+          {inactive ? <LinkInactive /> : checking ? (
+            <p className="py-10 text-center text-xs text-muted-foreground">Verifying payment link…</p>
+          ) : status.isError && !status.data ? (
+            <p className="glass rounded-3xl px-5 py-8 text-center text-sm text-muted-foreground">
+              We couldn't verify this payment link right now. Please refresh and try again shortly.
+            </p>
+          ) : (<>
           <div className="glass rounded-3xl px-5 py-5">
             <p className="text-xs text-muted-foreground">Amount due</p>
             <p className="font-display text-3xl font-bold tabular-nums">
@@ -45,7 +86,8 @@ export default function PayLinkApp({ id, amount, currency }: PayLinkProps) {
               </div>
             )}
           </div>
-          <OnchainCheckout fixedAmount={amount > 0 ? amount : undefined} />
+          <OnchainCheckout fixedAmount={amount > 0 ? amount : undefined} guard={guard} />
+          </>)}
         </div>
       </div>
     </Web3Provider>

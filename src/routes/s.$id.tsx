@@ -9,6 +9,6 @@ export const Route = createFileRoute("/s/$id")({
 
 function Page() {
   const { id } = Route.useParams();
-  const { amt, cur } = Route.useSearch();
-  return <PayLinkPage id={id} amount={amt} currency={cur} />;
+  const { amt, cur, lnk, m } = Route.useSearch();
+  return <PayLinkPage id={id} amount={amt} currency={cur} link={lnk ? { id: lnk, merchant: m ?? "" } : undefined} />;
 }

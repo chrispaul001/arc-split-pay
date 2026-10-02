@@ -20,3 +20,4 @@
 - `src/lib/wagmi.ts` uses HTTPS universal links and hides injected-only wallets without `window.ethereum`. Why: otherwise taps fail silently.
 - The MCP server requires OAuth via Lovable Cloud auth (consent page at `/.lovable/oauth/consent`, sign-in at `/auth`); tools stay read-only over public chain data. Why: published MCP endpoints must not be callable anonymously.
 - Security checks live in tests/ (vitest, `bun run test`); endpoint tests hit TEST_BASE_URL (default dev server). Why: auth gates must be re-verified on every change.
+- Payment link status is enforced by public `getLinkStatus` (status only, fails closed); links carry `lnk` + `m` params and checkout re-checks before payNow. Why: paused links must not take payments.

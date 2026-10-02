@@ -1,3 +1,4 @@
+import { withLinkParams } from "@/lib/link-status.functions";
 import { useEffect, useState } from "react";
 import { useBrand } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ function EmptyCard({ title, hint, action }: { title: string; hint: string; actio
 
 export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
   const connected = useWalletGate();
-  const { data, update, notify } = useMerchantStore();
+  const { data, update, notify, address } = useMerchantStore();
 
   if (!connected)
     return <GuestEmpty description="Connect your wallet to manage payment links." />;
@@ -78,23 +79,19 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
                   <Switch
                     checked={l.status === "Active"}
                     aria-label={`Toggle ${l.name} status`}
-                    onCheckedChange={(on) =>
-                      update((p) => ({
-                        ...p,
-                        links: p.links.map((x) =>
-                          x.id === l.id ? { ...x, status: on ? "Active" : "Paused" } : x,
-                        ),
-                      }))
-                    }
+                    onCheckedChange={(on) => {
+                      update((p) => ({ ...p, links: p.links.map((x) => (x.id === l.id ? { ...x, status: on ? "Active" : "Paused" } : x)) }));
+                      toast.success(on ? "Link activated" : "Link paused", { description: on ? `${l.name} can accept payments again.` : `Buyers opening ${l.name} will see it is inactive.` });
+                    }}
                   />
                   <span className={`text-[11px] font-semibold ${l.status === "Active" ? "text-mint" : "text-muted-foreground"}`}>
-                    {l.status}
+                    {l.status === "Active" ? "Active" : "Inactive"}
                   </span>
                 </label>
                 <button
                   aria-label="Copy link"
                   onClick={() => {
-                    navigator.clipboard?.writeText(l.url);
+                    navigator.clipboard?.writeText(address ? withLinkParams(l.url, l.id, address) : l.url);
                     toast.success("Link copied");
                   }}
                   className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"

@@ -1,3 +1,4 @@
+import { withLinkParams } from "@/lib/link-status.functions";
 import { useEffect, useMemo, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -448,14 +449,15 @@ export function SplitRouter() {
           className="w-full"
           disabled={!balanced || amount <= 0 || !linkName.trim()}
           onClick={() => {
+            const linkId = randomId();
             const saved = {
-              id: randomId(),
+              id: linkId,
               name: linkName.trim(),
               reference: reference.trim(),
               amount,
               currency,
               parties: parties.map(({ name, address, bps }) => ({ name, address, bps })),
-              url: link,
+              url: address ? withLinkParams(link, linkId, address) : link,
               status: "Active" as const,
               createdAt: Date.now(),
             };
@@ -465,7 +467,7 @@ export function SplitRouter() {
               title: "Payment link published",
               body: `${saved.name} · ${amount} USDC across ${parties.length} recipients.`,
             });
-            navigator.clipboard?.writeText(link);
+            navigator.clipboard?.writeText(saved.url);
             toast.success("Payment link published", {
               description: "Saved to this wallet and copied to your clipboard.",
             });
