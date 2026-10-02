@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Link2, Mail, Plus, Trash2 } from "lucide-react";
 import { GuestBanner, GuestEmpty, useSaveGate, useWalletGate } from "@/components/guest-gate";
 import { copyPaymentLink } from "@/components/link-share";
+import { PushAlertsToggle } from "@/components/push-alerts-toggle";
 import { randomId, timeAgo, useMerchantStore } from "@/lib/merchant-store";
 
 function XLogo({ className }: { className?: string }) {
@@ -376,6 +377,7 @@ export function SettingsView() {
             CoindeccPay operates as a USDC-native gateway on Arc Network for optimized gas and instant settlement.
           </p>
         </div>
+        <PushAlertsToggle address={connected ? address : null} />
         {toggles.map(([t, d, v, set]) => (
           <div
             key={t}
