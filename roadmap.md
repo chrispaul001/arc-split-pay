@@ -4,5 +4,5 @@
 
 - [x] Streams: non-custodial wallet-signed USDC settlement on Arc (no cron/relayer)
 - [x] Unify Transactions with contract pay() activity and on-chain split transfers; keep older history pageable and header actions unclipped.
-- [ ] Hide absent receipt/split metadata and replace diagnostic empty states across payment activity screens.
-- [ ] Verify receipt, history, and notification presentation after the cleanup.
+- [x] Hide absent receipt/split metadata and replace diagnostic empty states across payment activity screens.
+- [x] Verify receipt, history, and notification presentation after the cleanup.
