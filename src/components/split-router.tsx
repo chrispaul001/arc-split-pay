@@ -467,6 +467,7 @@ export function SplitRouter() {
               kind: "split",
               title: "Payment link published",
               body: `${saved.name} · ${amount} USDC across ${parties.length} recipients.`,
+              linkUrl: saved.url,
             });
             showLinkPublished({
               url: saved.url,
