@@ -44,7 +44,7 @@ export function useOnchainTxs(address?: `0x${string}`) {
     queryKey: ["coindecc-onchain-txs", address?.toLowerCase()],
     enabled: Boolean(client && address),
     // Pause polling while backfilling so older pages are not re-scanned repeatedly.
-    refetchInterval: (q) => (q.state.data?.pages.at(-1)?.next !== undefined ? false : 30_000),
+    refetchInterval: (q: { state: { data?: { pages: { next: bigint | undefined }[] } | undefined } }) => (q.state.data?.pages.at(-1)?.next !== undefined ? false : 30_000),
     initialPageParam: null as bigint | null,
     queryFn: async ({ pageParam }): Promise<{ records: TxRecord[]; next: bigint | undefined; head: bigint }> => {
       if (!client || !address) return { records: [], next: undefined, head: 0n };
