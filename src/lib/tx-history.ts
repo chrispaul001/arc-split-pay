@@ -54,7 +54,8 @@ export function mergeTxs(address: string, incoming: TxRecord[]): string[] {
     const k = t.hash.toLowerCase();
     const cur = map.get(k);
     if (!cur) { map.set(k, t); added.push(k); changed = true; continue; }
-    const next = { ...t, ...cur, timestamp: cur.timestamp || t.timestamp, transfers: cur.transfers?.length ? cur.transfers : t.transfers };
+    // Chain data is authoritative for parties; local copy only contributes labels/splits.
+    const next = { ...t, ...cur, from: t.from || cur.from, to: t.to ?? cur.to, timestamp: cur.timestamp || t.timestamp, transfers: cur.transfers?.length ? cur.transfers : t.transfers };
     if (JSON.stringify(next) !== JSON.stringify(cur)) { map.set(k, next); changed = true; }
   }
   if (!changed) return [];
