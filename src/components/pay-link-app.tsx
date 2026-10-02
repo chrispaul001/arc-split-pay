@@ -86,7 +86,8 @@ export default function PayLinkApp({ id, amount, currency, link }: PayLinkProps)
               </div>
             )}
           </div>
-          <OnchainCheckout fixedAmount={amount > 0 ? amount : undefined} />
+          <OnchainCheckout fixedAmount={amount > 0 ? amount : undefined} guard={guard} />
+          </>)}
         </div>
       </div>
     </Web3Provider>

@@ -24,7 +24,7 @@ import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
 
-export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefined } = {}) {
+export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number | undefined; guard?: (() => Promise<boolean>) | undefined } = {}) {
   const config = useConfig();
   const { address, chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -65,6 +65,10 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
 
   const payNow = async () => {
     if (!address) return;
+    if (guard && !(await guard())) {
+      toast.error("This payment link is no longer active.");
+      return;
+    }
     if (wrongNetwork) {
       try {
         await switchChainAsync({ chainId: arcTestnet.id });
