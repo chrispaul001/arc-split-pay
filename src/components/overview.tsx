@@ -1,16 +1,20 @@
 import { Sparkline } from "./sparkline";
 import { Reveal } from "./reveal";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck, Wallet } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { explorerTx, shortAddress } from "@/lib/web3";
-import { useTelemetry } from "@/lib/use-telemetry";
+import { COINDECC_PAY_ADDRESS, explorerTx, shortAddress } from "@/lib/web3";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
 import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";
 import { useTxHistory } from "@/lib/use-tx-history";
+
+const DAY = 24 * 3600 * 1000;
+const BUCKETS = 48;
+const fmt = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: n > 0 && n < 0.01 ? 6 : 2 })}`;
 
 export function Overview() {
   const { isConnected, address, chain } = useAccount();
@@ -23,35 +27,54 @@ export function Overview() {
       ? "—"
       : `$${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
-  const tele = useTelemetry();
-  const t = tele.data;
-  const fmt = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
   const history = useTxHistory(isConnected ? address : undefined);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
   // All-time count from the saved wallet history, so it never resets on a new day.
   const splitExecutions = isConnected ? history.txs.filter((x) => x.kind === "split" || (x.transfers?.length ?? 0) > 0).length : 0;
   const activeStreams = data.streams.filter((s) => s.running).length;
-  const now = Date.now();
-  const start = now - 24 * 3600 * 1000;
-  const times = Array.from({ length: 16 }, (_, i) => start + (i + 1) * 24 * 3600 * 1000 / 16);
-  const events = isConnected ? (t?.events ?? []) : [];
+  const start = now - DAY;
+  // Count confirmed checkout payments, direct split payouts, and split proceeds
+  // received from the contract. Exclude unrelated sends and faucet deposits.
+  const settlements = isConnected && address ? history.txs.filter((tx) =>
+    tx.timestamp >= start && tx.timestamp <= now &&
+    Number.isFinite(tx.amount) && tx.amount > 0 &&
+    ((tx.kind === "payment" && tx.from.toLowerCase() === address.toLowerCase()) ||
+      (tx.kind === "split" && (
+        (tx.from.toLowerCase() === address.toLowerCase() && (Boolean(tx.splits?.length) || tx.label?.startsWith("Split ·"))) ||
+        (tx.from.toLowerCase() === COINDECC_PAY_ADDRESS.toLowerCase() && tx.to?.toLowerCase() === address.toLowerCase())
+      )))
+  ) : [];
+  const settlementVolume = settlements.reduce((sum, tx) => sum + tx.amount, 0);
+  const bucketMs = DAY / BUCKETS;
+  const settlementPoints: TrendPoint[] = Array.from({ length: BUCKETS + 1 }, (_, i) => ({
+    timestamp: start + i * bucketMs,
+    value: i === 0 ? 0 : settlements.filter((tx) => tx.timestamp > start + (i - 1) * bucketMs && tx.timestamp <= start + i * bucketMs)
+      .reduce((sum, tx) => sum + tx.amount, 0),
+  }));
+  const times = Array.from({ length: 16 }, (_, i) => start + (i + 1) * DAY / 16);
   const volumePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
-    value: events.filter((e) => e.timestamp >= start && e.timestamp <= timestamp).reduce((sum, e) => sum + e.amount, 0) }));
+    value: settlements.filter((e) => e.timestamp <= timestamp).reduce((sum, e) => sum + e.amount, 0) }));
   const balance = isConnected ? Number(formatted) || 0 : 0;
-  // Reconstruct only confirmed outgoing pay() activity; do not fabricate a balance history.
-  const mine = events.filter((e) => e.from.toLowerCase() === address?.toLowerCase());
+  // Reconstruct only confirmed outgoing settlement activity; do not fabricate a balance history.
+  const mine = settlements.filter((tx) => tx.from.toLowerCase() === address?.toLowerCase());
   const balancePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
     value: Math.max(0, balance + mine.filter((e) => e.timestamp > timestamp && e.timestamp <= now).reduce((sum, e) => sum + e.amount, 0)) }));
   const splitPoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
-    value: events.filter((e) => e.timestamp >= start && e.timestamp <= timestamp).length }));
+    value: settlements.filter((e) => e.kind === "split" && e.timestamp <= timestamp).length }));
+  const isLive = isConnected && history.liveUpdatedAt > 0 && now - history.liveUpdatedAt < 60_000;
 
   const metrics = [
     {
-      label: "Contract Volume (USDC)",
-      value: t ? fmt(volumePoints[volumePoints.length - 1]?.value ?? 0) : tele.isLoading ? "…" : "—",
+      label: "Settlement Volume (USDC)",
+      value: history.loading && !history.txs.length ? "…" : fmt(settlementVolume),
       zero: "$0.00",
-      delta: t ? `${t.payers} payers on-chain` : "Updating activity",
+      delta: `${settlements.length} settled in 24h`,
       icon: Zap,
-      hasValue: Boolean(t && (volumePoints[volumePoints.length - 1]?.value ?? 0) > 0),
+      hasValue: settlementVolume > 0,
       trend: volumePoints, format: fmt,
     },
     { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0, trend: balancePoints, format: fmt },
@@ -120,23 +143,21 @@ export function Overview() {
           <div className="glass overview-surface animate-rise w-full min-w-0 rounded-3xl px-4 py-5 sm:px-5">
            <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
              <h3 className="min-w-0 text-base leading-snug font-semibold wrap-break-word sm:text-lg">Settlement flow · last 24h</h3>
-            <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] break-words text-muted-foreground">
-              Arc · sub-second
+             <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
+               {isLive && <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" aria-hidden="true" />}
+               {isConnected ? isLive ? "Live on Arc" : "Syncing Arc" : "Arc Testnet"}
             </span>
           </div>
           <Sparkline
-             points={isConnected && t ? t.buckets.map((value, i) => ({
-               value,
-               timestamp: t.bucketStart + (i + 1) * (24 * 3600 * 1000 / t.buckets.length),
-             })) : []}
+              points={isConnected && (!history.loading || history.txs.length > 0) ? settlementPoints : []}
             className="mt-5 h-44 w-full"
             filled
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             {[
-              { k: "Avg settle", v: !isConnected ? "—" : t ? `${t.blockTime.toFixed(2)}s` : "…" },
-              { k: "Payments", v: !isConnected ? "0" : t ? String(t.events.length) : "…" },
-              { k: "Avg ticket", v: isConnected && t && t.events.length ? fmt(t.volume / t.events.length) : "—" },
+               { k: "24h volume", v: !isConnected ? "$0.00" : history.loading && !history.txs.length ? "…" : fmt(settlementVolume) },
+               { k: "Payments", v: !isConnected ? "0" : history.loading && !history.txs.length ? "…" : String(settlements.length) },
+               { k: "Avg ticket", v: !isConnected ? "—" : history.loading && !history.txs.length ? "…" : settlements.length ? fmt(settlementVolume / settlements.length) : "—" },
 
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">

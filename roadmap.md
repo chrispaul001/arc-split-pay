@@ -6,3 +6,4 @@
 - [x] Unify Transactions with contract pay() activity and on-chain split transfers; keep older history pageable and header actions unclipped.
 - [x] Hide absent receipt/split metadata and replace diagnostic empty states across payment activity screens.
 - [x] Verify receipt, history, and notification presentation after the cleanup.
+- [x] Drive the 24-hour settlement chart, volume, count and average from confirmed wallet payments; fix its circular indicator and live badge.
