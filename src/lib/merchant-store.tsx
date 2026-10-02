@@ -73,6 +73,7 @@ export type MerchantNotification = {
   body: string;
   createdAt: number;
   read: boolean;
+  linkUrl?: string;
   payment?: { hash: string; sender: string; amount: number; currency: "USDC"; splits: { address: string; amount: number }[] };
 };
 
