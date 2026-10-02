@@ -72,7 +72,7 @@ export function Transactions() {
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "Your history is temporarily unavailable. Please try again shortly." : "No transactions yet."}
+          {txs.length > 0 ? "No transactions match your search." : chain.isError ? "Your history is temporarily unavailable. Please try again shortly." : "No transactions yet."}
         </p>
       ) : (
         <ul className="space-y-2">
