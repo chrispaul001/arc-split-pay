@@ -34,7 +34,7 @@ export async function mountOnramp(params: {
   });
   if (!res.ok) {
     const info = (await res.json().catch(() => null)) as { message?: string } | null;
-    throw new Error(info?.message ?? `Could not start card checkout (${res.status})`);
+    throw new Error(info?.message ?? `Failed to start card checkout.`);
   }
 
   const payload = (await res.json()) as { widgetUrl?: string; sessionToken?: string };
@@ -84,7 +84,7 @@ export function OnrampCheckoutModal({
     try {
       widgetRef.current = await mountOnramp({ container, destinationAddress, amount });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Card checkout is unavailable");
+      setError(e instanceof Error ? e.message : "Card checkout is currently unavailable.");
     } finally {
       setLoading(false);
     }
@@ -110,11 +110,11 @@ export function OnrampCheckoutModal({
         <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pay with card</DialogTitle>
-            <DialogDescription>Buy USDC on Arc with a card, delivered to your wallet.</DialogDescription>
+            <DialogDescription>Buy USDC with a card, delivered to your wallet.</DialogDescription>
           </DialogHeader>
           {loading && (
             <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Starting secure checkout…
+              <Loader2 className="size-4 animate-spin" /> Preparing checkout…
             </div>
           )}
           {error && (

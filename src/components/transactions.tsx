@@ -28,7 +28,7 @@ export function Transactions() {
     );
   }, [txs, filter, q]);
 
-  if (!connected) return <GuestEmpty description="Connect your wallet to see your transaction history." />;
+  if (!connected) return <GuestEmpty description="Connect your wallet to view your history." />;
 
   const total = shown.reduce((a, t) => a + t.amount, 0);
 
@@ -63,16 +63,16 @@ export function Transactions() {
 
       {backfilling && txs.length > 0 && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="size-3 animate-spin" /> Indexing older wallet history from Arc and saving it…
+          <Loader2 className="size-3 animate-spin" /> Syncing wallet history…
         </p>
       )}
       {(loading || backfilling) && txs.length === 0 ? (
         <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/40 p-6 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Loading your full wallet history from Arc…
+          <Loader2 className="size-4 animate-spin" /> Loading history…
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "Arc history is temporarily unavailable. It will retry shortly." : "This wallet has no CoindeccPay or USDC transactions on Arc Testnet yet."}
+          {txs.length > 0 ? "No transactions match your search." : chain.isError ? "Your history is temporarily unavailable. Please try again shortly." : "No transactions yet."}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -100,7 +100,7 @@ export function Transactions() {
                 {t.transfers && t.transfers.length > 0 && (
                   <div className="space-y-1 pt-1">
                     <p>On-chain split transfers</p>
-                    {t.transfers.map((leg, i) => <p key={`${leg.address}-${i}`} className="break-all">{leg.address} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>)}
+                    {t.transfers.map((leg, i) => { const party = t.splits?.find((s) => s.address.toLowerCase() === leg.address.toLowerCase()); return <p key={`${leg.address}-${i}`} className="break-all">{party?.name || shortAddress(leg.address)} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>; })}
                   </div>
                 )}
                 <a
@@ -120,7 +120,7 @@ export function Transactions() {
 
       {chain.isError && txs.length > 0 && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          Arc explorer is slow right now. Showing saved history.
+          Showing your saved transactions while we reconnect to Arc.
           <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => void chain.refetch()}>Retry</Button>
         </p>
       )}

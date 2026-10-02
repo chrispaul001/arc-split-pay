@@ -112,14 +112,14 @@ export function NotificationsBell() {
           <DialogDescription>{selected?.body}</DialogDescription>
         </DialogHeader>
         {selected && <div className="space-y-3 text-sm">
-          <div><p className="text-xs text-muted-foreground">Settled at</p><p>{new Date(selected.createdAt).toLocaleString(undefined, { dateStyle: "full", timeStyle: "medium" })}</p></div>
+           <div><p className="text-xs text-muted-foreground">{selected.payment ? "Timestamp" : "Received"}</p><p>{new Date(selected.createdAt).toLocaleString(undefined, { dateStyle: "full", timeStyle: "medium" })}</p></div>
           {selected.payment && <>
             <div><p className="text-xs text-muted-foreground">Sender</p><p className="break-all font-mono text-xs">{selected.payment.sender}</p></div>
-            <div><p className="text-xs text-muted-foreground">Amount settled</p><p className="font-semibold tabular-nums">{selected.payment.amount.toLocaleString()} {selected.payment.currency}</p></div>
-            <div><p className="text-xs text-muted-foreground">Transaction hash</p><a className="break-all font-mono text-xs text-primary underline" href={explorerTx(selected.payment.hash)} target="_blank" rel="noopener noreferrer">{selected.payment.hash}</a></div>
-            <div><p className="text-xs text-muted-foreground">Atomic split receipt</p>
-              {selected.payment.splits.length ? <ul className="mt-1 divide-y divide-border">{selected.payment.splits.map((s, i) => <li key={`${s.address}-${i}`} className="py-2"><span className="block break-all font-mono text-xs">{s.address}</span><span className="font-semibold tabular-nums">{s.amount.toLocaleString()} USDC</span></li>)}</ul> : <p className="text-muted-foreground">No recipient transfers found in this transaction.</p>}
-            </div>
+             <div><p className="text-xs text-muted-foreground">Amount</p><p className="font-semibold tabular-nums">{selected.payment.amount.toLocaleString()} {selected.payment.currency}</p></div>
+             <div><p className="text-xs text-muted-foreground">Explorer hash</p><a className="break-all font-mono text-xs text-primary underline" href={explorerTx(selected.payment.hash)} target="_blank" rel="noopener noreferrer">{selected.payment.hash}</a></div>
+             {selected.payment.splits?.length > 0 && <div><p className="text-xs text-muted-foreground">Recipient transfers</p>
+               <ul className="mt-1 divide-y divide-border">{selected.payment.splits.map((s, i) => <li key={`${s.address}-${i}`} className="py-2"><span className="block break-all font-mono text-xs">{s.address}</span><span className="font-semibold tabular-nums">{s.amount.toLocaleString()} USDC</span></li>)}</ul>
+             </div>}
           </>}
         </div>}
       </DialogContent>

@@ -65,7 +65,7 @@ export function Streams() {
 
   if (!connected)
     return (
-      <GuestEmpty description="Connect your wallet to view and manage active payment streams." />
+      <GuestEmpty description="Connect your wallet to manage streams." />
     );
 
   const activeRate = streams.filter((s) => s.running).reduce((a, s) => a + s.ratePerSec, 0);
@@ -271,7 +271,7 @@ export function Streams() {
           <div className="grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-10 text-center">
             <p className="text-sm font-medium">No active streams</p>
             <p className="max-w-sm text-xs break-words text-muted-foreground">
-              Start a stream to settle USDC to a contractor second by second on Arc.
+              Create a stream to start real-time payouts.
             </p>
             <Button size="sm" className="motion-press" onClick={() => setOpen(true)}>
               <Plus className="size-4" /> New stream
@@ -379,7 +379,7 @@ export function Streams() {
       )}
 
       <p className="flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
-        <Radio className="size-3" /> Accrues live · payouts are signed by your wallet on Arc Testnet
+        <Radio className="size-3" /> Accrues live · payouts are signed by your wallet on Arc
       </p>
     </div>
   );

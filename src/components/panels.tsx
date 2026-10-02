@@ -32,7 +32,7 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
   const { data, update, notify } = useMerchantStore();
 
   if (!connected)
-    return <GuestEmpty description="Connect your wallet to view and manage payment links on Arc." />;
+    return <GuestEmpty description="Connect your wallet to manage payment links." />;
 
   const links = data.links;
 
@@ -52,8 +52,8 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
       {links.length === 0 ? (
         <div className="mt-5">
           <EmptyCard
-            title="No payment links created yet"
-            hint="Publish a link from the Split-Router builder and it will appear here for this wallet."
+            title="No payment links yet."
+            hint="Create a link in the Split-Router to see it here."
           />
         </div>
       ) : (
@@ -126,7 +126,7 @@ export function ApiKeys() {
   const { data, update, notify, address } = useMerchantStore();
 
   if (!connected)
-    return <GuestEmpty description="Connect your wallet to generate and manage API keys." />;
+    return <GuestEmpty description="Connect your wallet to manage API keys." />;
 
   const keys = data.apiKeys;
 
@@ -169,8 +169,8 @@ export function ApiKeys() {
       {keys.length === 0 ? (
         <div className="mt-5">
           <EmptyCard
-            title="No API keys generated yet"
-            hint="Generate a key to authenticate server-side calls for this merchant wallet."
+            title="No API keys yet."
+            hint="Generate a key to authenticate server-side requests."
             action={
               <Button size="sm" className="motion-press" onClick={generate}>
                 <KeyRound className="size-4" /> Generate key
@@ -300,7 +300,7 @@ export function SettingsView() {
         <h3 className="text-lg font-semibold">Settings</h3>
         <span className="inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1.5 text-[11px] font-semibold text-mint">
           <span className="pulse-dot size-1.5 rounded-full bg-mint" />
-          Connected to Arc Testnet · Chain ID: 5042002
+          Connected to Arc · Chain ID: 5042002
         </span>
       </div>
       {!connected && (

@@ -105,7 +105,7 @@ export function SplitRouter() {
     setParties((ps) => {
       const base = ps.slice(0, bps.length);
       while (base.length < bps.length) {
-        base.push({ id: nextId++, name: "New recipient", address: "0x0000…0000", bps: 0 });
+        base.push({ id: nextId++, name: "New recipient", address: "", bps: 0 });
       }
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
@@ -154,7 +154,7 @@ export function SplitRouter() {
 
   if (!connected)
     return (
-      <GuestEmpty description="Connect your wallet to build and manage split-router payment links." />
+      <GuestEmpty description="Connect your wallet to create split-router links." />
     );
 
   return (
@@ -354,7 +354,7 @@ export function SplitRouter() {
           onClick={() =>
             setParties((ps) => [
               ...ps,
-              { id: nextId++, name: "New recipient", address: "0x0000…0000", bps: 0 },
+              { id: nextId++, name: "New recipient", address: "", bps: 0 },
             ])
           }
         >
@@ -428,7 +428,7 @@ export function SplitRouter() {
         {mode === "send" ? (
           <>
             <p className="rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
-              Your wallet pays each recipient their share in USDC on Arc Testnet. You'll approve one transfer per recipient.
+              Your wallet pays each recipient their share in USDC on Arc. You'll approve one transfer per recipient.
             </p>
             <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
               <Send className="size-4" /> {sending ? "Sending…" : "Send Now"}

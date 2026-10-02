@@ -71,12 +71,6 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
             <a href="/">Go home</a>
           </Button>
         </div>
-        <details className="mx-auto mt-5 max-w-full text-left text-xs text-muted-foreground">
-          <summary className="cursor-pointer text-center font-medium">Show error details</summary>
-          <p className="mt-2 max-h-24 overflow-auto break-words rounded-md border border-border bg-muted p-3 font-mono">
-            {error instanceof Error ? error.message : "An unknown loading error occurred."}
-          </p>
-        </details>
         <Button className="mt-4" variant="ghost" size="sm" onClick={clearSavedDataAndReload}>
           Clear saved app data &amp; reload
         </Button>

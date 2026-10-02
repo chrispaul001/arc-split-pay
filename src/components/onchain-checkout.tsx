@@ -49,8 +49,8 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
     },
     {
       key: "pay",
-      label: "Execute pay()",
-      description: "Settle the payment on the CoindeccPay contract",
+      label: "Send payment",
+      description: "Confirm your USDC payment on Arc",
       status: pay.status,
       hash: pay.hash,
       error: pay.error,
@@ -69,14 +69,14 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
       try {
         await switchChainAsync({ chainId: arcTestnet.id });
       } catch {
-        toast.error("Switch to Arc Network Testnet to continue");
+        toast.error("Switch to Arc Network to continue");
       }
       return;
     }
 
     const parsed = Number(amount);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      toast.error("Enter a valid amount");
+      toast.error("Please enter a valid amount.");
       return;
     }
 
@@ -129,7 +129,7 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
           });
           setApprove({ status: "pending", hash });
           const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
-          if (receipt.status !== "success") throw new Error("Approval reverted on-chain");
+          if (receipt.status !== "success") throw new Error("Approval failed on-chain.");
           setApprove({ status: "confirmed", hash });
         } catch (e) {
           const msg = errMessage(e);
@@ -151,7 +151,7 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
         });
         setPay({ status: "pending", hash });
         const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
-        if (receipt.status !== "success") throw new Error("Payment reverted on-chain");
+        if (receipt.status !== "success") throw new Error("Payment failed on-chain.");
         setPay({ status: "confirmed", hash });
         recordPayment({ hash, sender: address, amount: parsed });
         setDone(true);
@@ -244,5 +244,8 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
 
 function errMessage(e: unknown) {
   const err = e as { shortMessage?: string; message?: string };
-  return err?.shortMessage ?? err?.message ?? "Unknown error";
+  const message = err?.shortMessage ?? err?.message ?? "";
+  if (/rejected|denied|cancelled/i.test(message)) return "The request was cancelled in your wallet.";
+  if (/insufficient funds/i.test(message)) return "Your wallet doesn't have enough funds for this payment.";
+  return "The payment couldn't be completed. Please try again.";
 }
