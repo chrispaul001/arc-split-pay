@@ -38,6 +38,27 @@ export type Database = {
         }
         Relationships: []
       }
+      push_tokens: {
+        Row: {
+          address: string
+          created_at: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wallet_transactions: {
         Row: {
           address: string
