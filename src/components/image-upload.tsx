@@ -53,18 +53,19 @@ export function ImageUpload({
             round ? "rounded-full" : "rounded-2xl"
           }`}
         >
-          <span className="absolute inset-0 grid place-items-center" aria-hidden="true">
-            <ImagePlus
-              width={20}
-              height={20}
-              strokeWidth={1.75}
-              vectorEffect="non-scaling-stroke"
-              className="block size-5 shrink-0 text-muted-foreground"
-            />
-          </span>
           {value ? (
             <img key={value} src={value} alt={`${label} preview`} className="absolute inset-0 block size-full object-cover animate-in fade-in duration-200 motion-reduce:animate-none" />
-          ) : null}
+          ) : (
+            <span className="absolute inset-0 grid place-items-center" aria-hidden="true">
+              <ImagePlus
+                width={20}
+                height={20}
+                strokeWidth={1.75}
+                vectorEffect="non-scaling-stroke"
+                className="block size-5 shrink-0 text-muted-foreground"
+              />
+            </span>
+          )}
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
