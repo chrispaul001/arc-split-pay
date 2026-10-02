@@ -8,22 +8,56 @@ const TRANSFER = parseAbiItem("event Transfer(address indexed from, address inde
 const WINDOW = 9_500n;
 const CHUNKS = 10;
 
+const scanKey = (a: string) => `coindecc:scan:${a.toLowerCase()}`;
+/** Highest block already fully indexed for this wallet (everything below is saved). */
+export function readSyncedTo(a: string): bigint | null {
+  try { const v = localStorage.getItem(scanKey(a)); return v ? BigInt(v) : null; } catch { return null; }
+}
+export function writeSyncedTo(a: string, block: bigint) {
+  try { localStorage.setItem(scanKey(a), block.toString()); } catch { /* ignore */ }
+}
+
+let deployBlock: Promise<bigint> | null = null;
+/** First block where the CoindeccPay contract exists: the floor for history scans. */
+function findDeployBlock(client: NonNullable<ReturnType<typeof usePublicClient>>, latest: bigint) {
+  if (!deployBlock) {
+    deployBlock = (async () => {
+      const cached = typeof window !== "undefined" ? localStorage.getItem("coindecc:deploy-block") : null;
+      if (cached) return BigInt(cached);
+      let lo = 0n, hi = latest;
+      while (lo < hi) {
+        const mid = (lo + hi) / 2n;
+        const code = await client.getCode({ address: COINDECC_PAY_ADDRESS, blockNumber: mid }).catch(() => undefined);
+        if (code && code !== "0x") hi = mid; else lo = mid + 1n;
+      }
+      localStorage.setItem("coindecc:deploy-block", lo.toString());
+      return lo;
+    })().catch((e) => { deployBlock = null; throw e; });
+  }
+  return deployBlock;
+}
+
 /** Wallet transfers AND contract pay()/split transfers, paged back through Arc logs. */
 export function useOnchainTxs(address?: `0x${string}`) {
   const client = usePublicClient({ chainId: arcTestnet.id });
   return useInfiniteQuery({
     queryKey: ["coindecc-onchain-txs", address?.toLowerCase()],
     enabled: Boolean(client && address),
-    refetchInterval: 30_000,
+    // Pause polling while backfilling so older pages are not re-scanned repeatedly.
+    refetchInterval: (q: { state: { data?: { pages: { next: bigint | undefined }[] } | undefined } }) => (q.state.data?.pages.at(-1)?.next !== undefined ? false : 30_000),
     initialPageParam: null as bigint | null,
-    queryFn: async ({ pageParam }): Promise<{ records: TxRecord[]; next: bigint | undefined }> => {
-      if (!client || !address) return { records: [], next: undefined };
-      const latest = pageParam ?? await client.getBlockNumber();
+    queryFn: async ({ pageParam }): Promise<{ records: TxRecord[]; next: bigint | undefined; head: bigint }> => {
+      if (!client || !address) return { records: [], next: undefined, head: 0n };
+      const head = await client.getBlockNumber();
+      const latest = pageParam ?? head;
+      // Scan down to the last fully indexed block (or the contract's deployment on first sync).
+      const synced = readSyncedTo(address);
+      const floor = synced !== null ? synced + 1n : await findDeployBlock(client, head);
       const logs: Awaited<ReturnType<typeof client.getLogs<typeof TRANSFER>>> = [];
       let to = latest;
       let scanned = 0;
-      for (let i = 0; i < CHUNKS && to >= 0n; i++) {
-        const from = to > WINDOW ? to - WINDOW : 0n;
+      for (let i = 0; i < CHUNKS && to >= floor; i++) {
+        const from = to - floor > WINDOW ? to - WINDOW : floor;
         const [sent, recv, contractOut, contractIn] = await Promise.all([
             client.getLogs({ address: USDC_ADDRESS, event: TRANSFER, args: { from: address }, fromBlock: from, toBlock: to }),
             client.getLogs({ address: USDC_ADDRESS, event: TRANSFER, args: { to: address }, fromBlock: from, toBlock: to }),
@@ -32,7 +66,7 @@ export function useOnchainTxs(address?: `0x${string}`) {
         ]);
         logs.push(...sent, ...recv, ...contractOut, ...contractIn);
         scanned++;
-        if (from === 0n) { to = -1n; break; }
+        if (from === floor) { to = floor - 1n; break; }
         to = from - 1n;
       }
       const blocks = [...new Set(logs.map((l) => l.blockNumber).filter((b): b is bigint => b !== null))];
@@ -68,7 +102,7 @@ export function useOnchainTxs(address?: `0x${string}`) {
           transfers: splitLegs.map((l) => ({ address: l.args.to ?? "", amount: Number(formatUnits(l.args.value ?? 0n, 6)) })),
         };
       });
-      return { records: records.sort((a, b) => b.timestamp - a.timestamp), next: scanned === CHUNKS && to >= 0n ? to : undefined };
+      return { records: records.sort((a, b) => b.timestamp - a.timestamp), next: scanned === CHUNKS && to >= floor ? to : undefined, head };
     },
     getNextPageParam: (page) => page.next,
   });

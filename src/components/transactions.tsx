@@ -15,7 +15,7 @@ const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
 export function Transactions() {
   const connected = useWalletGate();
   const { address } = useAccount();
-  const { txs, chain, loading } = useTxHistory(address);
+  const { txs, chain, loading, backfilling } = useTxHistory(address);
   const [filter, setFilter] = useState<"all" | TxKind>("all");
   const [q, setQ] = useState("");
 
@@ -61,13 +61,18 @@ export function Transactions() {
         ))}
       </div>
 
-      {loading && txs.length === 0 ? (
+      {backfilling && txs.length > 0 && (
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="size-3 animate-spin" /> Indexing older wallet history from Arc and saving it…
+        </p>
+      )}
+      {(loading || backfilling) && txs.length === 0 ? (
         <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/40 p-6 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Loading on-chain history from Arc…
+          <Loader2 className="size-4 animate-spin" /> Loading your full wallet history from Arc…
         </p>
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
-          {chain.isError ? "Could not load Arc history. Try again shortly." : "No transactions recorded for this wallet yet."}
+          {chain.isError ? "Could not load Arc history. Try again shortly." : "This wallet has no CoindeccPay or USDC transactions on Arc Testnet yet."}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -112,10 +117,8 @@ export function Transactions() {
           ))}
         </ul>
       )}
-      {chain.hasNextPage && <Button variant="secondary" className="w-full" disabled={chain.isFetchingNextPage} onClick={() => void chain.fetchNextPage()}>
-        {chain.isFetchingNextPage ? <><Loader2 className="size-4 animate-spin" /> Loading older activity…</> : "Load older activity"}
-      </Button>}
-      {chain.isError && txs.length > 0 && <p className="text-xs text-destructive">Older activity could not be loaded. Please try again.</p>}
+
+      {chain.isError && txs.length > 0 && <p className="text-xs text-destructive">Some older activity could not be loaded yet. It will retry automatically.</p>}
     </div>
   );
 }

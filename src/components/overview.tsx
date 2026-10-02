@@ -191,29 +191,32 @@ export function Overview() {
                     : `${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`}
                 </span>
               </div>
-              {t && t.events.length > 0 ? (
-                t.events.slice(0, 6).map((e) => (
-                  <a
-                    key={e.hash + e.from}
-                    href={explorerTx(e.hash)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-colors hover:bg-secondary/80"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">pay() from {shortAddress(e.from)}</p>
-                      <p className="truncate font-mono text-[11px] text-muted-foreground">
-                        {shortAddress(e.hash)} · {timeAgo(e.timestamp)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold text-mint tabular-nums">
-                      +{e.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                    </span>
-                  </a>
-                ))
+              {history.txs.length > 0 ? (
+                history.txs.slice(0, 6).map((e) => {
+                  const incoming = e.from.toLowerCase() !== address?.toLowerCase();
+                  return (
+                    <a
+                      key={e.hash}
+                      href={explorerTx(e.hash)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-secondary/50 px-3 py-2.5 transition-colors hover:bg-secondary/80"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{e.label || (incoming ? `From ${shortAddress(e.from)}` : "Payment sent")}</p>
+                        <p className="truncate font-mono text-[11px] text-muted-foreground">
+                          {shortAddress(e.hash)} · {timeAgo(e.timestamp)}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 text-sm font-semibold tabular-nums ${incoming ? "text-mint" : ""}`}>
+                        {incoming ? "+" : "−"}{e.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </span>
+                    </a>
+                  );
+                })
               ) : (
                 <p className="rounded-2xl border border-dashed border-border px-3 py-2.5 text-xs break-words text-muted-foreground">
-                  {tele.isLoading ? "Reading contract events from Arc…" : "No pay() events found on the CoindeccPay contract yet."}
+                  {history.loading || history.backfilling ? "Loading this wallet's history from Arc…" : "No transactions found for this wallet on Arc Testnet yet."}
                 </p>
               )}
             </div>
