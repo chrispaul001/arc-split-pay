@@ -49,7 +49,7 @@ export function Overview() {
       label: "Contract Volume (USDC)",
       value: t ? fmt(volumePoints[volumePoints.length - 1]?.value ?? 0) : tele.isLoading ? "…" : "—",
       zero: "$0.00",
-      delta: t ? `${t.payers} payers on-chain` : "Syncing Arc logs",
+      delta: t ? `${t.payers} payers on-chain` : "Updating activity",
       icon: Zap,
       hasValue: Boolean(t && (volumePoints[volumePoints.length - 1]?.value ?? 0) > 0),
       trend: volumePoints, format: fmt,

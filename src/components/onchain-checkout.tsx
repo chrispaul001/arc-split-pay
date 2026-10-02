@@ -49,8 +49,8 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
     },
     {
       key: "pay",
-      label: "Execute pay()",
-      description: "Settle the payment on the CoindeccPay contract",
+      label: "Send payment",
+      description: "Confirm your USDC payment on Arc",
       status: pay.status,
       hash: pay.hash,
       error: pay.error,
@@ -244,5 +244,8 @@ export function OnchainCheckout({ fixedAmount }: { fixedAmount?: number | undefi
 
 function errMessage(e: unknown) {
   const err = e as { shortMessage?: string; message?: string };
-  return err?.shortMessage ?? err?.message ?? "Unknown error";
+  const message = err?.shortMessage ?? err?.message ?? "";
+  if (/rejected|denied|cancelled/i.test(message)) return "The request was cancelled in your wallet.";
+  if (/insufficient funds/i.test(message)) return "Your wallet doesn't have enough funds for this payment.";
+  return "The payment couldn't be completed. Please try again.";
 }
