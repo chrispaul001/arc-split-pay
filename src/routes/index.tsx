@@ -8,7 +8,7 @@ const DashboardApp = lazy(() => import("@/components/dashboard-app"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
+      { title: "CoindeccPay" },
       {
         name: "description",
         content:

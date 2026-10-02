@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
+      { title: "CoindeccPay" },
       {
         name: "description",
         content:
@@ -109,6 +109,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.json" },
+      { name: "theme-color", content: "#174B8B" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
