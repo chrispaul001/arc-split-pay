@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
-import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
-import { registerPushToken } from "@/lib/push.functions";
+import { deleteToken, getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
+import { registerPushToken, removePushToken } from "@/lib/push.functions";
 
 const appId = import.meta.env["VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_APP_ID"] as string | undefined;
 const vapidKey = import.meta.env["VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_VAPID_KEY"] as string | undefined;
@@ -37,14 +37,34 @@ export async function enablePush(address: string): Promise<PushResult> {
     await registerPushToken({ data: { token: session, pushToken: token } });
     // Foreground tabs already show in-app toasts; swallow duplicate foreground pushes.
     onMessage(messaging, () => {});
-    localStorage.setItem(`coindecc:push:${address.toLowerCase()}`, "1");
+    localStorage.setItem(`coindecc:push:${address.toLowerCase()}`, token);
     return { status: "registered" };
   } catch {
     return { status: "failed" };
   }
 }
 
-export const pushEnabled = (address: string) => localStorage.getItem(`coindecc:push:${address.toLowerCase()}`) === "1";
+export const pushEnabled = (address: string) => localStorage.getItem(`coindecc:push:${address.toLowerCase()}`) !== null;
+
+/** Turns alerts off for this device: removes the saved token and unsubscribes. */
+export async function disablePush(address: string) {
+  const key = `coindecc:push:${address.toLowerCase()}`;
+  const pushToken = localStorage.getItem(key);
+  localStorage.removeItem(key);
+  const session = sessionFor(address);
+  try {
+    if (pushToken && pushToken.length >= 20 && session) await removePushToken({ data: { token: session, pushToken } });
+    const app = getApps()[0];
+    if (app) await deleteToken(getMessaging(app));
+  } catch { /* already removed */ }
+}
+
+export type PushState = "active" | "blocked" | "off" | "unsupported";
+export function pushState(address: string): PushState {
+  if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return "unsupported";
+  if (Notification.permission === "denied") return "blocked";
+  return pushEnabled(address) && Notification.permission === "granted" ? "active" : "off";
+}
 
 export const PUSH_COPY: Record<Exclude<PushResult["status"], "registered">, string> = {
   "not-configured": "Push alerts aren't available yet. Please try again later.",

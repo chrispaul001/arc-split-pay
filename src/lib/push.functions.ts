@@ -79,3 +79,12 @@ export const sendTxPush = createServerFn({ method: "POST" })
     }
     return { sent };
   });
+
+export const removePushToken = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ token: Session, pushToken: z.string().min(20).max(4096) }).parse(d))
+  .handler(async ({ data }) => {
+    const address = await verifyToken(data.token);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("push_tokens").delete().eq("token", data.pushToken).eq("address", address);
+    return { ok: true };
+  });
