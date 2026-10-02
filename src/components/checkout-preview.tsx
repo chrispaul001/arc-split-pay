@@ -146,7 +146,7 @@ export function CheckoutPreview() {
             <div className="mt-4 space-y-2 text-sm">
               {[
                 ["Order", "—"],
-                ["Network", "Arc Mainnet"],
+                ["Network", "Arc"],
                 ["Gas paid in", "USDC (zero-gas for buyer)"],
                 ["Settlement currency", `${c.code} → USDC`],
                 ["Split parties", String(SPLIT.length)],
