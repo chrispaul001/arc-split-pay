@@ -36,6 +36,7 @@ function toPerSecond(mode: PricingMode, amount: string, durationHours: string) {
 export function Streams() {
   const connected = useWalletGate();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  useFxRates();
   const { data, ready, update, notify } = useMerchantStore();
   const { settle, busyId } = useStreamSettle();
   const [open, setOpen] = useState(false);
