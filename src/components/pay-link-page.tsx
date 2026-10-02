@@ -10,9 +10,13 @@ const CODES: CurrencyCode[] = ["USD", "NGN", "GHS", "KES", "ZAR"];
 export function parsePaySearch(s: Record<string, unknown>) {
   const amt = Number(s['amt']);
   const cur = String(s['cur'] ?? "USD").toUpperCase() as CurrencyCode;
+  const lnk = typeof s['lnk'] === "string" ? s['lnk'] : undefined;
+  const m = typeof s['m'] === "string" ? s['m'] : undefined;
   return {
     amt: Number.isFinite(amt) && amt > 0 ? amt : 0,
     cur: CODES.includes(cur) ? cur : ("USD" as CurrencyCode),
+    ...(lnk ? { lnk } : {}),
+    ...(m ? { m } : {}),
   };
 }
 
