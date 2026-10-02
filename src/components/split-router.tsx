@@ -105,7 +105,7 @@ export function SplitRouter() {
     setParties((ps) => {
       const base = ps.slice(0, bps.length);
       while (base.length < bps.length) {
-        base.push({ id: nextId++, name: "New recipient", address: "0x0000…0000", bps: 0 });
+        base.push({ id: nextId++, name: "New recipient", address: "", bps: 0 });
       }
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
@@ -354,7 +354,7 @@ export function SplitRouter() {
           onClick={() =>
             setParties((ps) => [
               ...ps,
-              { id: nextId++, name: "New recipient", address: "0x0000…0000", bps: 0 },
+              { id: nextId++, name: "New recipient", address: "", bps: 0 },
             ])
           }
         >

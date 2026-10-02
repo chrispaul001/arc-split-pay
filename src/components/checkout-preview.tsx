@@ -161,7 +161,7 @@ export function CheckoutPreview() {
             <div className="animate-rise mt-4 space-y-3">
               <div className="flex flex-wrap gap-2">
                 <span className="pulse-emerald inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
-                  <Check className="size-3.5" /> Final in 0.62s
+                  <Check className="size-3.5" /> Final in <1s
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">
                   <Fuel className="size-3.5" /> Buyer paid 0 gas
@@ -229,7 +229,7 @@ export function CheckoutPreview() {
             )}
             {state === "paying" && (
               <>
-                <Loader2 className="size-4 animate-spin" /> Settling on Arc…
+                <Loader2 className="size-4 animate-spin" /> Settling on network…
               </>
             )}
             {state === "done" && (
