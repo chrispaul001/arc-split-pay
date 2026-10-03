@@ -66,8 +66,14 @@ export const sendTxPush = createServerFn({ method: "POST" })
         body: JSON.stringify({
           message: {
             token,
+            // `notification` lets iOS home-screen apps show the alert natively while backgrounded.
+            notification: { title, body },
             data: { title, body, hash: data.hash, amount: String(amount), sender, explorer, url: explorer },
-            webpush: { headers: { Urgency: "high" }, fcm_options: { link: explorer } },
+            webpush: {
+              headers: { Urgency: "high", TTL: "86400" },
+              notification: { title, body, icon: `${data.origin}/icon-192.png`, badge: `${data.origin}/icon-192.png`, tag: data.hash },
+              fcm_options: { link: explorer },
+            },
           },
         }),
       });
