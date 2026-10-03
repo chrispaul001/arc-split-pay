@@ -543,6 +543,7 @@ const FALLBACK: StoreCtx = {
   data: EMPTY_DATA(),
   update: () => {},
   notify: () => {},
+  ensureSession: async () => null,
 };
 
 export function useMerchantStore() {
