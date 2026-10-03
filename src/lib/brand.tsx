@@ -64,20 +64,12 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   const [brand, setBrand] = useState<Brand>(EMPTY);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(KEY);
-      if (raw) setBrand(normalizeBrand(JSON.parse(raw)));
-    } catch {
-      /* ignore corrupt storage */
-    }
+    // Brand is wallet-scoped and loaded from the backend; remove the legacy browser copy.
+    try { window.localStorage.removeItem(KEY); } catch { /* ignore */ }
   }, []);
 
   const persist = useCallback((next: Brand) => {
-    try {
-      window.localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {
-      /* quota exceeded — keep in-memory only */
-    }
+    // in-memory only; the merchant store syncs brand edits to the wallet record
     return next;
   }, []);
 
