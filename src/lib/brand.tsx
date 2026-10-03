@@ -69,11 +69,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const persist = useCallback((next: Brand) => {
-    try {
-      window.localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {
-      /* quota exceeded — keep in-memory only */
-    }
+    // in-memory only; the merchant store syncs brand edits to the wallet record
     return next;
   }, []);
 

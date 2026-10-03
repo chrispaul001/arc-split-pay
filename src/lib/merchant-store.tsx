@@ -258,6 +258,11 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     if (!isConnected || !address) {
       dataRef.current = null;
       setData(null);
+      // no wallet → no profile; never show a previous wallet's brand
+      const b = brandRef.current;
+      b.setImage("avatar", null);
+      b.setImage("logo", null);
+      b.setProfile({ businessName: "My Business", settlementWallet: "" });
       return;
     }
     let cancelled = false;
