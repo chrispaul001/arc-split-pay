@@ -71,6 +71,6 @@ export const PUSH_COPY: Record<Exclude<PushResult["status"], "registered">, stri
   unsupported: "This browser doesn't support push alerts.",
   "open-in-new-tab": "Open CoindeccPay in its own tab to turn on push alerts.",
   denied: "Notifications are blocked. Allow them in your browser's site settings.",
-  "no-session": "Sign the wallet message first, then try again.",
+  "no-session": "Approve the sign-in message in your wallet to turn on alerts.",
   failed: "Couldn't turn on push alerts. Please try again.",
 };

@@ -217,7 +217,7 @@ const ETH_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 export function SettingsView() {
   const connected = useWalletGate();
   const { businessName, settlementWallet, setProfile } = useBrand();
-  const { data, ready, update, address } = useMerchantStore();
+  const { data, ready, update, address, ensureSession } = useMerchantStore();
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
   const [webhook, setWebhook] = useState("");
@@ -253,8 +253,9 @@ export function SettingsView() {
     setWalletError(t && !ETH_ADDRESS_RE.test(t) ? "Enter a valid 0x address (42 characters)." : "");
   };
 
-  const save = () => {
+  const save = async () => {
     if (!canSave()) return;
+    if (!(await ensureSession())) return;
     const trimmed = name.trim();
     if (!trimmed) {
       toast.error("Business name can't be empty");

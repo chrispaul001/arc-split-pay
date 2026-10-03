@@ -212,6 +212,8 @@ type StoreCtx = {
   data: MerchantData;
   update: (patch: (prev: MerchantData) => MerchantData) => void;
   notify: (n: Omit<MerchantNotification, "id" | "createdAt" | "read">) => void;
+  /** Returns the wallet session token, prompting the wallet to sign if none exists. */
+  ensureSession: () => Promise<string | null>;
 };
 
 const MerchantContext = createContext<StoreCtx | null>(null);
@@ -230,6 +232,7 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
   const brand = useBrand();
   const [data, setData] = useState<MerchantData | null>(null);
   const [synced, setSynced] = useState(false);
+  const [sessionNonce, setSessionNonce] = useState(0);
   const tokenRef = useRef<string | null>(null);
   const dataRef = useRef<MerchantData | null>(null);
   const brandRef = useRef(brand);
@@ -324,7 +327,7 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [address, isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [address, isConnected, sessionNonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // brand edits (avatar, logo, name) also sync to the wallet record
   useEffect(() => {
@@ -498,6 +501,23 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const ensureSession = useCallback(async (): Promise<string | null> => {
+    if (!isConnected || !address) return null;
+    const existing = window.localStorage.getItem(tokenKey(address));
+    if (existing) return existing;
+    try {
+      const issuedAt = Date.now();
+      const signature = await signMessageAsync({ message: signInMessage(address, issuedAt) });
+      const token = (await signIn({ data: { address, issuedAt, signature } })).token;
+      window.localStorage.setItem(tokenKey(address), token);
+      setSessionNonce((n) => n + 1); // re-run the profile sync with the new session
+      return token;
+    } catch {
+      toast.error("Wallet signature needed", { description: "Approve the sign-in message in your wallet to continue." });
+      return null;
+    }
+  }, [address, isConnected, signMessageAsync, signIn]);
+
   const value = useMemo<StoreCtx>(
     () => ({
       address: address ?? null,
@@ -507,8 +527,9 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       data: data ?? EMPTY_DATA(),
       update,
       notify,
+      ensureSession,
     }),
-    [address, isConnected, data, synced, update, notify],
+    [address, isConnected, data, synced, update, notify, ensureSession],
   );
 
   return <MerchantContext.Provider value={value}>{children}</MerchantContext.Provider>;

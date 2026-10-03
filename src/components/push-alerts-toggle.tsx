@@ -3,6 +3,7 @@ import { BellRing, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { disablePush, enablePush, pushState, PUSH_COPY, type PushState } from "@/lib/push";
+import { useMerchantStore } from "@/lib/merchant-store";
 
 const BADGE: Record<PushState, { label: string; cls: string; hint: string }> = {
   active: { label: "Notifications Active", cls: "border-mint/30 bg-mint/10 text-mint", hint: "This device gets an alert the moment USDC reaches your wallet." },
@@ -12,6 +13,7 @@ const BADGE: Record<PushState, { label: string; cls: string; hint: string }> = {
 };
 
 export function PushAlertsToggle({ address }: { address: string | null | undefined }) {
+  const { ensureSession } = useMerchantStore();
   const [state, setState] = useState<PushState>("off");
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (address) setState(pushState(address)); }, [address]);
@@ -21,6 +23,8 @@ export function PushAlertsToggle({ address }: { address: string | null | undefin
     setBusy(true);
     try {
       if (on) {
+        // Prompt the wallet signature first if needed, then continue straight into push setup.
+        if (!(await ensureSession())) return;
         const r = await enablePush(address);
         if (r.status === "registered") toast.success("Live payment alerts on", { description: "You'll be alerted on this device when USDC arrives." });
         else toast.error(PUSH_COPY[r.status]);
