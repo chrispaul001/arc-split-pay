@@ -183,22 +183,14 @@ function normalizeMerchantData(value: unknown): MerchantData {
   };
 }
 
+/** Profile data lives only in the backend; drop any legacy browser copy. */
 function read(address: string): MerchantData {
-  try {
-    const raw = window.localStorage.getItem(keyFor(address));
-    if (raw) return normalizeMerchantData(JSON.parse(raw));
-  } catch {
-    /* ignore corrupt storage */
-  }
+  try { window.localStorage.removeItem(keyFor(address)); } catch { /* ignore */ }
   return EMPTY_DATA();
 }
 
-function write(address: string, data: MerchantData) {
-  try {
-    window.localStorage.setItem(keyFor(address), JSON.stringify(data));
-  } catch {
-    /* quota exceeded — in-memory only */
-  }
+function write(_address: string, _data: MerchantData) {
+  /* intentionally no browser persistence — the wallet record is the source of truth */
 }
 
 export const randomId = () =>
@@ -269,9 +261,9 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       return;
     }
     let cancelled = false;
-    const cached = read(address);
-    dataRef.current = cached;
-    setData(cached);
+    read(address); // clears legacy cached copy
+    dataRef.current = null;
+    setData(null); // not ready until the wallet record loads
 
     (async () => {
       try {
@@ -318,10 +310,13 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
         }
         setSynced(true);
       } catch {
-        if (!cancelled)
-          toast("Using this device's copy", {
-            description: "Sign the wallet message to sync your profile across browsers.",
-          });
+        if (cancelled) return;
+        const blank = EMPTY_DATA();
+        dataRef.current = blank;
+        setData(blank);
+        toast("Sign in to load your profile", {
+          description: "Approve the wallet message to load your saved profile on this device.",
+        });
       }
     })();
     return () => {
