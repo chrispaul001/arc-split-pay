@@ -15,10 +15,11 @@ import {
   ERC20_ABI,
   USDC_ADDRESS,
   arcTestnet,
+  explorerTx,
   shortAddress,
 } from "@/lib/web3";
 import { toast } from "sonner";
-import { Check, Loader2, ShieldCheck, Wallet } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Receipt, ShieldCheck, Wallet } from "lucide-react";
 import { recordPayment } from "@/lib/payment-events";
 import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 
@@ -213,33 +214,72 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
             </p>
           </div>
 
-          <Button
-            className="w-full transition-transform active:scale-[0.98]"
-            size="lg"
-            disabled={busy}
-            onClick={() => void payNow()}
-          >
-            {busy ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                {approve.status === "wallet" || approve.status === "pending"
-                  ? "Approving USDC…"
-                  : "Confirming payment…"}
-              </>
-            ) : done ? (
-              <>
-                <Check className="size-4" /> Paid
-              </>
-            ) : (
-              <>
-                <Wallet className="size-4" /> {wrongNetwork ? "Switch network" : "Pay Now"}
-              </>
-            )}
-          </Button>
+          {done && pay.hash ? (
+            <div className="animate-rise space-y-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-3 rounded-xl border border-mint/30 bg-mint/10 p-3 text-mint">
+                <CheckCircle2 className="size-6 shrink-0" />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold">Payment Successful</h4>
+                  <p className="text-xs opacity-90">Funds have been routed and split on Arc Network.</p>
+                </div>
+              </div>
+              <div className="space-y-2 border-t border-border/50 pt-1 text-xs text-muted-foreground">
+                <div className="flex justify-between gap-3 py-1">
+                  <span>Amount Settled</span>
+                  <span className="font-medium tabular-nums text-foreground">
+                    {Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} USDC
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3 py-1">
+                  <span>Network</span>
+                  <span className="font-medium text-foreground">Arc Network Testnet</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-1">
+                  <span>Transaction Hash</span>
+                  <a
+                    href={explorerTx(pay.hash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 font-mono text-primary hover:underline"
+                  >
+                    {pay.hash.slice(0, 6)}…{pay.hash.slice(-4)}
+                    <ExternalLink className="size-3" />
+                  </a>
+                </div>
+              </div>
+              {!fixedAmount && (
+                <Button variant="secondary" className="w-full" onClick={reset}>
+                  <Receipt className="size-4" /> Make Another Payment
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <Button
+                className="w-full transition-transform active:scale-[0.98]"
+                size="lg"
+                disabled={busy}
+                onClick={() => void payNow()}
+              >
+                {busy ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    {approve.status === "wallet" || approve.status === "pending"
+                      ? "Approving USDC…"
+                      : "Confirming payment…"}
+                  </>
+                ) : (
+                  <>
+                    <Wallet className="size-4" /> {wrongNetwork ? "Switch network" : `Pay ${amount || "0"} USDC`}
+                  </>
+                )}
+              </Button>
 
-          {address && <OnrampCheckoutModal destinationAddress={address} amount={amount} />}
+              {address && <OnrampCheckoutModal destinationAddress={address} amount={amount} />}
 
-          {showProgress && <TxProgress steps={steps} />}
+              {showProgress && <TxProgress steps={steps} />}
+            </>
+          )}
         </div>
       )}
     </div>
