@@ -14,7 +14,6 @@ import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
 import { useSplitSend } from "@/lib/use-split-send";
 import { errMessage } from "@/lib/use-pay";
-import { isAddress } from "viem";
 import { showLinkPublished } from "@/components/link-share";
 import { Send } from "lucide-react";
 
