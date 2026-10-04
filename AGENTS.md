@@ -22,3 +22,4 @@
 - Security checks live in tests/ (vitest, `bun run test`); endpoint tests hit TEST_BASE_URL (default dev server). Why: auth gates must be re-verified on every change.
 - Payment link status is enforced by public `getLinkStatus` (status only, fails closed); links carry `lnk` + `m` params and checkout re-checks before payNow. Why: paused links must not take payments.
 - Push alerts (FCM) are tied to wallet sessions in push_tokens; the server re-reads each transfer from Arc before sending. Why: alerts can't be forged.
+- Direct Send uses the merchant-deployed split router (`SPLIT_ROUTER_ADDRESS`, `splitToken(token, amount, (recipient,bps)[])`) via `useSplitSend`: one signature per split, one-time USDC approval. Why: atomic payouts without per-recipient prompts, still non-custodial.
