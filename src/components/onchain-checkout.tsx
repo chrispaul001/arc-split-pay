@@ -19,7 +19,7 @@ import {
   shortAddress,
 } from "@/lib/web3";
 import { toast } from "sonner";
-import { CheckCircle2, ExternalLink, Loader2, Receipt, ShieldCheck, Wallet } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, RotateCcw, ShieldCheck, Wallet } from "lucide-react";
 import { recordPayment } from "@/lib/payment-events";
 import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 
@@ -220,7 +220,7 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
                 <CheckCircle2 className="size-6 shrink-0" />
                 <div className="min-w-0">
                   <h4 className="text-sm font-semibold">Payment Successful</h4>
-                  <p className="text-xs opacity-90">Funds have been routed and split on Arc Network.</p>
+                  <p className="text-xs opacity-90">Funds successfully split and routed on Arc Network.</p>
                 </div>
               </div>
               <div className="space-y-2 border-t border-border/50 pt-1 text-xs text-muted-foreground">
@@ -249,7 +249,7 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
               </div>
               {!fixedAmount && (
                 <Button variant="secondary" className="w-full" onClick={reset}>
-                  <Receipt className="size-4" /> Make Another Payment
+                  <RotateCcw className="size-4" /> Make Another Payment
                 </Button>
               )}
             </div>
