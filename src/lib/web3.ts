@@ -120,3 +120,28 @@ export const COINDECC_PAY_ABI = [
 export const shortAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export const explorerTx = (hash: string) => `${ARC_TESTNET.blockExplorerUrls[0]}/tx/${hash}`;
+
+/** Merchant-deployed split router: pulls `total` USDC once and pays every recipient by bps, atomically. */
+export const SPLIT_ROUTER_ADDRESS = "0x0823872c2b78229091a834FBC0b6E6152DbB9fE5" as const;
+
+// splitToken(address token, uint256 total, (address recipient, uint256 bps)[] shares) — shares must sum to 10000.
+export const SPLIT_ROUTER_ABI = [
+  {
+    type: "function",
+    name: "splitToken",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "amount", type: "uint256" },
+      {
+        name: "shares",
+        type: "tuple[]",
+        components: [
+          { name: "recipient", type: "address" },
+          { name: "bps", type: "uint256" },
+        ],
+      },
+    ],
+    outputs: [],
+  },
+] as const;
