@@ -12,7 +12,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
-import { useStreamSettle } from "@/lib/use-stream-settle";
+import { useSplitSend } from "@/lib/use-split-send";
 import { errMessage } from "@/lib/use-pay";
 import { isAddress } from "viem";
 import { showLinkPublished } from "@/components/link-share";
@@ -36,10 +36,10 @@ export function SplitRouter() {
   const connected = useWalletGate();
   const { product, setImage } = useBrand();
   const { address, update: saveMerchant, notify } = useMerchantStore();
-  const { settle } = useStreamSettle();
+  const { send: splitSend, phase } = useSplitSend();
+  const sending = phase !== "idle";
 
   const [mode, setMode] = useState<"link" | "send">("link");
-  const [sending, setSending] = useState(false);
   const [total, setTotal] = useState("");
   const [reference, setReference] = useState("");
   const [linkName, setLinkName] = useState("");
@@ -114,44 +114,25 @@ export function SplitRouter() {
     });
 
   const sendNow = async (): Promise<void> => {
-    const bad = parties.find((p) => p.bps > 0 && !isAddress(p.address));
-    if (bad) {
-      toast.error(`Invalid wallet address for ${bad.name || "a recipient"}`);
-      return;
-    }
-    setSending(true);
-    const hashes: string[] = [];
+    const id = toast.loading("Processing Split...", { description: "Confirm the transaction in your wallet." });
     try {
-      for (const p of parties) {
-        const share = (amount * p.bps) / 10000;
-        if (share <= 0) continue;
-        if (address && p.address.toLowerCase() === address.toLowerCase()) continue;
-        const id = toast.loading(`Approve ${share.toFixed(2)} USDC to ${p.name || p.address.slice(0, 8)}…`);
-        try {
-          hashes.push(
-            await settle(`split-${p.id}`, p.address, share, {
-              kind: "split",
-              label: `Split · ${p.name || "recipient"}${reference ? ` · ${reference}` : ""}`,
-              splits: parties.map(({ name, address, bps }) => ({ name, address, bps })),
-            }),
-          );
-          toast.success(`Sent to ${p.name || "recipient"}`, { id });
-        } catch (e) {
-          toast.error(errMessage(e), { id });
-          throw e;
-        }
-      }
+      const hash = await splitSend(
+        amount,
+        parties.map(({ name, address, bps }) => ({ name, address, bps })),
+        `Split${reference ? ` · ${reference}` : ""}`,
+      );
+      const n = parties.filter((p) => p.bps > 0).length;
+      toast.success("Split complete", { id, description: `${amount} USDC sent to ${n} recipient${n === 1 ? "" : "s"} in one transaction.` });
       notify({
         kind: "split",
         title: "Split sent on-chain",
-        body: `${amount} USDC routed to ${hashes.length} recipient${hashes.length === 1 ? "" : "s"}.`,
+        body: `${amount} USDC routed to ${n} recipient${n === 1 ? "" : "s"} · ${hash.slice(0, 10)}…`,
       });
       setTotal("");
       setReference("");
-    } catch {
-      if (hashes.length) toast.warning(`${hashes.length} payout(s) completed before stopping.`);
-    } finally {
-      setSending(false);
+    } catch (e) {
+      const msg = e instanceof Error && /Invalid wallet|total 100%|Enter an amount|Insufficient|too small|at least one/.test(e.message) ? e.message : errMessage(e);
+      toast.error(msg, { id });
     }
   };
 
@@ -431,10 +412,10 @@ export function SplitRouter() {
         {mode === "send" ? (
           <>
             <p className="rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
-              Your wallet pays each recipient their share in USDC on Arc. You'll approve one transfer per recipient.
+              Every recipient is paid in one transaction on Arc — you sign once. The very first send also asks for a one-time USDC spending approval.
             </p>
             <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
-              <Send className="size-4" /> {sending ? "Sending…" : "Send Now"}
+              <Send className="size-4" /> {phase === "approving" ? "Approving USDC…" : phase === "processing" ? "Processing Split..." : "Send Now"}
             </Button>
           </>
         ) : (
