@@ -19,7 +19,7 @@ import {
   shortAddress,
 } from "@/lib/web3";
 import { toast } from "sonner";
-import { CheckCircle2, ExternalLink, RotateCcw, ShieldCheck, Wallet } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, RotateCcw, ShieldCheck, Wallet } from "lucide-react";
 import { recordPayment } from "@/lib/payment-events";
 import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 
