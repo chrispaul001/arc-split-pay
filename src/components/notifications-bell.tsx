@@ -14,7 +14,7 @@ import { timeAgo, useMerchantStore, type MerchantNotification } from "@/lib/merc
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { explorerTx } from "@/lib/web3";
-import { LinkUrlField } from "@/components/link-share";
+import { PublishedLinkBox } from "@/components/link-share";
 
 const ICONS = {
   payment: CreditCard,
@@ -129,7 +129,7 @@ export function NotificationsBell() {
         </DialogHeader>
         {selected && <div className="space-y-3 text-sm">
            <div><p className="text-xs text-muted-foreground">{selected.payment ? "Timestamp" : "Received"}</p><p>{new Date(selected.createdAt).toLocaleString(undefined, { dateStyle: "full", timeStyle: "medium" })}</p></div>
-          {selected.linkUrl && <div><p className="text-xs text-muted-foreground">Payment link</p><LinkUrlField url={selected.linkUrl} /></div>}
+          {selected.linkUrl && <div><p className="text-xs text-muted-foreground">Payment link</p><div className="mt-1"><PublishedLinkBox url={selected.linkUrl} /></div></div>}
           {selected.payment && <>
             <div><p className="text-xs text-muted-foreground">Sender</p><p className="break-all font-mono text-xs">{selected.payment.sender}</p></div>
              <div><p className="text-xs text-muted-foreground">Amount</p><p className="font-semibold tabular-nums">{selected.payment.amount.toLocaleString()} {selected.payment.currency}</p></div>
