@@ -12,6 +12,8 @@ import {
   COINDECC_PAY_ABI,
   COINDECC_PAY_ADDRESS,
   DEFAULT_SPLIT_ID,
+  SPLIT_ROUTER_ABI,
+  SPLIT_ROUTER_ADDRESS,
   ERC20_ABI,
   USDC_ADDRESS,
   arcTestnet,
@@ -25,7 +27,7 @@ import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
 
-export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number | undefined; guard?: (() => Promise<boolean>) | undefined } = {}) {
+export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: number | undefined; guard?: (() => Promise<boolean>) | undefined; shares?: { address: string; bps: number }[] | undefined } = {}) {
   const config = useConfig();
   const { address, chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -37,13 +39,15 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
   const [approve, setApprove] = useState<StepState>({ status: "idle" });
   const [pay, setPay] = useState<StepState>({ status: "idle" });
 
+  const useSplitter = Boolean(shares?.length);
+  const spender = useSplitter ? SPLIT_ROUTER_ADDRESS : COINDECC_PAY_ADDRESS;
   const wrongNetwork = isConnected && chainId !== arcTestnet.id;
 
   const steps: TxStep[] = [
     {
       key: "approve",
       label: "Approve USDC spend",
-      description: `Allow CoindeccPay ${shortAddress(COINDECC_PAY_ADDRESS)} to move USDC`,
+      description: `Allow ${useSplitter ? "CoindeccSplitter" : "CoindeccPay"} ${shortAddress(spender)} to move USDC`,
       status: approve.status,
       hash: approve.hash,
       error: approve.error,
@@ -51,7 +55,7 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
     {
       key: "pay",
       label: "Send payment",
-      description: "Confirm your USDC payment on Arc",
+      description: useSplitter ? "One signature pays every recipient atomically on Arc" : "Confirm your USDC payment on Arc",
       status: pay.status,
       hash: pay.hash,
       error: pay.error,
@@ -118,7 +122,7 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: "allowance",
-        args: [address, COINDECC_PAY_ADDRESS],
+        args: [address, spender],
         chainId: arcTestnet.id,
       })) as bigint;
 
@@ -129,7 +133,7 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
             address: USDC_ADDRESS,
             abi: ERC20_ABI,
             functionName: "approve",
-            args: [COINDECC_PAY_ADDRESS, value],
+            args: [spender, value],
             chainId: arcTestnet.id,
           });
           setApprove({ status: "pending", hash });
@@ -147,13 +151,21 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
 
       setPay({ status: "wallet" });
       try {
-        const hash = await writeContract(config, {
-          address: COINDECC_PAY_ADDRESS,
-          abi: COINDECC_PAY_ABI,
-          functionName: "pay",
-          args: [DEFAULT_SPLIT_ID, value],
-          chainId: arcTestnet.id,
-        });
+        const hash = useSplitter && shares
+          ? await writeContract(config, {
+              address: SPLIT_ROUTER_ADDRESS,
+              abi: SPLIT_ROUTER_ABI,
+              functionName: "splitToken",
+              args: [USDC_ADDRESS, value, shares.map((s) => ({ recipient: s.address as `0x${string}`, bps: BigInt(s.bps) }))],
+              chainId: arcTestnet.id,
+            })
+          : await writeContract(config, {
+              address: COINDECC_PAY_ADDRESS,
+              abi: COINDECC_PAY_ABI,
+              functionName: "pay",
+              args: [DEFAULT_SPLIT_ID, value],
+              chainId: arcTestnet.id,
+            });
         setPay({ status: "pending", hash });
         const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
         if (receipt.status !== "success") throw new Error("Payment failed on-chain.");
@@ -182,8 +194,8 @@ export function OnchainCheckout({ fixedAmount, guard }: { fixedAmount?: number |
         <div className="min-w-0">
           <h3 className="text-lg font-semibold">On-chain checkout</h3>
           <p className="mt-1 text-xs break-words text-muted-foreground">
-            Live USDC payment to CoindeccPay{" "}
-            <span className="font-mono">{shortAddress(COINDECC_PAY_ADDRESS)}</span> on Arc Network Testnet.
+            Live USDC payment {useSplitter ? "split atomically by CoindeccSplitter" : "to CoindeccPay"}{" "}
+            <span className="font-mono">{shortAddress(spender)}</span> on Arc Network Testnet.
           </p>
         </div>
         <ShieldCheck className="size-5 shrink-0 text-mint" />
