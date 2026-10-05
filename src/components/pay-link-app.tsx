@@ -86,7 +86,7 @@ export default function PayLinkApp({ id, amount, currency, link }: PayLinkProps)
               </div>
             )}
           </div>
-          <OnchainCheckout fixedAmount={amount > 0 ? amount : undefined} guard={guard} />
+          <OnchainCheckout fixedAmount={amount > 0 ? amount : undefined} guard={guard} shares={status.data?.shares} />
           </>)}
         </div>
       </div>
