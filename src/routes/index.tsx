@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:image",
-        content: "https://coindeccpay.lovable.app/og-image.png",
+        content: "https://coindeccpay.lovable.app/og-image.jpg",
       },
       { name: "twitter:card", content: "summary_large_image" },
       {
