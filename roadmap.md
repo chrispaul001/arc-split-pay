@@ -9,3 +9,4 @@
 - [x] Drive the 24-hour settlement chart, volume, count and average from confirmed wallet payments; fix its circular indicator and live badge.
 
 - [x] Require sign-in (OAuth) before AI assistants can use the CoindeccPay MCP tools
+- [x] Update only Firebase/service-worker incoming-payment push templates; leave all in-app alerts unchanged.

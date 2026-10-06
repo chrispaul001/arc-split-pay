@@ -9,7 +9,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   if (payload.notification) return;
   const d = payload.data || {};
-  self.registration.showNotification(d.title || "CoindeccPay", {
+  self.registration.showNotification("Payment Received!", {
     body: d.body || "",
     icon: "/icon-192.png",
     tag: d.hash || undefined,

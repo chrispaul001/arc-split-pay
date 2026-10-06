@@ -55,7 +55,7 @@ export const sendTxPush = createServerFn({ method: "POST" })
     if (!rows?.length) return { sent: 0 };
 
     const amt = amount.toLocaleString("en-US", { maximumFractionDigits: 6 });
-    const title = "Payment Received! 🚀";
+    const title = "Payment Received!";
     const from = `${sender.slice(0, 6)}…${sender.slice(-4)}`;
     const body = isSplit
       ? `Your split link just received ${amt} USDC on Arc Network from ${from}.`
