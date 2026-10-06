@@ -8,47 +8,20 @@ const DashboardApp = lazy(() => import("@/components/dashboard-app"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CoindeccPay — Instant USDC Payment Gateway & Split Routing" },
+      { title: "CoindeccPay" },
       {
         name: "description",
         content:
-          "Deploy embeddable USDC checkout links and automated split-routing on Arc Network.",
+          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
       },
-      {
-        property: "og:title",
-        content: "CoindeccPay — Instant USDC Payment Gateway & Split Routing",
-      },
+      { property: "og:title", content: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
       {
         property: "og:description",
         content:
-          "Deploy embeddable USDC checkout links and automated split-routing on Arc Network.",
+          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
       },
       { property: "og:type", content: "website" },
-      {
-        property: "og:url",
-        content: "https://coindeccpay.lovable.app/",
-      },
-      {
-        property: "og:image",
-        content: "https://coindeccpay.lovable.app/og-image.jpg",
-      },
       { name: "twitter:card", content: "summary_large_image" },
-      {
-        name: "twitter:title",
-        content: "CoindeccPay — Instant USDC Payment Gateway & Split Routing",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "Deploy embeddable USDC checkout links and automated split-routing on Arc Network.",
-      },
-      {
-        name: "twitter:image",
-        content: "https://coindeccpay.lovable.app/og-image.jpg",
-      },
-    ],
-    links: [
-      { rel: "canonical", href: "https://coindeccpay.lovable.app/" },
     ],
   }),
   component: Home,
