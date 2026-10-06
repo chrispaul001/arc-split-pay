@@ -78,7 +78,7 @@ async function fetchPage(address: string, cursor: string | undefined): Promise<T
         to: first.to.hash,
         amount: paid ? amountOf(paid) : sent.length ? sum(sent) : sum(recv),
         timestamp: Date.parse(first.timestamp) || 0,
-        label: paid ? "CoindeccPay pay()" : sent.length ? "USDC sent" : "USDC received",
+        label: paid ? "Checkout payment" : sent.length ? "USDC sent" : "USDC received",
         transfers,
       };
     }),

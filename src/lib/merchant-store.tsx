@@ -393,7 +393,14 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
         if (session) void pushTx({ data: { token: session, hash: r.hash, origin: window.location.origin } }).catch(() => {});
       }
       const title = incoming ? "Funds received" : "Transaction confirmed";
-      const body = `${incoming ? "+" : ""}${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC ${incoming ? `from ${r.from.slice(0, 6)}…${r.from.slice(-4)}` : r.label ?? ""}`.trim();
+      const amt = `${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC`;
+      const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+      const legs = (r.transfers ?? []).length;
+      const body = incoming
+        ? `+${amt} received from ${short(r.from)}`
+        : legs > 1
+          ? `${amt} distributed across ${legs} recipients`
+          : r.to ? `${amt} sent to ${short(r.to)}` : `${amt} sent`;
       toast.success(title, { description: body });
       notify({ kind: r.kind === "payment" || incoming ? "payment" : "system", title, body,
         payment: { hash: r.hash, sender: r.from, amount: r.amount, currency: "USDC", splits: r.transfers ?? [] } });
