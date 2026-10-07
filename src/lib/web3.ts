@@ -7,6 +7,14 @@ export const COINDECC_PAY_ADDRESS = "0xbD13692792b8356c142c93Ef5B114166e4Cd2Acd"
 /** USDC token used by the CoindeccPay contract on Arc testnet. */
 export const USDC_ADDRESS = "0x3600000000000000000000000000000000000000" as const;
 
+/** Tokens accepted by split checkout on Arc Testnet (addresses from Circle docs; decimals read on-chain). */
+export const CHECKOUT_TOKENS = [
+  { symbol: "USDC", name: "USD Coin", address: USDC_ADDRESS, decimals: 6 },
+  { symbol: "EURC", name: "Euro Coin", address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a", decimals: 6 },
+  { symbol: "cirBTC", name: "Circle Wrapped Bitcoin", address: "0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF", decimals: 8 },
+] as const;
+export type CheckoutToken = (typeof CHECKOUT_TOKENS)[number];
+
 export const ARC_TESTNET = {
   chainIdDecimal: 5042002,
   chainId: "0x4CEA52",
