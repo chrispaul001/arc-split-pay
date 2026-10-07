@@ -122,7 +122,7 @@ export const shortAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 export const explorerTx = (hash: string) => `${ARC_TESTNET.blockExplorerUrls[0]}/tx/${hash}`;
 
 /** Merchant-deployed split router: pulls `total` USDC once and pays every recipient by bps, atomically. */
-export const SPLIT_ROUTER_ADDRESS = "0x0823872c2b78229091a834FBC0b6E6152DbB9fE5" as const;
+export const SPLIT_ROUTER_ADDRESS = "0xDa3cfF59e730498d5c0579FE0DD913316c3E189A" as const;
 
 // splitToken(address token, uint256 total, (address recipient, uint256 bps)[] shares) — shares must sum to 10000.
 export const SPLIT_ROUTER_ABI = [
