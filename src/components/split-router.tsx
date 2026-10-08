@@ -16,6 +16,7 @@ import { useSplitSend } from "@/lib/use-split-send";
 import { errMessage } from "@/lib/use-pay";
 import { showLinkPublished } from "@/components/link-share";
 import { Send } from "lucide-react";
+import { CHECKOUT_TOKENS, type CheckoutToken } from "@/lib/web3";
 
 
 
@@ -39,6 +40,8 @@ export function SplitRouter() {
   const sending = phase !== "idle";
 
   const [mode, setMode] = useState<"link" | "send">("link");
+  const [token, setToken] = useState<CheckoutToken>(CHECKOUT_TOKENS[0]);
+  const sym = mode === "send" ? token.symbol : "USDC";
   const [total, setTotal] = useState("");
   const [reference, setReference] = useState("");
   const [linkName, setLinkName] = useState("");
@@ -119,13 +122,14 @@ export function SplitRouter() {
         amount,
         parties.map(({ name, address, bps }) => ({ name, address, bps })),
         `Split${reference ? ` · ${reference}` : ""}`,
+        token,
       );
       const n = parties.filter((p) => p.bps > 0).length;
-      toast.success("Split complete", { id, description: `${amount} USDC sent to ${n} recipient${n === 1 ? "" : "s"} in one transaction.` });
+      toast.success("Split complete", { id, description: `${amount} ${token.symbol} sent to ${n} recipient${n === 1 ? "" : "s"} in one transaction.` });
       notify({
         kind: "split",
         title: "Split sent on-chain",
-        body: `${amount} USDC routed to ${n} recipient${n === 1 ? "" : "s"} · ${hash.slice(0, 10)}…`,
+        body: `${amount} ${token.symbol} routed to ${n} recipient${n === 1 ? "" : "s"} · ${hash.slice(0, 10)}…`,
       });
       setTotal("");
       setReference("");
@@ -195,14 +199,43 @@ export function SplitRouter() {
           ))}
         </div>
 
+        {mode === "send" && (
+          <div className="space-y-2">
+            <Label>Send with</Label>
+            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Token">
+              {CHECKOUT_TOKENS.map((t) => (
+                <button
+                  key={t.symbol}
+                  type="button"
+                  role="radio"
+                  aria-checked={t.symbol === token.symbol}
+                  disabled={sending}
+                  onClick={() => setToken(t)}
+                  className={`rounded-xl border px-2 py-2 text-xs font-semibold transition-colors ${
+                    t.symbol === token.symbol
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/50 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t.symbol}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="amount">Total amount (USDC)</Label>
+            <Label htmlFor="amount">Total amount ({sym})</Label>
             <Input
               id="amount"
               inputMode="decimal"
               value={total}
-              onChange={(e) => setTotal(e.target.value.replace(/[^\d.]/g, ""))}
+              onChange={(e) => {
+                const v = e.target.value.replace(",", ".").replace(/[^\d.]/g, "");
+                const dec = mode === "send" ? token.decimals : 6;
+                if (v === "" || new RegExp(`^\\d*(\\.\\d{0,${dec}})?$`).test(v)) setTotal(v);
+              }}
               className="bg-background/40 font-display text-lg"
             />
             <p className="text-[11px] text-muted-foreground tabular-nums">
@@ -399,7 +432,7 @@ export function SplitRouter() {
                 <span className="truncate">{p.name}</span>
               </span>
               <span className="shrink-0 text-right font-mono text-xs tabular-nums">
-                <span className="block">{((amount * p.bps) / 10000).toFixed(2)} USDC</span>
+                <span className="block">{((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: mode === "send" ? token.decimals : 2 })} {sym}</span>
                 <span className="block text-[10px] text-muted-foreground">
                   {formatLocal((amount * p.bps) / 10000, currency)}
                 </span>
@@ -411,10 +444,10 @@ export function SplitRouter() {
         {mode === "send" ? (
           <>
             <p className="rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
-              Every recipient is paid in one transaction on Arc — you sign once. The very first send also asks for a one-time USDC spending approval.
+              Every recipient is paid in one transaction on Arc — you sign once. The very first send also asks for a one-time {token.symbol} spending approval.
             </p>
             <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
-              <Send className="size-4" /> {phase === "approving" ? "Approving USDC…" : phase === "processing" ? "Processing Split..." : "Send Now"}
+              <Send className="size-4" /> {phase === "approving" ? `Approving ${token.symbol}…` : phase === "processing" ? "Processing Split..." : "Send Now"}
             </Button>
           </>
         ) : (
