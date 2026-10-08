@@ -274,14 +274,14 @@ export function SplitRouter() {
         </div>
 
         <ImageUpload
-          label="Product image (optional)"
-          hint="Attached to this checkout session · PNG, JPG or SVG"
+          compact
+          label="Product image"
+          hint="PNG, JPG or SVG up to 2MB"
           value={product}
           onChange={(v) => setImage("product", v)}
         />
 
-
-        <div className="space-y-3">
+        <div className="space-y-3 border-t border-border/40 pt-4">
           {parties.map((p, i) => {
             const pct = p.bps / 100;
             return (
