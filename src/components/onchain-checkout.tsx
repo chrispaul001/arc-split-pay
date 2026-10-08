@@ -43,9 +43,12 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
   const { address, chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
 
-  const useSplitter = Boolean(shares?.length);
   const [token, setToken] = useState<CheckoutToken>(CHECKOUT_TOKENS[0]);
-  const active = useSplitter ? token : CHECKOUT_TOKENS[0]; // legacy pay() contract is USDC-only
+  // Link shares route through the splitter. Without shares, USDC keeps the legacy pay() route;
+  // other tokens go through the splitter to the connected wallet (in-dashboard test checkout).
+  const effectiveShares = shares?.length ? shares : token.symbol !== "USDC" && address ? [{ address, bps: 10_000 }] : undefined;
+  const useSplitter = Boolean(effectiveShares?.length);
+  const active = token;
   const [amount, setAmount] = useState(fixedAmount ? String(fixedAmount) : "25");
   const [phase, setPhase] = useState<Phase>("idle");
   const [done, setDone] = useState(false);
@@ -100,7 +103,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
       toast.error("Please enter a valid amount.", { description: `${active.symbol} supports up to ${decimals} decimal places.` });
       return;
     }
-    if (useSplitter && shares!.reduce((t, s) => t + s.bps, 0) !== 10_000) {
+    if (useSplitter && effectiveShares!.reduce((t, s) => t + s.bps, 0) !== 10_000) {
       toast.error("This link's split doesn't add up to 100%.");
       return;
     }
@@ -144,10 +147,10 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
       setPhase("executing");
       setPay({ status: "wallet" });
       try {
-        const hash = useSplitter && shares
+        const hash = useSplitter && effectiveShares
           ? await writeContract(config, {
               address: SPLIT_ROUTER_ADDRESS, abi: SPLIT_ROUTER_ABI, functionName: "splitToken",
-              args: [active.address, value, shares.map((s) => ({ recipient: s.address as `0x${string}`, bps: BigInt(s.bps) }))],
+              args: [active.address, value, effectiveShares.map((s) => ({ recipient: s.address as `0x${string}`, bps: BigInt(s.bps) }))],
               chainId: arcTestnet.id,
             })
           : await writeContract(config, {
@@ -194,7 +197,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
 
       {isConnected && (
         <div className="mt-4 space-y-3">
-          {useSplitter && (
+          {(
             <div className="space-y-1.5">
               <Label>Pay with</Label>
               <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment token">
@@ -281,7 +284,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
                 ) : (
                   <>
                     <Wallet className="size-4" />{" "}
-                    {wrongNetwork ? "Switch network" : useSplitter ? `Pay & Split ${amount || "0"} ${active.symbol}` : `Pay ${amount || "0"} USDC`}
+                    {wrongNetwork ? "Switch network" : useSplitter ? `Pay & Split ${amount || "0"} ${active.symbol}` : `Pay ${amount || "0"} ${active.symbol}`}
                   </>
                 )}
               </Button>
