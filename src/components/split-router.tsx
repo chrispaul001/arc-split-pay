@@ -327,11 +327,21 @@ export function SplitRouter() {
                       />
                       <span className="font-display text-sm font-bold">%</span>
                     </div>
-                    {parties.length > 2 && (
+                    {i > 0 && parties.length > 1 && (
                       <button
-                        onClick={() => setParties((ps) => ps.filter((x) => x.id !== p.id))}
-                        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
-                        aria-label={`Remove ${p.name}`}
+                        type="button"
+                        disabled={sending}
+                        onClick={() => {
+                          // Return the removed share to the primary treasury so the total stays 100%.
+                          setParties((ps) => {
+                            const gone = ps.find((x) => x.id === p.id);
+                            const rest = ps.filter((x) => x.id !== p.id);
+                            return rest.map((x, j) => (j === 0 ? { ...x, bps: x.bps + (gone?.bps ?? 0) } : x));
+                          });
+                          if (p.bps > 0) toast(`${p.name || "Recipient"} removed`, { description: `${p.bps / 100}% returned to ${parties[0]?.name || "Merchant treasury"}.` });
+                        }}
+                        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive disabled:opacity-40"
+                        aria-label={`Remove ${p.name || "recipient"}`}
                       >
                         <Trash2 className="size-4" />
                       </button>
