@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { formatUnits, parseUnits } from "viem";
 import { useAccount, useConfig, useReadContract, useSwitchChain } from "wagmi";
 import { readContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { CheckCircle2, ExternalLink, Loader2, RotateCcw, ShieldCheck, Wallet } from "lucide-react";
 import { recordPayment } from "@/lib/payment-events";
 import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
+import { WalletStallHelper } from "@/components/wallet-stall-helper";
+import { WALLET_TIMEOUT_MESSAGE, createWalletRun, isCancelled, isTimeout, type WalletRun } from "@/lib/wallet-guard";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
 type Phase = "idle" | "checking" | "approving" | "executing";
@@ -81,6 +83,16 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
     },
   ];
 
+  const runRef = useRef<WalletRun | null>(null);
+  const cancelRun = () => {
+    runRef.current?.cancel();
+    runRef.current?.dispose();
+    runRef.current = null;
+    setPhase("idle");
+    reset();
+    toast("Transaction cancelled", { description: "If your wallet still shows a request, reject it there." });
+  };
+
   const reset = () => {
     setApprove({ status: "idle" });
     setPay({ status: "idle" });
@@ -94,7 +106,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
       return;
     }
     if (wrongNetwork) {
-      try { await switchChainAsync({ chainId: arcTestnet.id }); }
+      try { await createWalletRun().wallet(switchChainAsync({ chainId: arcTestnet.id })); }
       catch { toast.error("Switch to Arc Network to continue"); }
       return;
     }
@@ -109,30 +121,33 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
     }
 
     reset();
+    runRef.current?.cancel();
+    const run = createWalletRun();
+    runRef.current = run;
     setPhase("checking");
     try {
       const value = parseUnits(amount, decimals);
-      const bal = (await readContract(config, {
+      const bal = (await run.wait(readContract(config, {
         address: active.address, abi: ERC20_ABI, functionName: "balanceOf", args: [address], chainId: arcTestnet.id,
-      })) as bigint;
+      }))) as bigint;
       if (bal < value) {
         toast.error(`Insufficient ${active.symbol} balance`, { description: `You hold ${formatUnits(bal, decimals)} ${active.symbol}.` });
         return;
       }
 
-      const allowance = (await readContract(config, {
+      const allowance = (await run.wait(readContract(config, {
         address: active.address, abi: ERC20_ABI, functionName: "allowance", args: [address, spender], chainId: arcTestnet.id,
-      })) as bigint;
+      }))) as bigint;
 
       if (allowance < value) {
         setPhase("approving");
         setApprove({ status: "wallet" });
         try {
-          const hash = await writeContract(config, {
+          const hash = await run.wallet(writeContract(config, {
             address: active.address, abi: ERC20_ABI, functionName: "approve", args: [spender, value], chainId: arcTestnet.id,
-          });
+          }));
           setApprove({ status: "pending", hash });
-          const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
+          const receipt = await run.wait(waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id }));
           if (receipt.status !== "success") throw new Error("Approval failed on-chain.");
           setApprove({ status: "confirmed", hash });
           toast.success(`${active.symbol} approved`);
@@ -148,17 +163,17 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
       setPay({ status: "wallet" });
       try {
         const hash = useSplitter && effectiveShares
-          ? await writeContract(config, {
+          ? await run.wallet(writeContract(config, {
               address: SPLIT_ROUTER_ADDRESS, abi: SPLIT_ROUTER_ABI, functionName: "splitToken",
               args: [active.address, value, effectiveShares.map((s) => ({ recipient: s.address as `0x${string}`, bps: BigInt(s.bps) }))],
               chainId: arcTestnet.id,
-            })
-          : await writeContract(config, {
+            }))
+          : await run.wallet(writeContract(config, {
               address: COINDECC_PAY_ADDRESS, abi: COINDECC_PAY_ABI, functionName: "pay",
               args: [DEFAULT_SPLIT_ID, value], chainId: arcTestnet.id,
-            });
+            }));
         setPay({ status: "pending", hash });
-        const receipt = await waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id });
+        const receipt = await run.wait(waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id }));
         if (receipt.status !== "success") throw new Error("Payment failed on-chain.");
         setPay({ status: "confirmed", hash });
         if (active.symbol === "USDC") recordPayment({ hash, sender: address, amount: Number(amount) });
@@ -170,9 +185,12 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
         throw e;
       }
     } catch (e) {
-      toast.error("Transaction failed", { description: errMessage(e) });
+      if (isCancelled(e)) return;
+      if (isTimeout(e)) toast.error(WALLET_TIMEOUT_MESSAGE);
+      else toast.error("Transaction failed", { description: errMessage(e) });
     } finally {
-      setPhase("idle");
+      run.dispose();
+      if (runRef.current === run) { runRef.current = null; setPhase("idle"); }
     }
   };
 
@@ -289,6 +307,8 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
                 )}
               </Button>
 
+              {busy && <WalletStallHelper key={phase} label={PHASE_LABEL[phase as Exclude<Phase, "idle">]} onCancel={cancelRun} />}
+
               {address && active.symbol === "USDC" && <OnrampCheckoutModal destinationAddress={address} amount={amount} />}
 
               {showProgress && <TxProgress steps={steps} />}
@@ -301,6 +321,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
 }
 
 function errMessage(e: unknown) {
+  if (isTimeout(e)) return WALLET_TIMEOUT_MESSAGE;
   const err = e as { shortMessage?: string; message?: string };
   const message = err?.shortMessage ?? err?.message ?? "";
   if (/rejected|denied|cancelled/i.test(message)) return "The request was cancelled in your wallet.";
