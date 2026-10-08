@@ -1,5 +1,5 @@
 import { withLinkParams } from "@/lib/link-status.functions";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
 import { useSplitSend } from "@/lib/use-split-send";
+import { WalletStallHelper } from "@/components/wallet-stall-helper";
+import { WALLET_TIMEOUT_MESSAGE, isCancelled, isTimeout } from "@/lib/wallet-guard";
 import { errMessage } from "@/lib/use-pay";
 import { showLinkPublished } from "@/components/link-share";
 import { Send } from "lucide-react";
@@ -36,7 +38,7 @@ export function SplitRouter() {
   const connected = useWalletGate();
   const { product, setImage } = useBrand();
   const { address, update: saveMerchant, notify } = useMerchantStore();
-  const { send: splitSend, phase } = useSplitSend();
+  const { send: splitSend, phase, cancel: cancelSplit } = useSplitSend();
   const sending = phase !== "idle";
 
   const [mode, setMode] = useState<"link" | "send">("link");
@@ -115,8 +117,17 @@ export function SplitRouter() {
       return base.map((p, i) => ({ ...p, bps: bps[i] ?? 0 }));
     });
 
+  const toastRef = useRef<string | number | null>(null);
+  const cancelSend = () => {
+    cancelSplit();
+    if (toastRef.current != null) toast.dismiss(toastRef.current);
+    toastRef.current = null;
+    toast("Transaction cancelled", { description: "If your wallet still shows a request, reject it there." });
+  };
+
   const sendNow = async (): Promise<void> => {
     const id = toast.loading("Processing Split...", { description: "Confirm the transaction in your wallet." });
+    toastRef.current = id;
     try {
       const hash = await splitSend(
         amount,
@@ -134,8 +145,12 @@ export function SplitRouter() {
       setTotal("");
       setReference("");
     } catch (e) {
-      const msg = e instanceof Error && /Invalid wallet|total 100%|Enter an amount|Insufficient|too small|at least one/.test(e.message) ? e.message : errMessage(e);
+      if (isCancelled(e)) { toast.dismiss(id); return; }
+      const msg = isTimeout(e) ? WALLET_TIMEOUT_MESSAGE
+        : e instanceof Error && /Invalid wallet|total 100%|Enter an amount|Insufficient|too small|at least one/.test(e.message) ? e.message : errMessage(e);
       toast.error(msg, { id });
+    } finally {
+      if (toastRef.current === id) toastRef.current = null;
     }
   };
 
@@ -454,6 +469,13 @@ export function SplitRouter() {
             <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
               <Send className="size-4" /> {phase === "approving" ? `Approving ${token.symbol}…` : phase === "processing" ? "Processing Split..." : "Send Now"}
             </Button>
+            {sending && (
+              <WalletStallHelper
+                key={phase}
+                label={phase === "approving" ? `Approving ${token.symbol}…` : "Processing Split..."}
+                onCancel={cancelSend}
+              />
+            )}
           </>
         ) : (
         <>
