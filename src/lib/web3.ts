@@ -20,8 +20,8 @@ export const ARC_TESTNET = {
   chainId: "0x4CEA52",
   chainName: "Arc Network Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-  rpcUrls: ["https://rpc.testnet.arc.network"],
-  blockExplorerUrls: ["https://explorer.testnet.arc.network"],
+  rpcUrls: ["https://rpc.testnet.arc.io"],
+  blockExplorerUrls: ["https://explorer.testnet.arc.io"],
 } as const;
 
 export const arcTestnet = defineChain({
