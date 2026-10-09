@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { COINDECC_PAY_ADDRESS, USDC_ADDRESS } from "@/lib/web3";
+import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, isRouterContract } from "@/lib/web3";
 import type { TxRecord } from "@/lib/tx-history";
 
 /** Arc Testnet explorer index: complete USDC transfer history (faucet, external, contract). */
