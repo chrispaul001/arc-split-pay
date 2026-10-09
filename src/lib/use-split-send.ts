@@ -72,7 +72,7 @@ export function useSplitSend() {
       const splits: TxRecord["splits"] = active.map(({ name, address, bps }) => ({ name, address, bps }));
       // Per-recipient amounts so the receipt shows "amount received" immediately (chain sync later confirms exact legs).
       const transfers: TxRecord["transfers"] = active.map(({ address, bps }) => ({ address, amount: (Number(amount) * bps) / 10_000 }));
-      recordTx({ hash, kind: "split", from: address, to: SPLIT_ROUTER_ADDRESS, amount, label, splits, transfers });
+      recordTx({ hash, kind: "split", from: address, to: active.length === 1 ? active[0]!.address : undefined, amount, label, splits, transfers });
       return hash;
     } finally {
       run.dispose();
