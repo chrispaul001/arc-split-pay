@@ -17,7 +17,9 @@ export type CheckoutToken = (typeof CHECKOUT_TOKENS)[number];
 
 export const ARC_TESTNET = {
   chainIdDecimal: 5042002,
-  chainId: "0x4CEA52",
+  // 5042002 in hex. A mismatched value here makes wallets silently drop the
+  // confirmation prompt when adding/switching the network.
+  chainId: "0x4CEF52",
   chainName: "Arc Network Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
   rpcUrls: ["https://rpc.testnet.arc.io"],
