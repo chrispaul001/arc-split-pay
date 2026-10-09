@@ -9,7 +9,7 @@ import { useUsdc } from "@/lib/use-usdc";
 import { COINDECC_PAY_ADDRESS, explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
-import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";
+import { MetricBars, MetricTrend, MetricWave, type TrendPoint } from "./metric-trend";
 import { useTxHistory } from "@/lib/use-tx-history";
 
 const DAY = 24 * 3600 * 1000;
@@ -56,16 +56,32 @@ export function Overview() {
     value: i === 0 ? 0 : settlements.filter((tx) => tx.timestamp > start + (i - 1) * bucketMs && tx.timestamp <= start + i * bucketMs)
       .reduce((sum, tx) => sum + tx.amount, 0),
   }));
-  const times = Array.from({ length: 16 }, (_, i) => start + (i + 1) * DAY / 16);
-  const volumePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
-    value: settlements.filter((e) => e.timestamp <= timestamp).reduce((sum, e) => sum + e.amount, 0) }));
+  // Rolling 2-hour windows: shows *when* activity happened instead of a cumulative cliff.
+  const SLOTS = 12;
+  const slotMs = DAY / SLOTS;
+  const slotEnd = (i: number) => start + (i + 1) * slotMs;
+  const inSlot = (t: number, i: number) => t > slotEnd(i) - slotMs && t <= slotEnd(i);
+  const volumePoints: TrendPoint[] = Array.from({ length: SLOTS }, (_, i) => ({ timestamp: slotEnd(i),
+    value: settlements.filter((e) => inSlot(e.timestamp, i)).reduce((sum, e) => sum + e.amount, 0) }));
+  const splitPoints: TrendPoint[] = Array.from({ length: SLOTS }, (_, i) => ({ timestamp: slotEnd(i),
+    value: settlements.filter((e) => e.kind === "split" && inSlot(e.timestamp, i)).length }));
+  const slotRange = (p: TrendPoint) => {
+    const f = (t: number) => new Date(t).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    return `${f(p.timestamp - slotMs)} – ${f(p.timestamp)}`;
+  };
   const balance = isConnected ? Number(formatted) || 0 : 0;
-  // Reconstruct only confirmed outgoing settlement activity; do not fabricate a balance history.
-  const mine = settlements.filter((tx) => tx.from.toLowerCase() === address?.toLowerCase());
-  const balancePoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
-    value: Math.max(0, balance + mine.filter((e) => e.timestamp > timestamp && e.timestamp <= now).reduce((sum, e) => sum + e.amount, 0)) }));
-  const splitPoints: TrendPoint[] = times.map((timestamp) => ({ timestamp,
-    value: settlements.filter((e) => e.kind === "split" && e.timestamp <= timestamp).length }));
+  // Walk back from the live balance using confirmed in/out wallet history (no fabricated values).
+  const flows = isConnected && me ? history.txs.filter((tx) => tx.timestamp > start && tx.timestamp <= now && Number.isFinite(tx.amount)) : [];
+  const delta = (tx: (typeof flows)[number]) => {
+    if (tx.from.toLowerCase() === me) return -tx.amount;
+    const got = tx.transfers?.find((t) => t.address.toLowerCase() === me);
+    if (got) return got.amount;
+    return tx.to?.toLowerCase() === me ? tx.amount : 0;
+  };
+  const balancePoints: TrendPoint[] = [...Array.from({ length: 24 }, (_, i) => {
+    const timestamp = start + (i + 1) * (DAY / 24);
+    return { timestamp, value: Math.max(0, balance - flows.filter((e) => e.timestamp > timestamp).reduce((s, e) => s + delta(e), 0)) };
+  }).slice(0, -1), { timestamp: now, value: balance }];
   const isLive = isConnected && history.liveUpdatedAt > 0 && now - history.liveUpdatedAt < 60_000;
 
   const metrics = [
@@ -76,7 +92,7 @@ export function Overview() {
       delta: `${allSettlements.length} settled · ${fmt(settlementVolume)} in 24h`,
       icon: Zap,
       hasValue: totalVolume > 0,
-      trend: volumePoints, format: fmt,
+      trend: volumePoints, format: fmt, bars: false,
     },
     { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0, trend: balancePoints, format: fmt },
     {
@@ -95,7 +111,7 @@ export function Overview() {
       delta: splitExecutions ? "Settled on Arc" : "None yet",
       icon: Split,
       hasValue: splitExecutions > 0,
-      trend: splitPoints, format: (n: number) => String(n),
+      trend: splitPoints, format: (n: number) => `${n} split${n === 1 ? "" : "s"}`, bars: true,
     },
   ];
 
@@ -132,8 +148,11 @@ export function Overview() {
                 <span aria-hidden="true" />
               )}
               {m.label === "Active Payment Streams" ?
-                <MetricProgress value={isConnected ? activeStreams : 0} total={isConnected ? data.streams.length : 0} label={m.label} /> :
-                <MetricTrend points={m.trend} format={m.format} label={m.label} />}
+                <MetricWave value={isConnected ? activeStreams : 0} total={isConnected ? data.streams.length : 0} label={m.label} /> :
+                m.label === "Instant Split Executions" ?
+                <MetricBars points={m.trend} format={m.format} label={m.label} range={slotRange} /> :
+                <MetricTrend points={m.trend} format={m.format} label={m.label} live={isLive}
+                  range={m.label.startsWith("Settlement") ? slotRange : undefined} />}
             </div>
           </div>
         ))}
