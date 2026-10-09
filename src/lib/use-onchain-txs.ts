@@ -72,7 +72,7 @@ async function fetchPage(address: string, cursor: string | undefined): Promise<T
       }
       const sum = (l: ExplorerTransfer[]) => l.reduce((a, t) => a + amountOf(t), 0);
       // Show the real payer/recipient wallet, never the routing contract.
-      const from = isRouterContract(first.from.hash) ? (recv[0] ? first.from.hash : first.from.hash) : first.from.hash;
+      const from = first.from.hash;
       const to = isRouterContract(first.to.hash) && transfers.length === 1 ? transfers[0]!.address : first.to.hash;
       return {
         hash,

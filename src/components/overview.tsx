@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { COINDECC_PAY_ADDRESS, explorerTx, shortAddress } from "@/lib/web3";
+import { COINDECC_PAY_ADDRESS, explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
 import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";

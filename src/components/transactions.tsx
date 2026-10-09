@@ -7,7 +7,7 @@ import { useTxHistory } from "@/lib/use-tx-history";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TxKind } from "@/lib/tx-history";
-import { explorerTx, shortAddress } from "@/lib/web3";
+import { explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
 
 const KIND_LABEL: Record<TxKind, string> = { payment: "Checkout payment", split: "Split payout", stream: "Stream payout" };
 const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
