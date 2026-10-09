@@ -8,26 +8,30 @@ const TOP = 6;
 const BOTTOM = 36;
 
 /** Monotone cubic (Fritsch–Carlson) path: smooth, never overshoots below zero. */
-function smoothPath(xy: (readonly [number, number])[]) {
-  const n = xy.length;
+function smoothPath(pts: (readonly [number, number])[]) {
+  const n = pts.length;
   if (n < 2) return "";
+  const X = pts.map((p) => p[0]), Y = pts.map((p) => p[1]);
+  const g = (arr: number[], i: number) => arr[i] ?? 0;
   const dx: number[] = [], m: number[] = [];
   for (let i = 0; i < n - 1; i++) {
-    dx.push(xy[i + 1][0] - xy[i][0]);
-    m.push((xy[i + 1][1] - xy[i][1]) / (dx[i] || 1));
+    dx.push(g(X, i + 1) - g(X, i) || 1);
+    m.push((g(Y, i + 1) - g(Y, i)) / g(dx, i));
   }
-  const t: number[] = [m[0]];
-  for (let i = 1; i < n - 1; i++) t.push(m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2);
-  t.push(m[n - 2]);
+  const t: number[] = [g(m, 0)];
+  for (let i = 1; i < n - 1; i++) t.push(g(m, i - 1) * g(m, i) <= 0 ? 0 : (g(m, i - 1) + g(m, i)) / 2);
+  t.push(g(m, n - 2));
   for (let i = 0; i < n - 1; i++) {
-    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
-    const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
-    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+    const mi = g(m, i);
+    if (mi === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = g(t, i) / mi, b = g(t, i + 1) / mi, s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * mi; t[i + 1] = k * b * mi; }
   }
-  let d = `M${xy[0][0].toFixed(2)},${xy[0][1].toFixed(2)}`;
+  const f = (v: number) => v.toFixed(2);
+  let d = `M${f(g(X, 0))},${f(g(Y, 0))}`;
   for (let i = 0; i < n - 1; i++) {
-    const h = dx[i] / 3;
-    d += ` C${(xy[i][0] + h).toFixed(2)},${(xy[i][1] + t[i] * h).toFixed(2)} ${(xy[i + 1][0] - h).toFixed(2)},${(xy[i + 1][1] - t[i + 1] * h).toFixed(2)} ${xy[i + 1][0].toFixed(2)},${xy[i + 1][1].toFixed(2)}`;
+    const h = g(dx, i) / 3;
+    d += ` C${f(g(X, i) + h)},${f(g(Y, i) + g(t, i) * h)} ${f(g(X, i + 1) - h)},${f(g(Y, i + 1) - g(t, i + 1) * h)} ${f(g(X, i + 1))},${f(g(Y, i + 1))}`;
   }
   return d;
 }
@@ -73,7 +77,7 @@ const when = (t: number) => new Date(t).toLocaleString(undefined, { month: "shor
 
 /** Smooth area spline with a live pulsing tip. */
 export function MetricTrend({ points, format, label, live = false, range }: {
-  points: TrendPoint[]; format: (v: number) => string; label: string; live?: boolean; range?: (p: TrendPoint, i: number) => string;
+  points: TrendPoint[]; format: (v: number) => string; label: string; live?: boolean; range?: ((p: TrendPoint, i: number) => string) | undefined;
 }) {
   const [active, setActive] = useState<number | null>(null);
   const id = useId().replace(/:/g, "");
@@ -87,7 +91,7 @@ export function MetricTrend({ points, format, label, live = false, range }: {
   const xy = values.map((p, i) => [(i / (values.length - 1)) * W,
     flat ? (max > 0 ? TOP + 10 : BOTTOM - 2) : BOTTOM - ((p.value - min + pad) / (span + pad * 2)) * (BOTTOM - TOP)] as const);
   const line = smoothPath(xy);
-  const tip = xy[xy.length - 1];
+  const tip = xy[xy.length - 1] ?? ([W, BOTTOM] as const);
   const sel = active === null ? null : values[active];
   return (
     <Shell label={label} summary={`latest ${format(values[values.length - 1].value)}`} count={values.length}
