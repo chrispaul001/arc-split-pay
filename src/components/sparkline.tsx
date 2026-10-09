@@ -24,7 +24,16 @@ export function Sparkline({
     const y = h - ((point.value - min) / span) * (h - 4) - 2;
     return [x, y] as const;
   });
-  const line = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+  // Smooth Catmull-Rom → cubic Bézier, clamped so the curve never overshoots the data.
+  const line = points.map(([x, y], i) => {
+    if (i === 0) return `M${x.toFixed(2)},${y.toFixed(2)}`;
+    const p0 = points[i - 2] ?? points[i - 1]!, p1 = points[i - 1]!, p2 = points[i + 1] ?? [x, y];
+    const lo = Math.min(p1[1], y), hi = Math.max(p1[1], y);
+    const c1y = Math.max(lo, Math.min(hi, p1[1] + (y - p0[1]) / 6));
+    const c2y = Math.max(lo, Math.min(hi, y - (p2[1] - p1[1]) / 6));
+    return `C${(p1[0] + (x - p0[0]) / 6).toFixed(2)},${c1y.toFixed(2)} ${(x - (p2[0] - p1[0]) / 6).toFixed(2)},${c2y.toFixed(2)} ${x.toFixed(2)},${y.toFixed(2)}`;
+  }).join(" ");
+  const tip = points[points.length - 1];
   const area = `${line} L${w},${h} L0,${h} Z`;
   const selected = active === null ? null : values[active];
   const onPointer = (event: PointerEvent<HTMLDivElement>) => {
@@ -63,6 +72,7 @@ export function Sparkline({
             <stop offset="100%" stopColor="var(--electric)" stopOpacity="0" />
           </linearGradient>
         </defs>
+        {filled && [8, 16, 24].map((gy) => <line key={gy} x1={0} x2={w} y1={gy} y2={gy} stroke="var(--border)" strokeDasharray="1.5 2" vectorEffect="non-scaling-stroke" />)}
         {filled && <path d={area} fill={`url(#${gradientId})`} />}
         <path
           d={line}
