@@ -167,24 +167,35 @@ export function Overview() {
        <div className="grid min-w-0 gap-4 lg:grid-cols-[1.6fr_1fr]">
          <Reveal className="min-w-0">
           <div className="glass overview-surface animate-rise w-full min-w-0 rounded-3xl px-4 py-5 sm:px-5">
-           <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-             <h3 className="min-w-0 text-base leading-snug font-semibold wrap-break-word sm:text-lg">Settlement flow · last 24h</h3>
+           <div className="flex min-w-0 items-start justify-between gap-3">
+             <div className="min-w-0">
+               <h3 className="text-base leading-snug font-semibold sm:text-lg">Settlement flow</h3>
+               <p className="mt-1 font-display text-2xl font-bold tabular-nums">{isConnected ? fmt(rangeVolume) : "$0.00"}</p>
+               <p className="text-[11px] text-muted-foreground">{isConnected ? `${rangeTxs.length} settlement${rangeTxs.length === 1 ? "" : "s"} · ${range === "ALL" ? "all time" : `last ${range.toLowerCase()}`}` : "Connect a wallet to see flow"}</p>
+             </div>
              <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
                {isLive && <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" aria-hidden="true" />}
                {isConnected ? isLive ? "Live on Arc" : "Syncing Arc" : "Arc Testnet"}
-            </span>
-          </div>
+             </span>
+           </div>
+           <div role="tablist" aria-label="Time range" className="mt-4 inline-flex rounded-full bg-secondary/70 p-1">
+             {(["24H", "7D", "30D", "ALL"] as const).map((r) => (
+               <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)}
+                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${range === r ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                 {r}
+               </button>
+             ))}
+           </div>
           <Sparkline
               points={isConnected && (!history.loading || history.txs.length > 0) ? settlementPoints : []}
-            className="mt-5 h-44 w-full"
+            className="mt-4 h-44 w-full"
             filled
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             {[
                { k: "24h volume", v: !isConnected ? "$0.00" : history.loading && !history.txs.length ? "…" : fmt(settlementVolume) },
-               { k: "Payments", v: !isConnected ? "0" : history.loading && !history.txs.length ? "…" : String(settlements.length) },
-               { k: "Avg ticket", v: !isConnected ? "—" : history.loading && !history.txs.length ? "…" : settlements.length ? fmt(settlementVolume / settlements.length) : "—" },
-
+               { k: "Payments", v: !isConnected ? "0" : history.loading && !history.txs.length ? "…" : String(rangeTxs.length) },
+               { k: "Avg ticket", v: !isConnected ? "—" : history.loading && !history.txs.length ? "…" : rangeTxs.length ? fmt(rangeVolume / rangeTxs.length) : "—" },
             ].map((s) => (
               <div key={s.k} className="rounded-2xl bg-secondary/60 py-3">
                 <p className="text-[11px] break-words text-muted-foreground">{s.k}</p>
