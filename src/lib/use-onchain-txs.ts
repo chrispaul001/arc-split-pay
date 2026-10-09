@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { COINDECC_PAY_ADDRESS, USDC_ADDRESS } from "@/lib/web3";
+import { COINDECC_PAY_ADDRESS, USDC_ADDRESS, isRouterContract } from "@/lib/web3";
 import type { TxRecord } from "@/lib/tx-history";
 
 /** Arc Testnet explorer index: complete USDC transfer history (faucet, external, contract). */
@@ -61,21 +61,24 @@ async function fetchPage(address: string, cursor: string | undefined): Promise<T
       const recv = group.filter((t) => t.to.hash.toLowerCase() === me);
       const first = paid ?? sent[0] ?? recv[0] ?? group[0]!;
       let transfers: { address: string; amount: number }[] = [];
-      // Split legs leave from the contract, so they live on the transaction, not the wallet.
-      if (paid || group.some((t) => t.from.hash.toLowerCase() === pay)) {
+      // Split legs leave from a router contract, so they live on the transaction, not the wallet.
+      if (group.some((t) => isRouterContract(t.to.hash) || isRouterContract(t.from.hash))) {
         try {
           const legs = await getJson<ExplorerPage>(`${EXPLORER_API}/transactions/${hash}/token-transfers?type=ERC-20`, 2);
           transfers = legs.items
-            .filter((t) => t.from.hash.toLowerCase() === pay)
+            .filter((t) => isRouterContract(t.from.hash) && !isRouterContract(t.to.hash))
             .map((t) => ({ address: t.to.hash, amount: amountOf(t) }));
         } catch { /* legs are optional detail */ }
       }
       const sum = (l: ExplorerTransfer[]) => l.reduce((a, t) => a + amountOf(t), 0);
+      // Show the real payer/recipient wallet, never the routing contract.
+      const from = first.from.hash;
+      const to = isRouterContract(first.to.hash) && transfers.length === 1 ? transfers[0]!.address : first.to.hash;
       return {
         hash,
         kind: paid ? "payment" : "split",
-        from: first.from.hash,
-        to: first.to.hash,
+        from,
+        to,
         amount: paid ? amountOf(paid) : sent.length ? sum(sent) : sum(recv),
         timestamp: Date.parse(first.timestamp) || 0,
         label: paid ? "Checkout payment" : sent.length ? "USDC sent" : "USDC received",

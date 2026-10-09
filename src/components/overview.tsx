@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
 import { Button } from "./ui/button";
 import { useUsdc } from "@/lib/use-usdc";
-import { COINDECC_PAY_ADDRESS, explorerTx, shortAddress } from "@/lib/web3";
+import { COINDECC_PAY_ADDRESS, explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
 import { timeAgo } from "@/lib/merchant-store";
 import { useMerchantStore } from "@/lib/merchant-store";
 import { MetricProgress, MetricTrend, type TrendPoint } from "./metric-trend";
@@ -217,7 +217,9 @@ export function Overview() {
                 history.txs.slice(0, 6).map((e) => {
                   const me = address?.toLowerCase();
                   const incoming = e.to?.toLowerCase() === me || (e.from.toLowerCase() !== me);
-                  const party = incoming ? e.from : e.to;
+                  const legs = e.transfers ?? [];
+                  const realTo = e.to && !isRouterContract(e.to) ? e.to : legs.length === 1 ? legs[0]!.address : undefined;
+                  const party = incoming ? (isRouterContract(e.from) ? undefined : e.from) : realTo;
                   return (
                     <a
                       key={e.hash}

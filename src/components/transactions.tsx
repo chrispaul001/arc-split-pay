@@ -7,7 +7,7 @@ import { useTxHistory } from "@/lib/use-tx-history";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TxKind } from "@/lib/tx-history";
-import { explorerTx, shortAddress } from "@/lib/web3";
+import { explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
 
 const KIND_LABEL: Record<TxKind, string> = { payment: "Checkout payment", split: "Split payout", stream: "Stream payout" };
 const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
@@ -90,17 +90,27 @@ export function Transactions() {
                 </p>
               </div>
               <div className="mt-2 space-y-1 font-mono text-[11px] text-muted-foreground">
-                {t.from && t.from.toLowerCase() !== address?.toLowerCase() && <p className="break-all">From {t.from}</p>}
-                {t.to && t.to.toLowerCase() !== address?.toLowerCase() && <p className="break-all">To {t.to}</p>}
-                {t.splits && t.splits.length > 0 && (
+                {t.from && t.from.toLowerCase() !== address?.toLowerCase() && !isRouterContract(t.from) && <p className="break-all">From {t.from}</p>}
+                {(() => {
+                  // Real receiving wallet: the stored recipient, or the only split leg — never the routing contract.
+                  const legs = t.transfers ?? [];
+                  const dest = t.to && !isRouterContract(t.to) ? t.to : legs.length === 1 ? legs[0]!.address : t.splits?.length === 1 ? t.splits[0]!.address : undefined;
+                  if (!dest) return null;
+                  return <p className="break-all">To {dest.toLowerCase() === address?.toLowerCase() ? `${dest} (your wallet)` : dest}</p>;
+                })()}
+                {t.splits && t.splits.length > 1 && (
                   <p className="break-words">
                     Split: {t.splits.map((s) => `${s.name || shortAddress(s.address)} ${(s.bps / 100).toFixed(2)}%`).join(" · ")}
                   </p>
                 )}
-                {t.transfers && t.transfers.length > 0 && (
+                {t.transfers && t.transfers.length > 1 && (
                   <div className="space-y-1 pt-1">
-                    <p>On-chain split transfers</p>
-                    {t.transfers.map((leg, i) => { const party = t.splits?.find((s) => s.address.toLowerCase() === leg.address.toLowerCase()); return <p key={`${leg.address}-${i}`} className="break-all">{party?.name || shortAddress(leg.address)} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>; })}
+                    <p>Recipients</p>
+                    {t.transfers.map((leg, i) => {
+                      const party = t.splits?.find((s) => s.address.toLowerCase() === leg.address.toLowerCase());
+                      const mine = leg.address.toLowerCase() === address?.toLowerCase();
+                      return <p key={`${leg.address}-${i}`} className="break-all">{party?.name ? `${party.name} · ` : ""}{shortAddress(leg.address)}{mine ? " (you)" : ""} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>;
+                    })}
                   </div>
                 )}
                 <a
