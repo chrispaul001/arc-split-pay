@@ -41,7 +41,7 @@ export function SplitRouter() {
   const { send: splitSend, phase, cancel: cancelSplit } = useSplitSend();
   const sending = phase !== "idle";
 
-  const [mode, setMode] = useState<"link" | "send">("link");
+  const [mode, setMode] = useState<"link" | "send">("send");
   const [token, setToken] = useState<CheckoutToken>(CHECKOUT_TOKENS[0]);
   const sym = mode === "send" ? token.symbol : "USDC";
   const [total, setTotal] = useState("");
@@ -165,8 +165,8 @@ export function SplitRouter() {
       <div className="glass animate-rise w-full max-w-full space-y-5 rounded-3xl px-4 py-5 sm:px-5">
         <div role="tablist" className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary/60 p-1">
           {([
-            ["link", "Create Payment Link"],
             ["send", "Direct Send"],
+            ["link", "Create Payment Link"],
           ] as const).map(([m, label]) => (
             <button
               key={m}
