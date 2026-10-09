@@ -26,6 +26,7 @@ export function Overview() {
 
   const history = useTxHistory(isConnected ? address : undefined);
   const [now, setNow] = useState(() => Date.now());
+  const [range, setRange] = useState<"24H" | "7D" | "30D" | "ALL">("24H");
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(timer);
@@ -50,12 +51,17 @@ export function Overview() {
   const totalVolume = allSettlements.reduce((sum, tx) => sum + tx.amount, 0);
   const settlements = allSettlements.filter((tx) => tx.timestamp >= start && tx.timestamp <= now);
   const settlementVolume = settlements.reduce((sum, tx) => sum + tx.amount, 0);
-  const bucketMs = DAY / BUCKETS;
-  const settlementPoints: TrendPoint[] = Array.from({ length: BUCKETS + 1 }, (_, i) => ({
-    timestamp: start + i * bucketMs,
-    value: i === 0 ? 0 : settlements.filter((tx) => tx.timestamp > start + (i - 1) * bucketMs && tx.timestamp <= start + i * bucketMs)
-      .reduce((sum, tx) => sum + tx.amount, 0),
-  }));
+  const firstTs = allSettlements.reduce((m, tx) => Math.min(m, tx.timestamp), now);
+  const rangeMs = range === "24H" ? DAY : range === "7D" ? 7 * DAY : range === "30D" ? 30 * DAY : Math.max(DAY, now - firstTs + DAY / 24);
+  const rangeStart = now - rangeMs;
+  const rangeTxs = allSettlements.filter((tx) => tx.timestamp > rangeStart && tx.timestamp <= now);
+  const rangeVolume = rangeTxs.reduce((s, tx) => s + tx.amount, 0);
+  const bucketMs = rangeMs / BUCKETS;
+  // Cumulative growth within the selected window: a smooth climbing curve instead of isolated needles.
+  const settlementPoints: TrendPoint[] = Array.from({ length: BUCKETS + 1 }, (_, i) => {
+    const t = rangeStart + i * bucketMs;
+    return { timestamp: t, value: rangeTxs.filter((tx) => tx.timestamp <= t).reduce((s, tx) => s + tx.amount, 0) };
+  });
   // Rolling 2-hour windows: shows *when* activity happened instead of a cumulative cliff.
   const SLOTS = 12;
   const slotMs = DAY / SLOTS;
