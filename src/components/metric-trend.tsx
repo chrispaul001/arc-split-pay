@@ -93,8 +93,9 @@ export function MetricTrend({ points, format, label, live = false, range }: {
   const line = smoothPath(xy);
   const tip = xy[xy.length - 1] ?? ([W, BOTTOM] as const);
   const sel = active === null ? null : values[active];
+  const pt = active === null ? null : xy[active];
   return (
-    <Shell label={label} summary={`latest ${format(values[values.length - 1].value)}`} count={values.length}
+    <Shell label={label} summary={`latest ${format((values[values.length - 1]?.value ?? 0))}`} count={values.length}
       active={active} setActive={setActive}
       tooltip={sel && <Tip value={format(sel.value)} sub={range ? range(sel, active!) : when(sel.timestamp)} />}>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible" aria-hidden="true">
@@ -111,10 +112,10 @@ export function MetricTrend({ points, format, label, live = false, range }: {
         <line x1="0" x2={W} y1={BOTTOM} y2={BOTTOM} stroke="var(--border)" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
         <path d={`${line} L${W},${H} L0,${H} Z`} fill={`url(#f${id})`} className="transition-[d] duration-700 ease-out" />
         <path d={line} fill="none" stroke={`url(#s${id})`} strokeWidth="2.25" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="transition-[d] duration-700 ease-out" />
-        {active !== null && <line x1={xy[active][0]} x2={xy[active][0]} y1={TOP - 4} y2={BOTTOM} stroke="var(--muted-foreground)" strokeOpacity="0.4" strokeDasharray="2 2" vectorEffect="non-scaling-stroke" />}
+        {pt && <line x1={pt[0]} x2={pt[0]} y1={TOP - 4} y2={BOTTOM} stroke="var(--muted-foreground)" strokeOpacity="0.4" strokeDasharray="2 2" vectorEffect="non-scaling-stroke" />}
       </svg>
       {/* Dots in HTML so they stay round despite the stretched SVG. */}
-      {active !== null && <span className="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-electric shadow" style={{ left: `${xy[active][0]}%`, top: `${(xy[active][1] / H) * 100}%` }} />}
+      {pt && <span className="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-electric shadow" style={{ left: `${pt[0]}%`, top: `${(pt[1] / H) * 100}%` }} />}
       {active === null && <span className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${tip[0]}%`, top: `${(tip[1] / H) * 100}%` }}>
         {live && <span className="absolute inset-0 m-auto size-2 animate-ping rounded-full bg-mint/70 motion-reduce:hidden" />}
         <span className={`relative block size-2 rounded-full border border-background ${live ? "bg-mint" : "bg-electric"}`} />
