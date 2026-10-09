@@ -155,3 +155,9 @@ export const SPLIT_ROUTER_ABI = [
     outputs: [],
   },
 ] as const;
+
+/** Earlier splitter deployment — kept so old history still resolves to real recipients. */
+export const LEGACY_SPLIT_ROUTER_ADDRESS = "0x0823872c2b78229091a834FBC0b6E6152DbB9fE5" as const;
+/** Contracts that only route funds; never display them as the payer or recipient. */
+export const isRouterContract = (a?: string | null) =>
+  !!a && [COINDECC_PAY_ADDRESS, SPLIT_ROUTER_ADDRESS, LEGACY_SPLIT_ROUTER_ADDRESS].some((c) => c.toLowerCase() === a.toLowerCase());
