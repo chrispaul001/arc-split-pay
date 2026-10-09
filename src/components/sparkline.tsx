@@ -85,6 +85,7 @@ export function Sparkline({
         />
         {!filled && <circle cx={points[points.length - 1]?.[0] ?? 0} cy={points[points.length - 1]?.[1] ?? 0} r={1.8} fill="var(--mint)" />}
       </svg>
+       {filled && data.length > 1 && tip && active === null && <span aria-hidden="true" className="pulse-dot pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-mint" style={{ left: `${tip[0]}%`, top: `${(tip[1] / h) * 100}%` }} />}
        {selected && active !== null && <>
          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 border-l border-dashed border-primary/50" style={{ left: `${points[active]?.[0] ?? 0}%` }} />
          <div aria-hidden="true" className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-mint shadow-[0_0_0_3px_var(--mint)]" style={{ left: `${points[active]?.[0] ?? 0}%`, top: `${((points[active]?.[1] ?? 0) / h) * 100}%` }} />
