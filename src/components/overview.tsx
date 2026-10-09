@@ -217,7 +217,9 @@ export function Overview() {
                 history.txs.slice(0, 6).map((e) => {
                   const me = address?.toLowerCase();
                   const incoming = e.to?.toLowerCase() === me || (e.from.toLowerCase() !== me);
-                  const party = incoming ? e.from : e.to;
+                  const legs = e.transfers ?? [];
+                  const realTo = e.to && !isRouterContract(e.to) ? e.to : legs.length === 1 ? legs[0]!.address : undefined;
+                  const party = incoming ? (isRouterContract(e.from) ? undefined : e.from) : realTo;
                   return (
                     <a
                       key={e.hash}
