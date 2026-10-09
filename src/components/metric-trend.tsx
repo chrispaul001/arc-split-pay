@@ -147,7 +147,7 @@ export function MetricWave({ value, total, label }: { value: number; total: numb
   const on = value > 0;
   const wave = (amp: number, phase: number) => {
     let d = `M0,${20 + amp * Math.sin(phase)}`;
-    for (let x = 2; x <= 200; x += 2) d += ` L${x},${(20 + amp * Math.sin(x / 16 + phase)).toFixed(2)}`;
+    for (let x = 2; x <= 200; x += 2) d += ` L${x},${(20 + amp * Math.sin((x / 100) * Math.PI * 2 + phase)).toFixed(2)}`;
     return d;
   };
   return (
@@ -155,8 +155,8 @@ export function MetricWave({ value, total, label }: { value: number; total: numb
       role="img" aria-label={`${label}: ${value} of ${total}`} tabIndex={0}
       onPointerEnter={() => setActive(true)} onPointerLeave={() => setActive(false)} onPointerDown={() => setActive(true)}
       onFocus={() => setActive(true)} onBlur={() => setActive(false)}>
-      <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-[200%]" aria-hidden="true">
-        <g className={on ? "animate-[wave-flow_3s_linear_infinite]" : "animate-[wave-flow_9s_linear_infinite]"}>
+      <svg viewBox="0 0 200 40" preserveAspectRatio="none" className={`h-full w-[200%] motion-reduce:animate-none ${on ? "animate-[wave-flow_3s_linear_infinite]" : "animate-[wave-flow_9s_linear_infinite]"}`} aria-hidden="true">
+        <g>
           <path d={wave(on ? 7 : 2, 0)} fill="none" stroke="var(--electric)" strokeOpacity={on ? 0.9 : 0.45} strokeWidth="2" vectorEffect="non-scaling-stroke" />
           <path d={wave(on ? 4 : 1.2, 1.8)} fill="none" stroke="var(--mint)" strokeOpacity={on ? 0.7 : 0.3} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
         </g>
