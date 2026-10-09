@@ -1,67 +1,173 @@
-import { useId, useState, type PointerEvent } from "react";
+import { useId, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 
 export type TrendPoint = { timestamp: number; value: number };
 
-export function MetricTrend({ points, format, label }: {
-  points: TrendPoint[]; format: (value: number) => string; label: string;
+const W = 100;
+const H = 40;
+const TOP = 6;
+const BOTTOM = 36;
+
+/** Monotone cubic (Fritsch–Carlson) path: smooth, never overshoots below zero. */
+function smoothPath(xy: (readonly [number, number])[]) {
+  const n = xy.length;
+  if (n < 2) return "";
+  const dx: number[] = [], m: number[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx.push(xy[i + 1][0] - xy[i][0]);
+    m.push((xy[i + 1][1] - xy[i][1]) / (dx[i] || 1));
+  }
+  const t: number[] = [m[0]];
+  for (let i = 1; i < n - 1; i++) t.push(m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2);
+  t.push(m[n - 2]);
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+  }
+  let d = `M${xy[0][0].toFixed(2)},${xy[0][1].toFixed(2)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dx[i] / 3;
+    d += ` C${(xy[i][0] + h).toFixed(2)},${(xy[i][1] + t[i] * h).toFixed(2)} ${(xy[i + 1][0] - h).toFixed(2)},${(xy[i + 1][1] - t[i + 1] * h).toFixed(2)} ${xy[i + 1][0].toFixed(2)},${xy[i + 1][1].toFixed(2)}`;
+  }
+  return d;
+}
+
+function Shell({ label, summary, count, active, setActive, children, tooltip }: {
+  label: string; summary: string; count: number; active: number | null;
+  setActive: (fn: (i: number | null) => number | null) => void; children: ReactNode; tooltip: ReactNode;
 }) {
-  const [active, setActive] = useState<number | null>(null);
-  const id = useId().replace(/:/g, "");
-  const values = points.length > 1 ? points : [{ timestamp: Date.now() - 3600000, value: 0 }, { timestamp: Date.now(), value: 0 }];
-  const max = Math.max(0, ...values.map((p) => p.value));
-  const min = Math.min(0, ...values.map((p) => p.value));
-  const span = Math.max(1, max - min);
-  const xy = values.map((p, i) => [i / (values.length - 1) * 100, 29 - (p.value - min) / span * 26] as const);
-  const path = xy.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
-  const onPointer = (event: PointerEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    setActive(Math.max(0, Math.min(values.length - 1, Math.round((event.clientX - rect.left) / rect.width * (values.length - 1)))));
+  const onPointer = (e: PointerEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const i = Math.round(((e.clientX - r.left) / r.width) * (count - 1));
+    setActive(() => Math.max(0, Math.min(count - 1, i)));
   };
-  const selected = active === null ? null : values[active];
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    setActive((i) => Math.max(0, Math.min(count - 1, (i ?? count - 1) + (e.key === "ArrowLeft" ? -1 : 1))));
+  };
   return (
-    <div className="relative h-12 w-32 max-w-[45%] shrink-0 touch-pan-y outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      role="img" aria-label={`${label} trend, latest ${format(values[values.length - 1]?.value ?? 0)}`}
-      tabIndex={0} onPointerMove={onPointer} onPointerDown={onPointer}
-      onPointerLeave={() => setActive(null)} onBlur={() => setActive(null)}
-      onFocus={() => setActive(values.length - 1)}
-      onKeyDown={(event) => {
-        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-          event.preventDefault();
-          setActive((i) => Math.max(0, Math.min(values.length - 1, (i ?? values.length - 1) + (event.key === "ArrowLeft" ? -1 : 1))));
-        }
-      }}>
-       <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="h-full w-full overflow-hidden" aria-hidden="true">
-        <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--electric)" stopOpacity="0.32" />
-          <stop offset="100%" stopColor="var(--electric)" stopOpacity="0" />
-        </linearGradient></defs>
-        <path d={`${path} L100,32 L0,32 Z`} fill={`url(#${id})`} />
-        <path d={path} fill="none" stroke="var(--electric)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-        {active !== null && <circle cx={xy[active]?.[0] ?? 0} cy={xy[active]?.[1] ?? 0} r="2" fill="var(--mint)" />}
-      </svg>
-      {selected && <div role="tooltip" className="pointer-events-none absolute right-0 bottom-full z-20 mb-1 min-w-max rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-popover-foreground shadow-md">
-        <strong className="block tabular-nums">{format(selected.value)}</strong>
-        <time dateTime={new Date(selected.timestamp).toISOString()} className="text-muted-foreground">
-          {new Date(selected.timestamp).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
-        </time>
-      </div>}
+    <div
+      className="relative h-14 w-36 max-w-[48%] shrink-0 cursor-crosshair touch-pan-y select-none rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      role="img" aria-label={`${label}: ${summary}`} tabIndex={0}
+      onPointerMove={onPointer} onPointerDown={onPointer}
+      onPointerLeave={() => setActive(() => null)} onPointerCancel={() => setActive(() => null)}
+      onBlur={() => setActive(() => null)} onFocus={() => setActive(() => count - 1)} onKeyDown={onKey}
+    >
+      {children}
+      {active !== null && tooltip}
     </div>
   );
 }
 
-export function MetricProgress({ value, total, label }: { value: number; total: number; label: string }) {
-  const [active, setActive] = useState(false);
-  const percent = total > 0 ? Math.min(100, Math.max(0, value / total * 100)) : 0;
-  return <div className="relative flex h-12 w-32 max-w-[45%] shrink-0 items-end pb-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    role="img" aria-label={`${label}: ${value} of ${total}`} tabIndex={0}
-    onPointerEnter={() => setActive(true)} onPointerLeave={() => setActive(false)}
-    onPointerDown={() => setActive(true)} onBlur={() => setActive(false)} onFocus={() => setActive(true)}>
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary" aria-hidden="true">
-      <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${percent}%` }} />
+function Tip({ value, sub }: { value: string; sub: string }) {
+  return (
+    <div role="tooltip" className="animate-in fade-in-0 zoom-in-95 pointer-events-none absolute right-0 bottom-full z-20 mb-2 min-w-max rounded-xl border border-border bg-popover/95 px-2.5 py-1.5 text-[11px] text-popover-foreground shadow-lg backdrop-blur duration-150">
+      <strong className="block text-xs tabular-nums">{value}</strong>
+      <span className="text-muted-foreground">{sub}</span>
     </div>
-    {active && <div role="tooltip" className="pointer-events-none absolute right-0 bottom-full z-20 mb-1 min-w-max rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-popover-foreground shadow-md">
-      <strong className="block tabular-nums">{value} active / {total} total</strong>
-      <time dateTime={new Date().toISOString()} className="text-muted-foreground">{new Date().toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}</time>
-    </div>}
-  </div>;
+  );
 }
+
+const when = (t: number) => new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+/** Smooth area spline with a live pulsing tip. */
+export function MetricTrend({ points, format, label, live = false, range }: {
+  points: TrendPoint[]; format: (v: number) => string; label: string; live?: boolean; range?: (p: TrendPoint, i: number) => string;
+}) {
+  const [active, setActive] = useState<number | null>(null);
+  const id = useId().replace(/:/g, "");
+  const now = Date.now();
+  const values = points.length > 1 ? points : [{ timestamp: now - 3600000, value: 0 }, { timestamp: now, value: 0 }];
+  const max = Math.max(...values.map((p) => p.value));
+  const min = Math.min(...values.map((p) => p.value));
+  const flat = max - min < 1e-9;
+  const span = flat ? 1 : max - min;
+  const pad = flat ? 0 : span * 0.08;
+  const xy = values.map((p, i) => [(i / (values.length - 1)) * W,
+    flat ? (max > 0 ? TOP + 10 : BOTTOM - 2) : BOTTOM - ((p.value - min + pad) / (span + pad * 2)) * (BOTTOM - TOP)] as const);
+  const line = smoothPath(xy);
+  const tip = xy[xy.length - 1];
+  const sel = active === null ? null : values[active];
+  return (
+    <Shell label={label} summary={`latest ${format(values[values.length - 1].value)}`} count={values.length}
+      active={active} setActive={setActive}
+      tooltip={sel && <Tip value={format(sel.value)} sub={range ? range(sel, active!) : when(sel.timestamp)} />}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible" aria-hidden="true">
+        <defs>
+          <linearGradient id={`f${id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--electric)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--electric)" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id={`s${id}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--electric)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--electric)" stopOpacity="1" />
+          </linearGradient>
+        </defs>
+        <line x1="0" x2={W} y1={BOTTOM} y2={BOTTOM} stroke="var(--border)" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
+        <path d={`${line} L${W},${H} L0,${H} Z`} fill={`url(#f${id})`} className="transition-[d] duration-700 ease-out" />
+        <path d={line} fill="none" stroke={`url(#s${id})`} strokeWidth="2.25" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="transition-[d] duration-700 ease-out" />
+        {active !== null && <line x1={xy[active][0]} x2={xy[active][0]} y1={TOP - 4} y2={BOTTOM} stroke="var(--muted-foreground)" strokeOpacity="0.4" strokeDasharray="2 2" vectorEffect="non-scaling-stroke" />}
+      </svg>
+      {/* Dots in HTML so they stay round despite the stretched SVG. */}
+      {active !== null && <span className="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-electric shadow" style={{ left: `${xy[active][0]}%`, top: `${(xy[active][1] / H) * 100}%` }} />}
+      {active === null && <span className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${tip[0]}%`, top: `${(tip[1] / H) * 100}%` }}>
+        {live && <span className="absolute inset-0 m-auto size-2 animate-ping rounded-full bg-mint/70 motion-reduce:hidden" />}
+        <span className={`relative block size-2 rounded-full border border-background ${live ? "bg-mint" : "bg-electric"}`} />
+      </span>}
+    </Shell>
+  );
+}
+
+/** Rounded frequency histogram, newest bar on the right. */
+export function MetricBars({ points, format, label, range }: {
+  points: TrendPoint[]; format: (v: number) => string; label: string; range: (p: TrendPoint, i: number) => string;
+}) {
+  const [active, setActive] = useState<number | null>(null);
+  const max = Math.max(1, ...points.map((p) => p.value));
+  const total = points.reduce((s, p) => s + p.value, 0);
+  const sel = active === null ? null : points[active];
+  return (
+    <Shell label={label} summary={`${format(total)} in range`} count={points.length} active={active} setActive={setActive}
+      tooltip={sel && <Tip value={format(sel.value)} sub={range(sel, active!)} />}>
+      <div className="flex h-full items-end gap-[3px] pb-1" aria-hidden="true">
+        {points.map((p, i) => {
+          const h = p.value > 0 ? 18 + (p.value / max) * 82 : 8;
+          const on = active === i;
+          return <span key={i} className={`flex-1 rounded-full transition-all duration-500 ease-out ${p.value > 0 ? on ? "bg-electric" : "bg-electric/75" : on ? "bg-muted-foreground/40" : "bg-secondary"} ${i === points.length - 1 && p.value > 0 ? "shadow-[0_0_10px_var(--electric)]" : ""}`} style={{ height: `${h}%` }} />;
+        })}
+      </div>
+    </Shell>
+  );
+}
+
+/** Flowing wave: calm standby when idle, layered ripple when streams run. */
+export function MetricWave({ value, total, label }: { value: number; total: number; label: string }) {
+  const [active, setActive] = useState(false);
+  const on = value > 0;
+  const wave = (amp: number, phase: number) => {
+    let d = `M0,${20 + amp * Math.sin(phase)}`;
+    for (let x = 2; x <= 200; x += 2) d += ` L${x},${(20 + amp * Math.sin(x / 16 + phase)).toFixed(2)}`;
+    return d;
+  };
+  return (
+    <div className="relative h-14 w-36 max-w-[48%] shrink-0 overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      role="img" aria-label={`${label}: ${value} of ${total}`} tabIndex={0}
+      onPointerEnter={() => setActive(true)} onPointerLeave={() => setActive(false)} onPointerDown={() => setActive(true)}
+      onFocus={() => setActive(true)} onBlur={() => setActive(false)}>
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-[200%]" aria-hidden="true">
+        <g className={on ? "animate-[wave-flow_3s_linear_infinite]" : "animate-[wave-flow_9s_linear_infinite]"}>
+          <path d={wave(on ? 7 : 2, 0)} fill="none" stroke="var(--electric)" strokeOpacity={on ? 0.9 : 0.45} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <path d={wave(on ? 4 : 1.2, 1.8)} fill="none" stroke="var(--mint)" strokeOpacity={on ? 0.7 : 0.3} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+        </g>
+      </svg>
+      <span className={`absolute right-1 bottom-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${on ? "bg-mint/15 text-mint" : "bg-secondary text-muted-foreground"}`}>
+        {on ? `${value}/${total} live` : "Standby"}
+      </span>
+      {active && <Tip value={`${value} active / ${total} total`} sub={on ? "Streaming per second" : "Ready to stream"} />}
+    </div>
+  );
+}
+
+/** Back-compat alias. */
+export const MetricProgress = MetricWave;
