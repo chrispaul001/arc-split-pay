@@ -84,13 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CoindeccPay — Accept, Split & Stream USDC" },
+      { title: "CoindeccPay - Accept, Split & Stream USDC" },
       {
         name: "description",
         content:
           "Non-custodial payment infrastructure on Arc Network—powering direct payments, multi-wallet splits, and real-time streaming payouts in a single signature.",
       },
-      { property: "og:title", content: "CoindeccPay — Accept, Split & Stream USDC" },
+      { property: "og:title", content: "CoindeccPay - Accept, Split & Stream USDC" },
       {
         property: "og:description",
         content:
