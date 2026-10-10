@@ -34,8 +34,7 @@ import { OnchainCheckout } from "@/components/onchain-checkout";
 import { ConnectWallet } from "@/components/connect-wallet";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { Reveal } from "@/components/reveal";
-import logoLight from "@/assets/coindecc-logo-light.png.asset.json";
-import logoDark from "@/assets/coindecc-logo-dark.png.asset.json";
+import logoTile from "@/assets/coindecc-tile.png.asset.json";
 
 const NAV = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
@@ -259,15 +258,11 @@ function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <img
-        src={logoDark.url}
+        src={logoTile.url}
         alt="CoindeccPay logo"
-        className="h-10 w-auto shrink-0 self-center object-contain dark:hidden"
-      />
-      <img
-        src={logoLight.url}
-        alt=""
-        aria-hidden="true"
-        className="hidden h-10 w-auto shrink-0 self-center object-contain dark:block"
+        width={40}
+        height={40}
+        className="size-10 shrink-0 self-center rounded-[22%] shadow-md ring-1 ring-border"
       />
 
 
