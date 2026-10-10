@@ -270,8 +270,8 @@ function Brand() {
 
       <span className="min-w-0">
         <span className="block truncate font-display text-base font-bold">CoindeccPay</span>
-        <span className="block truncate text-[10px] tracking-wider text-muted-foreground uppercase">
-          Arc Network
+        <span className="block truncate text-[11px] font-medium text-muted-foreground">
+          Accept, Split & Stream USDC
         </span>
       </span>
     </div>
