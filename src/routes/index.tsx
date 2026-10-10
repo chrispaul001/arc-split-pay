@@ -8,17 +8,17 @@ const DashboardApp = lazy(() => import("@/components/dashboard-app"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CoindeccPay" },
+      { title: "CoindeccPay — Accept, Split & Stream USDC" },
       {
         name: "description",
         content:
-          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
+          "Non-custodial payment infrastructure on Arc Network—powering direct payments, multi-wallet splits, and real-time streaming payouts in a single signature.",
       },
-      { property: "og:title", content: "CoindeccPay | Instant USDC Merchant & Split Gateway" },
+      { property: "og:title", content: "CoindeccPay — Accept, Split & Stream USDC" },
       {
         property: "og:description",
         content:
-          "Deploy embeddable USDC checkout links, automated split-routing, and real-time on-chain telemetry on Arc.",
+          "Non-custodial payment infrastructure on Arc Network—powering direct payments, multi-wallet splits, and real-time streaming payouts in a single signature.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
