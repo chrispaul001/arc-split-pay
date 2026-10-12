@@ -67,6 +67,18 @@ export function SplitRouter() {
 
   useFxRates();
   const c = getCurrency(currency);
+  const [btcUsd, setBtcUsd] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot")
+        .then((r) => r.json())
+        .then((j) => { const p = Number(j?.data?.amount); if (alive && p > 0) setBtcUsd(p); })
+        .catch(() => {});
+    load();
+    const t = window.setInterval(load, 60_000);
+    return () => { alive = false; window.clearInterval(t); };
+  }, []);
 
   const link = useMemo(
     () =>
