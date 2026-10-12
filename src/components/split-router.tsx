@@ -17,7 +17,7 @@ import { WalletStallHelper } from "@/components/wallet-stall-helper";
 import { WALLET_TIMEOUT_MESSAGE, isCancelled, isTimeout } from "@/lib/wallet-guard";
 import { errMessage } from "@/lib/use-pay";
 import { showLinkPublished } from "@/components/link-share";
-import { Send } from "lucide-react";
+import { SendHorizontal as Send } from "lucide-react";
 import { CHECKOUT_TOKENS, type CheckoutToken } from "@/lib/web3";
 
 
