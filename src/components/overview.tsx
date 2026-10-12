@@ -1,7 +1,7 @@
 import { Sparkline } from "./sparkline";
 import { Reveal } from "./reveal";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowUpRight, Coins, Waves, Split, Zap, ShieldCheck, Wallet, Activity, WalletCards, Workflow } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
 import { Button } from "./ui/button";
@@ -96,11 +96,11 @@ export function Overview() {
       value: history.loading && !history.txs.length ? "…" : fmt(totalVolume),
       zero: "$0.00",
       delta: `${allSettlements.length} settled · ${fmt(settlementVolume)} in 24h`,
-      icon: Zap,
+      icon: Activity,
       hasValue: totalVolume > 0,
       trend: volumePoints, format: fmt, bars: false,
     },
-    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: Coins, hasValue: Number(formatted) > 0, trend: balancePoints, format: fmt },
+    { label: "Wallet Balance (USDC)", value: liveBalance, zero: "$0.00", delta: "Live on Arc", icon: WalletCards, hasValue: Number(formatted) > 0, trend: balancePoints, format: fmt },
     {
       label: "Active Payment Streams",
       value: String(activeStreams),
@@ -115,7 +115,7 @@ export function Overview() {
       value: String(splitExecutions),
       zero: "0",
       delta: splitExecutions ? "Settled on Arc" : "None yet",
-      icon: Split,
+      icon: Workflow,
       hasValue: splitExecutions > 0,
       trend: splitPoints, format: (n: number) => `${n} split${n === 1 ? "" : "s"}`, bars: true,
     },

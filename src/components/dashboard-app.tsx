@@ -2,6 +2,14 @@ import { useState } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
   Bell,
+  QrCode,
+  Workflow,
+  Store,
+  Waves,
+  Layers,
+  ArrowLeftRight,
+  SlidersHorizontal,
+  Terminal,
   CreditCard,
   KeyRound,
   LayoutDashboard,
@@ -37,14 +45,14 @@ import { Reveal } from "@/components/reveal";
 import logoTile from "@/assets/coindecc-tile.png.asset.json";
 
 const NAV = [
-  { key: "overview", label: "Overview", icon: LayoutDashboard },
-  { key: "transactions", label: "Transactions", icon: History },
-  { key: "links", label: "Payment Links", icon: CreditCard },
-  { key: "split", label: "Split Router", icon: Split },
-  { key: "checkout", label: "Checkout", icon: Wallet },
-  { key: "streams", label: "Streams", icon: Radio },
-  { key: "keys", label: "API Keys", icon: KeyRound },
-  { key: "settings", label: "Settings", icon: Settings },
+  { key: "overview", label: "Overview", icon: Layers },
+  { key: "transactions", label: "Transactions", icon: ArrowLeftRight },
+  { key: "links", label: "Payment Links", icon: QrCode },
+  { key: "split", label: "Split Router", icon: Workflow },
+  { key: "checkout", label: "Checkout", icon: Store },
+  { key: "streams", label: "Streams", icon: Waves },
+  { key: "keys", label: "API Keys", icon: Terminal },
+  { key: "settings", label: "Settings", icon: SlidersHorizontal },
 ] as const;
 
 type ViewKey = (typeof NAV)[number]["key"];
