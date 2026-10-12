@@ -182,7 +182,7 @@ function DashboardShell() {
               <Button
                 size="sm"
                 variant="secondary"
-                className="hidden sm:inline-flex"
+                className="hidden md:inline-flex"
                 onClick={() => setView("split")}
               >
                 <Plus className="size-4" /> New link
