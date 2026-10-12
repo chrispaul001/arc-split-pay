@@ -404,3 +404,9 @@
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+
+@keyframes splash-bar { 0% { left: -35%; } 100% { left: 100%; } }
+.splash-bar { animation: splash-bar 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+@keyframes splash-glow { 0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.95); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } }
+.splash-glow { animation: splash-glow 3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .splash-bar, .splash-glow { animation: none; } }

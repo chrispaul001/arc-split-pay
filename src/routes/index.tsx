@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
+import logoTile from "@/assets/coindecc-tile.png.asset.json";
 
 // The wallet libraries (RainbowKit / Wagmi / MetaMask SDK) crash when evaluated
 // on the edge server, so the whole dashboard is loaded only in the browser.
@@ -29,11 +30,33 @@ export const Route = createFileRoute("/")({
 
 function LoadingShell() {
   return (
-    <div className="app-gradient flex min-h-screen w-full items-center justify-center px-4">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <span className="pulse-dot size-2.5 rounded-full bg-primary" />
-        <p className="font-display text-lg font-bold text-foreground">CoindeccPay</p>
-        <p className="text-xs text-muted-foreground">Loading your dashboard…</p>
+    <div
+      role="status"
+      aria-label="Loading CoindeccPay"
+      className="app-gradient relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6"
+    >
+      <div className="pointer-events-none absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-3xl splash-glow" />
+      <div className="relative flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-700">
+        <div className="flex items-center gap-3.5">
+          <img
+            src={logoTile.url}
+            alt=""
+            width={56}
+            height={56}
+            className="size-14 shrink-0 rounded-[22%] shadow-lg ring-1 ring-border"
+          />
+          <div className="text-left">
+            <p className="font-display text-2xl font-bold tracking-tight text-foreground">CoindeccPay</p>
+            <p className="text-xs font-medium text-muted-foreground">Accept, Split &amp; Stream USDC</p>
+          </div>
+        </div>
+        <div className="relative mt-9 h-0.5 w-44 overflow-hidden rounded-full bg-border">
+          <span className="splash-bar absolute inset-y-0 w-1/3 rounded-full bg-primary" />
+        </div>
+        <p className="mt-5 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="pulse-dot size-1.5 rounded-full bg-primary" />
+          Connecting to Arc Network
+        </p>
       </div>
     </div>
   );
