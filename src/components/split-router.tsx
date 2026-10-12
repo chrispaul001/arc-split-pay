@@ -168,7 +168,7 @@ export function SplitRouter() {
 
   if (!connected)
     return (
-      <GuestEmpty description="Connect your wallet to create split-router links." />
+      <GuestEmpty description="Connect your wallet to send splits or create payment links." />
     );
 
   return (
@@ -195,9 +195,11 @@ export function SplitRouter() {
         </div>
         <div className="flex w-full min-w-0 flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold break-words">Split-Router link builder</h3>
+            <h3 className="text-lg font-semibold break-words">{mode === "send" ? "Direct split send" : "Split-Router link builder"}</h3>
             <p className="text-xs break-words text-muted-foreground">
-              Route incoming USDC across parties atomically at settlement.
+              {mode === "send"
+                ? `Pay every recipient from your wallet in one atomic ${token.symbol} transaction.`
+                : "Create a shareable checkout link that routes incoming USDC across parties at settlement."}
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
@@ -266,12 +268,14 @@ export function SplitRouter() {
               className="bg-background/40 font-display text-lg"
             />
             <p className="mt-1.5 text-xs text-muted-foreground tabular-nums">
-              {mode !== "send" || token.symbol === "USDC" ? (
+              {mode !== "send" ? (
                 <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC · 1 USDC = $1 USD{currency !== "USD" && <> · ≈ {formatLocal(amount, currency)}</>}</>
+              ) : token.symbol === "USDC" ? (
+                <>You send {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC · 1 USDC = $1 USD{currency !== "USD" && <> · ≈ {formatLocal(amount, currency)}</>}</>
               ) : token.symbol === "EURC" ? (
-                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} EURC · 1 EURC = €1 EUR</>
+                <>You send {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} EURC · 1 EURC = €1 EUR</>
               ) : (
-                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} cirBTC · 1 cirBTC = 1 BTC{btcUsd ? <> (~${(amount * btcUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} USD)</> : null}</>
+                <>You send {amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} cirBTC · 1 cirBTC = 1 BTC{btcUsd ? <> (~${(amount * btcUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} USD)</> : null}</>
               )}
             </p>
           </div>
@@ -280,7 +284,7 @@ export function SplitRouter() {
             <Input
               id="ref"
               value={reference}
-              placeholder="e.g. invoice number"
+              placeholder={mode === "send" ? "e.g. payroll, revenue share" : "e.g. invoice number"}
               onChange={(e) => setReference(e.target.value)}
               className="bg-background/40"
             />
@@ -300,13 +304,15 @@ export function SplitRouter() {
 
         </div>
 
-        <ImageUpload
-          compact
-          label="Product image"
-          hint="PNG, JPG or SVG up to 2MB"
-          value={product}
-          onChange={(v) => setImage("product", v)}
-        />
+        {mode === "link" && (
+          <ImageUpload
+            compact
+            label="Product image"
+            hint="PNG, JPG or SVG up to 2MB"
+            value={product}
+            onChange={(v) => setImage("product", v)}
+          />
+        )}
 
         <div className="space-y-3 border-t border-border/40 pt-4">
           {parties.map((p, i) => {
@@ -397,9 +403,11 @@ export function SplitRouter() {
                 <p className="mt-2 text-xs break-words text-muted-foreground">
                   Receives{" "}
                   <span className="font-semibold text-foreground tabular-nums">
-                    {((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
-                  </span>{" "}
-                  <span className="tabular-nums">≈ {formatLocal((amount * p.bps) / 10000, currency)}</span>
+                    {((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: mode === "send" && token.symbol === "cirBTC" ? 8 : 2 })} {sym}
+                  </span>
+                  {(mode !== "send" || token.symbol === "USDC") && (
+                    <> <span className="tabular-nums">≈ {formatLocal((amount * p.bps) / 10000, currency)}</span></>
+                  )}
                 </p>
               </div>
             );
