@@ -68,17 +68,25 @@ export function SplitRouter() {
   useFxRates();
   const c = getCurrency(currency);
   const [btcUsd, setBtcUsd] = useState<number | null>(null);
+  const [eurUsd, setEurUsd] = useState<number | null>(null);
   useEffect(() => {
     let alive = true;
-    const load = () =>
-      fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot")
+    const get = (pair: string, set: (n: number) => void) =>
+      fetch(`https://api.coinbase.com/v2/prices/${pair}/spot`)
         .then((r) => r.json())
-        .then((j) => { const p = Number(j?.data?.amount); if (alive && p > 0) setBtcUsd(p); })
+        .then((j) => { const p = Number(j?.data?.amount); if (alive && p > 0) set(p); })
         .catch(() => {});
+    const load = () => { get("BTC-USD", setBtcUsd); get("EUR-USD", setEurUsd); };
     load();
     const t = window.setInterval(load, 60_000);
     return () => { alive = false; window.clearInterval(t); };
   }, []);
+  /** Token-aware local-currency estimate; null when no reliable price is available. */
+  const fiatOf = (units: number): string | null => {
+    const s = mode === "send" ? token.symbol : "USDC";
+    const usdPer = s === "USDC" ? 1 : s === "EURC" ? eurUsd : btcUsd;
+    return usdPer ? formatLocal(units * usdPer, currency) : null;
+  };
 
   const link = useMemo(
     () =>
@@ -405,8 +413,8 @@ export function SplitRouter() {
                   <span className="font-semibold text-foreground tabular-nums">
                     {((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: mode === "send" && token.symbol === "cirBTC" ? 8 : 2 })} {sym}
                   </span>
-                  {(mode !== "send" || token.symbol === "USDC") && (
-                    <> <span className="tabular-nums">≈ {formatLocal((amount * p.bps) / 10000, currency)}</span></>
+                  {fiatOf((amount * p.bps) / 10000) && (
+                    <> <span className="tabular-nums">≈ {fiatOf((amount * p.bps) / 10000)}</span></>
                   )}
                 </p>
               </div>
@@ -483,9 +491,11 @@ export function SplitRouter() {
               </span>
               <span className="shrink-0 text-right font-mono text-xs tabular-nums">
                 <span className="block">{((amount * p.bps) / 10000).toLocaleString(undefined, { maximumFractionDigits: mode === "send" ? token.decimals : 2 })} {sym}</span>
-                <span className="block text-[10px] text-muted-foreground">
-                  {formatLocal((amount * p.bps) / 10000, currency)}
-                </span>
+                {fiatOf((amount * p.bps) / 10000) && (
+                  <span className="block text-[10px] text-muted-foreground">
+                    ≈ {fiatOf((amount * p.bps) / 10000)}
+                  </span>
+                )}
               </span>
             </li>
           ))}
