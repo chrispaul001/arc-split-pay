@@ -253,13 +253,13 @@ export function SplitRouter() {
               }}
               className="bg-background/40 font-display text-lg"
             />
-            <p className="text-[11px] text-muted-foreground tabular-nums">
+            <p className="mt-1.5 text-xs text-muted-foreground tabular-nums">
               {mode !== "send" || token.symbol === "USDC" ? (
-                <>Customer sees {formatLocal(amount, currency)} · 1 USDC = {c.symbol}{c.rate.toLocaleString()}</>
+                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC · 1 USDC = $1 USD{currency !== "USD" && <> · ≈ {formatLocal(amount, currency)}</>}</>
               ) : token.symbol === "EURC" ? (
-                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} EURC · 1 EURC = €1</>
+                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} EURC · 1 EURC = €1 EUR</>
               ) : (
-                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} cirBTC · 1 cirBTC = 1 BTC</>
+                <>Customer pays {amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} cirBTC · 1 cirBTC = 1 BTC{btcUsd ? <> (~${(amount * btcUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} USD)</> : null}</>
               )}
             </p>
           </div>
