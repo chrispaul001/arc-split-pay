@@ -123,50 +123,6 @@ export function Overview() {
 
   return (
     <div className="min-w-0 w-full space-y-6 overflow-x-clip">
-      <section className="glass overview-surface animate-rise relative w-full min-w-0 overflow-hidden rounded-[2rem] px-5 py-6 sm:px-8 sm:py-8">
-        <div aria-hidden="true" className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-primary/20 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-10 size-56 rounded-full bg-mint/15 blur-3xl" />
-        <div className="relative grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-              <span className="pulse-dot size-1.5 rounded-full bg-mint" />
-              Arc Testnet Gateway
-            </span>
-            <h2 className="mt-4 text-3xl leading-[1.05] font-bold sm:text-5xl">
-              Merchant <span className="text-muted-foreground">overview</span>
-            </h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Non-custodial USDC settlements, splits and streams — signed by your wallet, settled on Arc.
-            </p>
-            <p className="mt-6 text-xs font-medium tracking-wide text-muted-foreground uppercase">Available balance</p>
-            <p className="font-display text-4xl font-bold tabular-nums sm:text-6xl">
-              {isConnected ? liveBalance : "$0.00"}
-              <span className="ml-2 text-base font-semibold text-muted-foreground sm:text-lg">USDC</span>
-            </p>
-          </div>
-          <div className="grid min-w-0 grid-cols-2 gap-3 lg:w-80">
-            <div className="rounded-3xl bg-background/60 p-4 ring-1 ring-border">
-              <span className="grid size-8 place-items-center rounded-full bg-mint/15 text-mint">
-                <ArrowUpRight className="size-4" />
-              </span>
-              <p className="mt-3 text-[11px] font-medium text-muted-foreground">Settled · 24h</p>
-              <p className="truncate font-display text-lg font-bold tabular-nums">{isConnected ? fmt(settlementVolume) : "$0.00"}</p>
-            </div>
-            <div className="rounded-3xl bg-background/60 p-4 ring-1 ring-border">
-              <span className="grid size-8 place-items-center rounded-full bg-primary/15 text-primary">
-                <Split className="size-4" />
-              </span>
-              <p className="mt-3 text-[11px] font-medium text-muted-foreground">Splits routed</p>
-              <p className="truncate font-display text-lg font-bold tabular-nums">{isConnected ? splitExecutions : 0}</p>
-            </div>
-            {!isConnected && (
-              <Button className="col-span-2 rounded-full" onClick={connectWallet}>
-                <Wallet className="size-4" /> Connect Wallet
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
       <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((m, i) => (
           <div
