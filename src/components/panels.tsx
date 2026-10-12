@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Copy, Eye, EyeOff, KeyRound, LifeBuoy, Link2, Mail, Plus, Trash2 } from "lucide-react";
 import { GuestBanner, GuestEmpty, useSaveGate, useWalletGate } from "@/components/guest-gate";
 import { copyPaymentLink } from "@/components/link-share";
@@ -190,15 +194,41 @@ export function ApiKeys() {
                   <span className="text-[11px] break-words text-muted-foreground">
                     {new Date(k.createdAt).toLocaleDateString()}
                   </span>
-                  <button
-                    aria-label={`Revoke ${k.label}`}
-                    onClick={() =>
-                      update((p) => ({ ...p, apiKeys: p.apiKeys.filter((x) => x.id !== k.id) }))
-                    }
-                    className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        aria-label={`Revoke ${k.label}`}
+                        className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Revoke {k.label} key?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Any server or integration using the key ending in …{k.value.slice(-4)} will stop working immediately. This can't be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => {
+                            update((p) => ({ ...p, apiKeys: p.apiKeys.filter((x) => x.id !== k.id) }));
+                            notify({
+                              kind: "system",
+                              title: "API key revoked",
+                              body: `${k.label} key (…${k.value.slice(-4)}) revoked for ${address?.slice(0, 6)}…`,
+                            });
+                            toast.success("API key revoked", { description: `${k.label} key can no longer be used.` });
+                          }}
+                        >
+                          Revoke key
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
               <p className="mt-2 truncate font-mono text-xs">
