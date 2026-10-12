@@ -163,7 +163,7 @@ function DashboardShell() {
                 <Menu className="size-5" />
               </button>
               <div className="min-w-0">
-                <h1 className="truncate font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">{current.label}</h1>
+                <h1 className="truncate font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">{current.label}</h1>
                 <span className="mt-0.5 hidden items-center gap-1.5 whitespace-nowrap text-[11px] font-medium text-muted-foreground sm:inline-flex 2xl:hidden">
                   <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" />
                   Arc Mainnet · USDC Gas
