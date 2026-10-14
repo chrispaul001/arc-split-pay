@@ -207,7 +207,7 @@ export function ApiKeys() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Revoke {k.label} key?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Any server or integration using the key ending in …{k.value.slice(-4)} will stop working immediately. This can't be undone.
+                          Any server or integration using the key ending in ... {k.value.slice(-4)} will stop working immediately. This cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
