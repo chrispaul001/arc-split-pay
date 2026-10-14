@@ -220,10 +220,10 @@ export function CheckoutPreview() {
           <h3 className="text-lg font-semibold">Why it converts</h3>
           <ul className="mt-4 space-y-3 text-sm">
             {[
-              ["Local pricing", "Shoppers see NGN, GHS, KES, ZAR or USD — you settle in USDC."],
-              ["Sub-second settlement", "Funds finalize on Arc before the page animation ends."],
-              ["Zero-gas buyer", "Native USDC gas is sponsored — no second token required."],
-              ["Atomic splits", "Every party is paid in the same transaction."],
+              ["Local pricing", "Shoppers see NGN, GHS, KES, ZAR or USD — you settle directly in USDC."],
+              ["Sub-second settlement", "Funds finalize on Arc in under half a second."],
+              ["Zero extra gas tokens", "Native USDC gas on Arc — buyers never need ETH or secondary gas tokens."],
+              ["Atomic splits", "Single-transaction payment splits executed instantly on-chain to save fees."],
             ].map(([t, d]) => (
               <li key={t} className="flex gap-3 w-full min-w-0 rounded-2xl bg-secondary/50 p-3">
                 <Zap className="mt-0.5 size-4 shrink-0 text-mint" />
