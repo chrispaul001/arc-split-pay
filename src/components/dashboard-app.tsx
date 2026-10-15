@@ -1,3 +1,4 @@
+import { NetworkStatus } from "@/components/network-status";
 import { useState } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
@@ -164,18 +165,11 @@ function DashboardShell() {
               </button>
               <div className="min-w-0">
                 <h1 className="truncate font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">{current.label}</h1>
-                <span className="mt-0.5 hidden items-center gap-1.5 whitespace-nowrap text-[11px] font-medium text-muted-foreground sm:inline-flex 2xl:hidden">
-                  <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" />
-                  Arc Mainnet · USDC Gas
-                </span>
+                <NetworkStatus className="mt-0.5 !px-2 !py-0.5" />
               </div>
             </div>
 
             <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
-              <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-[11px] font-semibold 2xl:inline-flex">
-                <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" />
-                Arc Mainnet — USDC Gas
-              </span>
               <div className="hidden lg:block">
                 <ConnectWallet compact />
               </div>
