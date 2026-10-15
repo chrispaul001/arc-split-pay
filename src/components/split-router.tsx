@@ -13,6 +13,7 @@ import { Copy, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore } from "@/lib/merchant-store";
 import { useSplitSend } from "@/lib/use-split-send";
+import { useWrongNetwork } from "@/components/network-status";
 import { WalletStallHelper } from "@/components/wallet-stall-helper";
 import { WALLET_TIMEOUT_MESSAGE, isCancelled, isTimeout } from "@/lib/wallet-guard";
 import { errMessage } from "@/lib/use-pay";
@@ -39,6 +40,7 @@ export function SplitRouter() {
   const { product, setImage } = useBrand();
   const { address, update: saveMerchant, notify } = useMerchantStore();
   const { send: splitSend, phase, cancel: cancelSplit } = useSplitSend();
+  const net = useWrongNetwork();
   const sending = phase !== "idle";
 
   const [mode, setMode] = useState<"link" | "send">("send");
@@ -146,6 +148,7 @@ export function SplitRouter() {
   };
 
   const sendNow = async (): Promise<void> => {
+    if (net.wrong) { await net.switchToArc(); return; }
     const id = toast.loading("Processing Split...", { description: "Confirm the transaction in your wallet." });
     toastRef.current = id;
     try {
@@ -506,8 +509,8 @@ export function SplitRouter() {
             <p className="rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
               Every recipient is paid in one transaction on Arc — you sign once. The very first send also asks for a one-time {token.symbol} spending approval.
             </p>
-            <Button className="w-full" disabled={!balanced || amount <= 0 || sending} onClick={sendNow}>
-              <Send className="size-4" /> {phase === "approving" ? `Approving ${token.symbol}…` : phase === "processing" ? "Processing Split..." : "Send Now"}
+            <Button className="w-full" disabled={!balanced || amount <= 0 || sending || net.switching} onClick={sendNow}>
+              <Send className="size-4" /> {net.wrong ? "Switch to Arc to send" : phase === "approving" ? `Approving ${token.symbol}…` : phase === "processing" ? "Processing Split..." : "Send Now"}
             </Button>
             {sending && (
               <WalletStallHelper
