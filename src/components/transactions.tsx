@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { ExternalLink, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
 const KIND_LABEL: Record<TxKind, string> = { payment: "Checkout payment", split: "Split payout", stream: "Stream payout" };
 const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
 
-export function Transactions() {
+export function Transactions({ focusHash }: { focusHash?: string } = {}) {
   const connected = useWalletGate();
   const { address } = useAccount();
   const { txs, chain, loading, backfilling } = useTxHistory(address);
@@ -27,6 +27,20 @@ export function Transactions() {
         (!s || [t.hash, t.to, t.label].some((v) => v?.toLowerCase().includes(s))),
     );
   }, [txs, filter, q]);
+
+  const [flash, setFlash] = useState<string | undefined>();
+  const focusFound = !!focusHash && txs.some((t) => t.hash.toLowerCase() === focusHash);
+  useEffect(() => {
+    if (!focusHash || !focusFound) return;
+    setFilter("all");
+    setQ("");
+    setFlash(focusHash);
+    const id = requestAnimationFrame(() =>
+      document.getElementById(`tx-${focusHash}`)?.scrollIntoView({ behavior: "smooth", block: "center" }),
+    );
+    const t = setTimeout(() => setFlash(undefined), 4000);
+    return () => { cancelAnimationFrame(id); clearTimeout(t); };
+  }, [focusHash, focusFound]);
 
   if (!connected) return <GuestEmpty description="Connect your wallet to view your history." />;
 
@@ -77,7 +91,11 @@ export function Transactions() {
       ) : (
         <ul className="space-y-2">
           {shown.map((t) => (
-            <li key={t.hash} className="rounded-2xl bg-secondary/50 p-4">
+            <li
+              key={t.hash}
+              id={`tx-${t.hash.toLowerCase()}`}
+              className={`rounded-2xl bg-secondary/50 p-4 transition-shadow duration-700 ${flash === t.hash.toLowerCase() ? "ring-2 ring-primary shadow-[0_0_24px_-4px_var(--primary)]" : "ring-0"}`}
+            >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{t.label || KIND_LABEL[t.kind]}</p>
