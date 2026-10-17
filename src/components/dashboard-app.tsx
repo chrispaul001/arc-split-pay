@@ -74,6 +74,22 @@ function DashboardShell() {
   const { theme, toggle } = useTheme();
   const [view, setView] = useState<ViewKey>("overview");
   const [navOpen, setNavOpen] = useState(false);
+  const [focusTx, setFocusTx] = useState<string | undefined>();
+
+  // Deep links from push alerts: /?tab=transactions&tx=<hash>
+  useEffect(() => {
+    const apply = () => {
+      const p = new URLSearchParams(window.location.search);
+      const tab = p.get("tab");
+      if (tab && NAV.some((n) => n.key === tab)) setView(tab as ViewKey);
+      const tx = p.get("tx");
+      if (tx && /^0x[0-9a-fA-F]{64}$/.test(tx)) setFocusTx(tx.toLowerCase());
+      if (tab || tx) window.history.replaceState(null, "", window.location.pathname);
+    };
+    apply();
+    window.addEventListener("popstate", apply);
+    return () => window.removeEventListener("popstate", apply);
+  }, []);
 
   const current = NAV.find((n) => n.key === view)!;
 
