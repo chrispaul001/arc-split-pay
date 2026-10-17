@@ -1,5 +1,5 @@
 import { NetworkStatus } from "@/components/network-status";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
   Bell,
