@@ -54,13 +54,14 @@ export const sendTxPush = createServerFn({ method: "POST" })
     const { data: rows } = await supabaseAdmin.from("push_tokens").select("token").eq("address", address);
     if (!rows?.length) return { sent: 0 };
 
-    const amt = amount.toLocaleString("en-US", { maximumFractionDigits: 6 });
-    const title = "Payment Received! 🚀";
+    const amt = amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+    const title = "Payment received";
     const from = `${sender.slice(0, 6)}…${sender.slice(-4)}`;
     const body = isSplit
-      ? `Your split link just received ${amt} USDC on Arc Network from ${from}.`
-      : `You just received ${amt} USDC on Arc Network from ${from}.`;
+      ? `Your split link received ${amt} USDC from ${from} on Arc Network.`
+      : `${amt} USDC received from ${from} on Arc Network.`;
     const explorer = explorerTx(data.hash);
+    const appUrl = `${data.origin}/?tab=transactions&tx=${data.hash}`;
     let sent = 0;
     for (const { token } of rows) {
       const res = await fetch(`${GATEWAY_URL}/v1/projects/_/messages:send`, {
