@@ -172,7 +172,8 @@ export function Streams() {
             open ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
           }`}
         >
-          <div className="grid min-h-0 gap-3 overflow-hidden rounded-2xl bg-secondary/50 p-4 sm:grid-cols-2">
+          <div className="min-h-0 overflow-hidden">
+            <div className="grid gap-3 rounded-2xl bg-secondary/50 p-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="s-name">Recipient</Label>
               <Input
@@ -262,6 +263,7 @@ export function Streams() {
             <Button className="sm:col-span-2" onClick={create}>
               Start stream
             </Button>
+            </div>
           </div>
         </div>
 
