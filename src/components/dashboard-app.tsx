@@ -1,4 +1,3 @@
-import { NetworkStatus } from "@/components/network-status";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
@@ -155,12 +154,7 @@ function DashboardShell() {
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="animate-in fade-in absolute inset-0 bg-background/60 backdrop-blur-sm duration-200" onClick={() => setNavOpen(false)} />
             <aside className="glass animate-rise absolute top-4 bottom-4 left-4 flex w-[290px] max-w-[calc(100vw-2rem)] flex-col rounded-3xl p-4 sm:w-72">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-                <Brand />
-                <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="motion-press flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary/60 text-muted-foreground hover:text-foreground">
-                  <X className="size-4" />
-                </button>
-              </div>
+              <Brand />
               <div className="mt-6 flex-1">{nav}</div>
               <SidebarFooter />
               {themeToggle}
@@ -181,7 +175,6 @@ function DashboardShell() {
               </button>
               <div className="min-w-0">
                 <h1 className="truncate font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">{current.label}</h1>
-                <NetworkStatus className="mt-0.5 !px-2 !py-0.5" />
               </div>
             </div>
 
