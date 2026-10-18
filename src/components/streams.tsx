@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { CurrencySelect } from "@/components/currency-select";
 import { formatLocal, useFxRates, type CurrencyCode } from "@/lib/currency";
 import { toast } from "sonner";
-import { Activity, Pause, Play, Plus, Radio, Send, Square, Timer } from "lucide-react";
+import { Activity, Pause, Play, Plus, Radio, Send, Square, Timer, X } from "lucide-react";
 import { isAddress } from "viem";
 import { GuestEmpty, useWalletGate } from "@/components/guest-gate";
 import { randomId, useMerchantStore, type MerchantStream } from "@/lib/merchant-store";
@@ -153,14 +153,26 @@ export function Streams() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <CurrencySelect value={currency} onChange={setCurrency} />
-            <Button size="sm" onClick={() => setOpen((o) => !o)}>
-              <Plus className="size-4" /> New stream
-            </Button>
+            {open ? (
+              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+                <X className="size-4" /> Cancel
+              </Button>
+            ) : (
+              <Button size="sm" onClick={() => setOpen(true)}>
+                <Plus className="size-4" /> New stream
+              </Button>
+            )}
           </div>
         </div>
 
-        {open && (
-          <div className="mt-4 grid gap-3 rounded-2xl bg-secondary/50 p-4 sm:grid-cols-2">
+        <div
+          aria-hidden={!open}
+          inert={!open}
+          className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
+            open ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="grid min-h-0 gap-3 overflow-hidden rounded-2xl bg-secondary/50 p-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="s-name">Recipient</Label>
               <Input
@@ -251,7 +263,7 @@ export function Streams() {
               Start stream
             </Button>
           </div>
-        )}
+        </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {[
@@ -267,7 +279,7 @@ export function Streams() {
         </div>
       </div>
 
-      {streams.length === 0 ? (
+      {streams.length === 0 && !open ? (
         <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
           <div className="grid place-items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-10 text-center">
             <p className="text-sm font-medium">No active streams</p>
@@ -279,7 +291,7 @@ export function Streams() {
             </Button>
           </div>
         </div>
-      ) : (
+      ) : streams.length > 0 ? (
         <div className="space-y-3">
           {streams.map((s) => (
             <div key={s.id} className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
@@ -377,7 +389,7 @@ export function Streams() {
             </div>
           ))}
         </div>
-      )}
+      ) : null}
 
       <p className="flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
         <Radio className="size-3" /> Accrues live · payouts are signed by your wallet on Arc
