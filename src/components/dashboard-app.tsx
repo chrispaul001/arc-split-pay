@@ -154,11 +154,11 @@ function DashboardShell() {
         {navOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="animate-in fade-in absolute inset-0 bg-background/60 backdrop-blur-sm duration-200" onClick={() => setNavOpen(false)} />
-            <aside className="glass animate-rise absolute top-4 bottom-4 left-4 flex w-64 flex-col rounded-3xl p-4">
+            <aside className="glass animate-rise absolute top-4 bottom-4 left-4 flex w-[290px] max-w-[calc(100vw-2rem)] flex-col rounded-3xl p-4 sm:w-72">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                 <Brand />
-                <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="shrink-0 p-1.5">
-                  <X className="size-5" />
+                <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="motion-press flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary/60 text-muted-foreground hover:text-foreground">
+                  <X className="size-4" />
                 </button>
               </div>
               <div className="mt-6 flex-1">{nav}</div>
@@ -280,16 +280,13 @@ function Brand() {
         alt="CoindeccPay logo"
         width={40}
         height={40}
-        className="size-10 shrink-0 self-center rounded-[22%] shadow-md ring-1 ring-border"
+        className="size-10 shrink-0 self-center rounded-xl shadow-sm ring-1 ring-border/80"
       />
-
-
-
-
       <span className="min-w-0">
-        <span className="block truncate font-display text-base font-bold">CoindeccPay</span>
-        <span className="block truncate text-[11px] font-medium text-muted-foreground">
-          Accept, Split & Stream USDC
+        <span className="block truncate font-display text-base font-bold tracking-tight">CoindeccPay</span>
+        <span className="mt-0.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-secondary/50 px-2 py-0.5 text-[10.5px] font-medium tracking-tight text-muted-foreground">
+          <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-success" />
+          USDC Gateway · Arc
         </span>
       </span>
     </div>
