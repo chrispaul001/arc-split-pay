@@ -15,7 +15,6 @@ import { ImageUpload } from "@/components/image-upload";
 import { useBrand } from "@/lib/brand";
 import { useAccount, useDisconnect } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
-import { useUsdc } from "@/lib/use-usdc";
 import { toast } from "sonner";
 import { ChevronDown, Copy, LogOut, Settings, Users, Wallet } from "lucide-react";
 
@@ -26,7 +25,6 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
   const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const { connect: connectWallet } = useConnectWallet();
-  const { formatted } = useUsdc();
   const [profileOpen, setProfileOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
   const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
@@ -123,20 +121,23 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
                 <span className="block truncate text-sm font-semibold">
                   {isConnected ? businessName : "Guest merchant"}
                 </span>
-                <span className="block truncate text-[11px] font-normal text-muted-foreground">
-                  {isConnected ? `Connected · ${chain?.name ?? "Arc"}` : "No wallet connected"}
-                </span>
+                {isConnected ? (
+                  <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+                    <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" />
+                    Connected · {chain?.name ?? "Arc Network Testnet"}
+                  </span>
+                ) : (
+                  <span className="block truncate text-[11px] font-normal text-muted-foreground">
+                    No wallet connected
+                  </span>
+                )}
               </span>
             </span>
           </DropdownMenuLabel>
 
           {isConnected && address ? (
             <div className="mx-1 mt-1 rounded-xl bg-secondary/60 p-2.5">
-              <p className="flex items-center gap-1.5 text-[10px] tracking-wide text-muted-foreground uppercase">
-                <span className="pulse-dot size-1.5 rounded-full bg-mint" />
-                Connected {chain?.name ?? "Arc"} wallet
-              </p>
-              <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                 <span className="truncate font-mono text-[11px] tabular-nums">{address}</span>
                 <button
                   onClick={copyWallet}
@@ -145,14 +146,6 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
                 >
                   <Copy className="size-3.5" />
                 </button>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
-                <span className="text-muted-foreground">USDC balance</span>
-                <span className="font-mono font-semibold tabular-nums">
-                  {formatted == null
-                    ? "—"
-                    : `${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`}
-                </span>
               </div>
             </div>
           ) : (
@@ -183,7 +176,7 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="gap-2 rounded-xl text-destructive focus:text-destructive"
+                className="gap-2 rounded-xl text-muted-foreground transition-colors focus:text-destructive"
                 onSelect={signOut}
               >
                 <LogOut className="size-4" /> Disconnect wallet
