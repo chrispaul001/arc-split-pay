@@ -15,7 +15,6 @@ import { ImageUpload } from "@/components/image-upload";
 import { useBrand } from "@/lib/brand";
 import { useAccount, useDisconnect } from "wagmi";
 import { useConnectWallet } from "@/lib/use-connect";
-import { useUsdc } from "@/lib/use-usdc";
 import { toast } from "sonner";
 import { ChevronDown, Copy, LogOut, Settings, Users, Wallet } from "lucide-react";
 
@@ -26,7 +25,6 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
   const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const { connect: connectWallet } = useConnectWallet();
-  const { formatted } = useUsdc();
   const [profileOpen, setProfileOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
   const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
