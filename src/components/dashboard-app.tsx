@@ -285,7 +285,7 @@ function Brand() {
       <span className="min-w-0">
         <span className="block truncate font-display text-base font-bold tracking-tight">CoindeccPay</span>
         <span className="mt-0.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-secondary/50 px-2 py-0.5 text-[10.5px] font-medium tracking-tight text-muted-foreground">
-          <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-success" />
+          <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-[var(--mint)]" />
           USDC Gateway · Arc
         </span>
       </span>
