@@ -25,6 +25,7 @@ import { CheckCircle2, ExternalLink, Loader2, RotateCcw, ShieldCheck, Wallet } f
 import { recordPayment } from "@/lib/payment-events";
 import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 import { WalletStallHelper } from "@/components/wallet-stall-helper";
+import { DownloadReceiptButton } from "@/components/ReceiptModal";
 import { WALLET_TIMEOUT_MESSAGE, createWalletRun, isCancelled, isTimeout, type WalletRun } from "@/lib/wallet-guard";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
@@ -288,6 +289,13 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
                   </a>
                 </div>
               </div>
+              <DownloadReceiptButton
+                className="w-full justify-center rounded-md py-5"
+                data={{
+                  hash: pay.hash, amount: Number(amount), token: active.symbol, timestamp: Date.now(), payer: address,
+                  allocations: effectiveShares?.map((s) => ({ address: s.address, bps: s.bps, amount: (Number(amount) * s.bps) / 10_000 })),
+                }}
+              />
               {!fixedAmount && (
                 <Button variant="secondary" className="w-full" onClick={reset}>
                   <RotateCcw className="size-4" /> Make Another Payment
