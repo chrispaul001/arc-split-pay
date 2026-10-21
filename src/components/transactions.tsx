@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TxKind } from "@/lib/tx-history";
 import { explorerTx, isRouterContract, shortAddress } from "@/lib/web3";
+import { DownloadReceiptButton } from "@/components/ReceiptModal";
 
 const KIND_LABEL: Record<TxKind, string> = { payment: "Checkout payment", split: "Split payout", stream: "Stream payout" };
 const FILTERS: ("all" | TxKind)[] = ["all", "payment", "split", "stream"];
@@ -140,6 +141,20 @@ export function Transactions({ focusHash }: { focusHash?: string } = {}) {
                   <span className="truncate">{t.hash}</span>
                   <ExternalLink className="size-3 shrink-0" />
                 </a>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <DownloadReceiptButton
+                  data={{
+                    hash: t.hash, amount: t.amount, token: "USDC", timestamp: t.timestamp, label: t.label,
+                    payer: t.from && !isRouterContract(t.from) ? t.from : undefined,
+                    allocations: t.transfers?.length
+                      ? t.transfers.map((l) => {
+                          const p = t.splits?.find((s) => s.address.toLowerCase() === l.address.toLowerCase());
+                          return { address: l.address, name: p?.name, bps: p?.bps, amount: l.amount };
+                        })
+                      : t.splits?.map((s) => ({ address: s.address, name: s.name, bps: s.bps, amount: (t.amount * s.bps) / 10_000 })),
+                  }}
+                />
               </div>
             </li>
           ))}
