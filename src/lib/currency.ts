@@ -118,7 +118,7 @@ export function refreshFx(force = false): Promise<void> {
       const rates = Object.fromEntries(CODES.map((c) => [c, merged[c] * usdc])) as Record<CurrencyCode, number>;
       const updatedAt = Date.now();
       // EURC fallback from fiat FX when Coinbase is unreachable.
-      const eurPerUsd = Number(fiat?.EUR);
+      const eurPerUsd = Number(fiat?.["EUR"]);
       if (!state.tokenUsd.EURC && eurPerUsd > 0) set({ tokenUsd: { ...state.tokenUsd, EURC: 1 / eurPerUsd } });
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, updatedAt, tokenUsd: state.tokenUsd })); } catch { /* ignore */ }
       set({ rates, updatedAt, source: "live", loading: false });
