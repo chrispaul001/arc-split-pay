@@ -41,7 +41,7 @@ export function Overview() {
   // checkout payments (sent or received), split payouts and split proceeds.
   // Faucet drops and unrelated plain transfers are excluded.
   const allSettlements = isConnected && me ? history.txs.filter((tx) => {
-    if (!Number.isFinite(tx.amount) || tx.amount <= 0) return false;
+    if (!Number.isFinite(tx.amount) || tx.amount <= 0 || (tx.token && tx.token !== "USDC")) return false;
     const from = tx.from.toLowerCase();
     const to = tx.to?.toLowerCase();
     if (tx.kind === "payment") return from === me || to === me || tx.transfers?.some((t) => t.address.toLowerCase() === me);
@@ -77,7 +77,7 @@ export function Overview() {
   };
   const balance = isConnected ? Number(formatted) || 0 : 0;
   // Walk back from the live balance using confirmed in/out wallet history (no fabricated values).
-  const flows = isConnected && me ? history.txs.filter((tx) => tx.timestamp > start && tx.timestamp <= now && Number.isFinite(tx.amount)) : [];
+  const flows = isConnected && me ? history.txs.filter((tx) => tx.timestamp > start && tx.timestamp <= now && Number.isFinite(tx.amount) && (!tx.token || tx.token === "USDC")) : [];
   const delta = (tx: (typeof flows)[number]) => {
     if (tx.from.toLowerCase() === me) return -tx.amount;
     const got = tx.transfers?.find((t) => t.address.toLowerCase() === me);

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { isAddress, maxUint256, parseUnits } from "viem";
 import { useAccount, useConfig, useSwitchChain, useWriteContract } from "wagmi";
-import { readContract, waitForTransactionReceipt } from "wagmi/actions";
+import { getBlock, readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { CHECKOUT_TOKENS, ERC20_ABI, SPLIT_ROUTER_ABI, SPLIT_ROUTER_ADDRESS, arcTestnet, type CheckoutToken } from "@/lib/web3";
 import { recordTx, type TxRecord } from "@/lib/tx-history";
 import { createWalletRun, type WalletRun } from "@/lib/wallet-guard";
@@ -68,11 +68,11 @@ export function useSplitSend() {
       }));
       const r = await run.wait(waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id }));
       if (r.status !== "success") throw new Error("The split couldn't be completed");
-      if (token.symbol !== "USDC") return hash; // dashboard history tracks USDC only
+      const timestamp = await blockTime(config, r.blockNumber);
       const splits: TxRecord["splits"] = active.map(({ name, address, bps }) => ({ name, address, bps }));
       // Per-recipient amounts so the receipt shows "amount received" immediately (chain sync later confirms exact legs).
       const transfers: TxRecord["transfers"] = active.map(({ address, bps }) => ({ address, amount: (Number(amount) * bps) / 10_000 }));
-      recordTx({ hash, kind: "split", from: address, to: active.length === 1 ? active[0]!.address : undefined, amount, label, splits, transfers });
+      recordTx({ hash, kind: "split", from: address, to: active.length === 1 ? active[0]!.address : undefined, amount, token: token.symbol, label, splits, transfers, timestamp });
       return hash;
     } finally {
       run.dispose();
@@ -81,4 +81,12 @@ export function useSplitSend() {
   };
 
   return { send, phase, cancel };
+}
+
+/** Exact on-chain confirmation time (ms) for a block; falls back to now if the RPC can't serve it. */
+export async function blockTime(config: Parameters<typeof getBlock>[0], blockNumber: bigint): Promise<number> {
+  try {
+    const b = await getBlock(config, { blockNumber, chainId: arcTestnet.id });
+    return Number(b.timestamp) * 1000;
+  } catch { return Date.now(); }
 }

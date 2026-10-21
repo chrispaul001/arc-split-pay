@@ -3,7 +3,7 @@ import { Check, Copy, Download, ExternalLink, FileText, Loader2, ShieldCheck } f
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CURRENCIES, formatLocal, useFxRates, type CurrencyCode } from "@/lib/currency";
+import { CURRENCIES, formatLocal, tokenToUsd, useFxRates, type CurrencyCode } from "@/lib/currency";
 import { explorerTx, shortAddress } from "@/lib/web3";
 import logoTile from "@/assets/coindecc-tile.png.asset.json";
 
@@ -21,8 +21,11 @@ export type ReceiptData = {
 const fmtAmt = (n: number, token: string) =>
   `${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: token === "cirBTC" ? 8 : 6 })} ${token}`;
 
-/** Local value only when the token is USD-pegged (USDC); other tokens show no local estimate. */
-const localValue = (r: ReceiptData, code: CurrencyCode) => (r.token === "USDC" ? formatLocal(r.amount, code) : null);
+/** Local value for any supported token (USDC 1:1, EURC/cirBTC via live spot price). */
+const localValue = (r: ReceiptData, code: CurrencyCode) => {
+  const usd = tokenToUsd(r.amount, r.token);
+  return usd == null ? null : formatLocal(usd, code);
+};
 
 function normAllocations(r: ReceiptData) {
   const legs = r.allocations ?? [];
@@ -94,7 +97,7 @@ export function ReceiptModal({ data, open, onOpenChange }: { data: ReceiptData; 
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-sm tabular-nums text-foreground">{local ? `≈ ${local} ${currency}` : "Local estimate unavailable for this token"}</p>
+            <p className="mt-2 text-sm tabular-nums text-foreground">{local ? `≈ ${local} ${currency}` : "Fetching live price…"}</p>
           </div>
 
           <dl className="space-y-2.5 text-xs">
