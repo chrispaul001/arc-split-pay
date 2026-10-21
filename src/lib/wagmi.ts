@@ -10,8 +10,8 @@ import {
   walletConnectWallet,
   zerionWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { createConfig, http } from "wagmi";
-import { arcTestnet } from "@/lib/web3";
+import { createConfig, fallback, http } from "wagmi";
+import { ARC_RPC_URLS, arcTestnet } from "@/lib/web3";
 
 // Dedicated CoindeccPay WalletConnect (Reown) project id. It is a public,
 // client-side identifier — safe to ship in the bundle. Replace only by rotating
@@ -117,6 +117,8 @@ const connectors = connectorsForWallets(
 export const wagmiConfig = createConfig({
   chains: [arcTestnet],
   connectors,
-  transports: { [arcTestnet.id]: http(arcTestnet.rpcUrls.default.http[0]) },
+  transports: {
+    [arcTestnet.id]: fallback(ARC_RPC_URLS.map((u) => http(u, { retryCount: 1, timeout: 10_000 }))),
+  },
   ssr: true,
 });

@@ -26,11 +26,15 @@ export const ARC_TESTNET = {
   blockExplorerUrls: ["https://explorer.testnet.arc.io"],
 } as const;
 
+/** Primary app RPC (Alchemy); public Arc RPC stays as fallback and is what wallets get when adding the network. */
+export const ARC_ALCHEMY_RPC = "https://arc-testnet.g.alchemy.com/v2/alch_DD90A3ruq0RY2X-4Z73Sk";
+export const ARC_RPC_URLS = [ARC_ALCHEMY_RPC, ARC_TESTNET.rpcUrls[0]] as const;
+
 export const arcTestnet = defineChain({
   id: ARC_TESTNET.chainIdDecimal,
   name: ARC_TESTNET.chainName,
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-  rpcUrls: { default: { http: [ARC_TESTNET.rpcUrls[0]] } },
+  rpcUrls: { default: { http: [...ARC_RPC_URLS] } },
   blockExplorers: {
     default: { name: "Arc Explorer", url: ARC_TESTNET.blockExplorerUrls[0] },
   },
