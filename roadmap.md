@@ -9,4 +9,4 @@
 - [x] Drive the 24-hour settlement chart, volume, count and average from confirmed wallet payments; fix its circular indicator and live badge.
 
 - [x] Require sign-in (OAuth) before AI assistants can use the CoindeccPay MCP tools
-- [ ] Polish wallet/guest menu with dismissible blur, desktop elevation, mobile bottom sheet, and verify interactions.
+- [x] Polish wallet/guest menu with dismissible blur, desktop elevation, mobile bottom sheet, and verify interactions.
