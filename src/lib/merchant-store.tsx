@@ -20,7 +20,7 @@ import { loadProfile, saveProfile, signInMessage, walletSignIn } from "@/lib/pro
 import { sendTxPush } from "@/lib/push.functions";
 import { readPayments, type SettledPayment } from "@/lib/payment-events";
 import { useLatestTxs } from "@/lib/use-onchain-txs";
-import { mergeTxs } from "@/lib/tx-history";
+import { mergeTxs, readTxs, subscribeTxs } from "@/lib/tx-history";
 
 const TRANSFER_ABI = parseAbi([
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -347,16 +347,52 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
   );
 
   const notify = useCallback(
-    (n: Omit<MerchantNotification, "id" | "createdAt" | "read">) =>
-      update((p) => ({
-        ...p,
-        notifications: [
-          { ...n, id: randomId(), createdAt: Date.now(), read: false },
-          ...p.notifications,
-        ].slice(0, 50),
-      })),
+    (n: Omit<MerchantNotification, "id" | "createdAt" | "read"> & { createdAt?: number }) =>
+      update((p) => {
+        const h = n.payment?.hash?.toLowerCase();
+        if (h && p.notifications.some((x) => x.payment?.hash?.toLowerCase() === h)) return p;
+        if (h) notifiedRef.current.add(h);
+        return {
+          ...p,
+          notifications: [
+            { ...n, id: randomId(), createdAt: n.createdAt ?? Date.now(), read: false },
+            ...p.notifications,
+          ].sort((a, b) => b.createdAt - a.createdAt).slice(0, 50),
+        };
+      }),
     [update],
   );
+
+  // History sync: every confirmed record in the wallet history (chain-scanned or sent from
+  // this app, any token) gets a matching notification stamped with its confirmation time.
+  const notifiedRef = useRef(new Set<string>());
+  useEffect(() => {
+    if (!address || !isConnected) return;
+    const me = address.toLowerCase();
+    const sync = () => {
+      const cutoff = Date.now() - 72 * 3600_000;
+      const known = new Set([...(dataRef.current?.notifications ?? []).map((n) => n.payment?.hash?.toLowerCase()).filter(Boolean), ...notifiedRef.current]);
+      const recent = readTxs(address).filter((r) => r.timestamp >= cutoff && !known.has(r.hash.toLowerCase())).slice(0, 20);
+      for (const r of recent.reverse()) {
+        notifiedRef.current.add(r.hash.toLowerCase());
+        const token = r.token ?? "USDC";
+        const amt = `${r.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${token}`;
+        const sh = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+        const legs = (r.transfers ?? []).length;
+        const incoming = r.from.toLowerCase() !== me;
+        const title = incoming ? "Funds received" : r.kind === "split" || legs > 1 ? "Split payout confirmed" : "Transaction confirmed";
+        const body = incoming ? `+${amt} received from ${sh(r.from)}`
+          : legs > 1 ? `${amt} distributed across ${legs} recipients`
+          : r.to ? `${amt} sent to ${sh(r.to)}` : `${amt} sent`;
+        if (Date.now() - r.timestamp < 120_000) toast.success(title, { description: body });
+        notify({ kind: r.kind === "split" ? "split" : r.kind === "stream" ? "stream" : "payment", title, body, createdAt: r.timestamp,
+          payment: { hash: r.hash, sender: r.from, amount: r.amount, currency: "USDC", splits: r.transfers ?? [] } });
+      }
+    };
+    const t = setTimeout(sync, 1500); // let the saved profile hydrate first
+    const unsub = subscribeTxs(sync);
+    return () => { clearTimeout(t); unsub(); };
+  }, [address, isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Confirmed receipts are the source of truth. The queue also bridges a separate checkout tab.
   const queryClient = useQueryClient();
