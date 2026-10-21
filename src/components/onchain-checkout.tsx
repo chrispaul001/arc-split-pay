@@ -26,6 +26,8 @@ import { recordPayment } from "@/lib/payment-events";
 import { OnrampCheckoutModal } from "@/components/OnrampCheckoutModal";
 import { WalletStallHelper } from "@/components/wallet-stall-helper";
 import { DownloadReceiptButton } from "@/components/ReceiptModal";
+import { blockTime } from "@/lib/use-split-send";
+import { recordTx } from "@/lib/tx-history";
 import { WALLET_TIMEOUT_MESSAGE, createWalletRun, isCancelled, isTimeout, type WalletRun } from "@/lib/wallet-guard";
 
 type StepState = { status: TxStatus; hash?: string; error?: string };
@@ -55,6 +57,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
   const [amount, setAmount] = useState(fixedAmount ? String(fixedAmount) : "25");
   const [phase, setPhase] = useState<Phase>("idle");
   const [done, setDone] = useState(false);
+  const [confirmedAt, setConfirmedAt] = useState<number | null>(null);
   const [approve, setApprove] = useState<StepState>({ status: "idle" });
   const [pay, setPay] = useState<StepState>({ status: "idle" });
 
@@ -177,7 +180,17 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
         const receipt = await run.wait(waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id }));
         if (receipt.status !== "success") throw new Error("Payment failed on-chain.");
         setPay({ status: "confirmed", hash });
+        const ts = await blockTime(config, receipt.blockNumber);
+        setConfirmedAt(ts);
         if (active.symbol === "USDC") recordPayment({ hash, sender: address, amount: Number(amount) });
+        else recordTx({
+          hash, kind: useSplitter ? "split" : "payment", from: address, amount: Number(amount), token: active.symbol, timestamp: ts,
+          to: effectiveShares?.length === 1 ? effectiveShares[0]!.address : undefined,
+          ...(effectiveShares && effectiveShares.length > 1 ? {
+            splits: effectiveShares.map((s) => ({ name: "", address: s.address, bps: s.bps })),
+            transfers: effectiveShares.map((s) => ({ address: s.address, amount: (Number(amount) * s.bps) / 10_000 })),
+          } : {}),
+        });
         setDone(true);
         toast.success(useSplitter ? "Split executed on Arc" : "Payment settled on Arc");
         void balanceQ.refetch();
@@ -292,7 +305,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
               <DownloadReceiptButton
                 className="w-full justify-center rounded-md py-5"
                 data={{
-                  hash: pay.hash, amount: Number(amount), token: active.symbol, timestamp: Date.now(), payer: address,
+                  hash: pay.hash, amount: Number(amount), token: active.symbol, timestamp: confirmedAt ?? Date.now(), payer: address,
                   allocations: effectiveShares?.map((s) => ({ address: s.address, bps: s.bps, amount: (Number(amount) * s.bps) / 10_000 })),
                 }}
               />

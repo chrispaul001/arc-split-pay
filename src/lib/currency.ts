@@ -25,6 +25,8 @@ export type FxState = {
   updatedAt: number; // 0 = never fetched live
   source: "live" | "cached" | "default";
   loading: boolean;
+  /** USD per 1 unit of non-USD-pegged tokens (live Coinbase spot; 0 = unknown). */
+  tokenUsd: { EURC: number; cirBTC: number };
 };
 
 const CODES = BASE.map((c) => c.code);
@@ -37,6 +39,7 @@ let state: FxState = {
   updatedAt: 0,
   source: "default",
   loading: false,
+  tokenUsd: { EURC: 0, cirBTC: 0 },
 };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<FxState>) => {
@@ -64,6 +67,9 @@ function hydrate() {
     const saved = JSON.parse(localStorage.getItem(CACHE_KEY) ?? "null") as { rates?: unknown; updatedAt?: unknown } | null;
     const rates = validRates(saved?.rates);
     if (rates && typeof saved?.updatedAt === "number") set({ rates, updatedAt: saved.updatedAt, source: "cached" });
+    const tu = (saved as { tokenUsd?: { EURC?: unknown; cirBTC?: unknown } } | null)?.tokenUsd;
+    const ok = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0);
+    if (tu) set({ tokenUsd: { EURC: ok(tu.EURC), cirBTC: ok(tu.cirBTC) } });
   } catch { /* ignore corrupt cache */ }
 }
 
@@ -88,6 +94,18 @@ export function refreshFx(force = false): Promise<void> {
   set({ loading: true });
   inflight = (async () => {
     // Fiat FX (USD base) + USDC/USD market price from CoinGecko; either may fail independently.
+    const spot = async (pair: string) => {
+      const j = (await getJson(`https://api.coinbase.com/v2/prices/${pair}/spot`)) as { data?: { amount?: string } };
+      const n = Number(j?.data?.amount);
+      if (!Number.isFinite(n) || n <= 0) throw new Error("bad price");
+      return n;
+    };
+    const [eur, btc] = await Promise.allSettled([spot("EUR-USD"), spot("BTC-USD")]);
+    const fiatEur = eur.status === "fulfilled" ? eur.value : 0;
+    set({ tokenUsd: {
+      EURC: fiatEur || state.tokenUsd.EURC,
+      cirBTC: btc.status === "fulfilled" ? btc.value : state.tokenUsd.cirBTC,
+    } });
     const [fx, cg] = await Promise.allSettled([
       getJson("https://open.er-api.com/v6/latest/USD"),
       getJson("https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=usd"),
@@ -99,7 +117,10 @@ export function refreshFx(force = false): Promise<void> {
     if (merged) {
       const rates = Object.fromEntries(CODES.map((c) => [c, merged[c] * usdc])) as Record<CurrencyCode, number>;
       const updatedAt = Date.now();
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, updatedAt })); } catch { /* ignore */ }
+      // EURC fallback from fiat FX when Coinbase is unreachable.
+      const eurPerUsd = Number(fiat?.["EUR"]);
+      if (!state.tokenUsd.EURC && eurPerUsd > 0) set({ tokenUsd: { ...state.tokenUsd, EURC: 1 / eurPerUsd } });
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, updatedAt, tokenUsd: state.tokenUsd })); } catch { /* ignore */ }
       set({ rates, updatedAt, source: "live", loading: false });
     } else {
       // Keep the most recent cached rate; never zero out the widget.
@@ -141,3 +162,10 @@ export function formatLocal(usdc: number, code: CurrencyCode) {
 
 export const formatUsdc = (n: number) =>
   `${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
+
+/** USD value of a token amount (USDC pegged 1:1; EURC/cirBTC via live spot). Null when no reliable price. */
+export function tokenToUsd(amount: number, token: string): number | null {
+  if (token === "USDC") return amount;
+  const p = token === "EURC" ? state.tokenUsd.EURC : token === "cirBTC" ? state.tokenUsd.cirBTC : 0;
+  return p > 0 ? amount * p : null;
+}

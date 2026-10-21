@@ -105,7 +105,7 @@ export function Transactions({ focusHash }: { focusHash?: string } = {}) {
                   </p>
                 </div>
                 <p className="font-display text-sm font-bold tabular-nums">
-                  {t.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC
+                  {t.amount.toLocaleString(undefined, { maximumFractionDigits: t.token === "cirBTC" ? 8 : 6 })} {t.token ?? "USDC"}
                 </p>
               </div>
               <div className="mt-2 space-y-1 font-mono text-[11px] text-muted-foreground">
@@ -128,7 +128,7 @@ export function Transactions({ focusHash }: { focusHash?: string } = {}) {
                     {t.transfers.map((leg, i) => {
                       const party = t.splits?.find((s) => s.address.toLowerCase() === leg.address.toLowerCase());
                       const mine = leg.address.toLowerCase() === address?.toLowerCase();
-                      return <p key={`${leg.address}-${i}`} className="break-all">{party?.name ? `${party.name} · ` : ""}{shortAddress(leg.address)}{mine ? " (you)" : ""} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC</p>;
+                      return <p key={`${leg.address}-${i}`} className="break-all">{party?.name ? `${party.name} · ` : ""}{shortAddress(leg.address)}{mine ? " (you)" : ""} · {leg.amount.toLocaleString(undefined, { maximumFractionDigits: t.token === "cirBTC" ? 8 : 6 })} {t.token ?? "USDC"}</p>;
                     })}
                   </div>
                 )}
@@ -145,7 +145,7 @@ export function Transactions({ focusHash }: { focusHash?: string } = {}) {
               <div className="mt-3 flex justify-end">
                 <DownloadReceiptButton
                   data={{
-                    hash: t.hash, amount: t.amount, token: "USDC", timestamp: t.timestamp, label: t.label,
+                    hash: t.hash, amount: t.amount, token: t.token ?? "USDC", timestamp: t.timestamp, label: t.label,
                     payer: t.from && !isRouterContract(t.from) ? t.from : undefined,
                     allocations: t.transfers?.length
                       ? t.transfers.map((l) => {

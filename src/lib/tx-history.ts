@@ -7,6 +7,9 @@ export type TxRecord = {
   to?: string | undefined;
   label?: string | undefined;
   amount: number;
+  /** Token symbol settled (USDC, EURC, cirBTC). Missing = USDC (legacy records). */
+  token?: string | undefined;
+  /** Block confirmation time (ms). */
   timestamp: number;
   splits?: { name: string; address: string; bps: number }[] | undefined;
   transfers?: { address: string; amount: number }[] | undefined;
