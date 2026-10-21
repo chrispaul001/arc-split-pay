@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { TeamAccessDialog } from "@/components/team-access";
 import { useSaveGate } from "@/components/guest-gate";
 import {
@@ -27,9 +28,20 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
   const { connect: connectWallet } = useConnectWallet();
   const [profileOpen, setProfileOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [backdropVisible, setBackdropVisible] = useState(false);
   const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
   const [draftLogo, setDraftLogo] = useState<string | null>(logo);
   const canSave = useSaveGate();
+
+  useEffect(() => {
+    if (menuOpen) {
+      setBackdropVisible(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setBackdropVisible(false), 200);
+    return () => window.clearTimeout(timer);
+  }, [menuOpen]);
 
   useEffect(() => {
     if (profileOpen) {
@@ -63,11 +75,24 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
 
   return (
     <>
-      <DropdownMenu>
+      {backdropVisible && createPortal(
+        <div
+          className="wallet-menu-backdrop"
+          data-state={menuOpen ? "open" : "closed"}
+          aria-hidden="true"
+          onPointerDown={(event) => {
+            event.preventDefault();
+            setMenuOpen(false);
+          }}
+        />,
+        document.body,
+      )}
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button
+            variant="ghost"
             aria-label="Open merchant menu"
-            className="motion-press group flex items-center gap-2 rounded-2xl bg-secondary/50 py-1 pr-2 pl-1 hover:bg-secondary/80 data-[state=open]:bg-secondary/90"
+            className="group h-auto overflow-visible gap-2 rounded-2xl bg-secondary/50 py-1 pr-2 pl-1 hover:bg-secondary/80 data-[state=open]:bg-secondary/90"
           >
             <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary/20 font-display text-xs font-bold text-primary">
               {isConnected ? (
@@ -96,14 +121,16 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
               )}
             </span>
             <ChevronDown className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
           align="end"
           sideOffset={10}
-          className="glass w-[min(18rem,calc(100vw-2rem))] rounded-2xl border-border p-1.5"
+          aria-label="Merchant wallet menu"
+          className="wallet-menu-surface w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-2"
         >
+          <div className="wallet-menu-handle" aria-hidden="true"><span /></div>
           <DropdownMenuLabel className="px-2 py-2">
             <span className="flex min-w-0 items-center gap-2.5">
               <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary/20 font-display text-xs font-bold text-primary">
@@ -139,13 +166,15 @@ export function ProfileMenu({ onOpenSettings }: { onOpenSettings: () => void }) 
             <div className="mx-1 mt-1 rounded-xl bg-secondary/60 p-2.5">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                 <span className="truncate font-mono text-[11px] tabular-nums">{address}</span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={copyWallet}
                   aria-label="Copy wallet address"
                   className="motion-press shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-primary/15 hover:text-primary"
                 >
                   <Copy className="size-3.5" />
-                </button>
+                </Button>
               </div>
             </div>
           ) : (

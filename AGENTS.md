@@ -17,6 +17,7 @@
 - Preload router/SSR deps to avoid forced mobile preview reloads.
 - Wallet/RainbowKit/Wagmi code lives in `src/components/dashboard-app.tsx`, lazy-loaded in `<ClientOnly>`; never import wallet modules from a route or `__root`. Why: MetaMask SDK crashes the edge server.
 - "Connect wallet" always uses `useConnectWallet()`, never `useConnectModal`. Why: iframes block wallet deep links.
+- Keep the responsive merchant menu on Radix DropdownMenu with a portaled backdrop and scoped mobile positioning rules; this preserves keyboard focus, dismissal, and existing wallet actions across viewports.
 - `src/lib/wagmi.ts` uses HTTPS universal links and hides injected-only wallets without `window.ethereum`. Why: otherwise taps fail silently.
 - The MCP server requires OAuth via Lovable Cloud auth (consent page at `/.lovable/oauth/consent`, sign-in at `/auth`); tools stay read-only over public chain data. Why: published MCP endpoints must not be callable anonymously.
 - Security checks live in tests/ (vitest, `bun run test`); endpoint tests hit TEST_BASE_URL (default dev server). Why: auth gates must be re-verified on every change.
