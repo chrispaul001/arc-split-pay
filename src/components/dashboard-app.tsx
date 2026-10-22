@@ -39,7 +39,6 @@ import { BrandProvider } from "@/lib/brand";
 import { MerchantProvider } from "@/lib/merchant-store";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
-import { ConnectWallet } from "@/components/connect-wallet";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { Reveal } from "@/components/reveal";
 import logoTile from "@/assets/coindecc-tile.png.asset.json";
@@ -179,9 +178,6 @@ function DashboardShell() {
             </div>
 
             <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
-              <div className="hidden lg:block">
-                <ConnectWallet compact />
-              </div>
               <Button
                 size="sm"
                 variant="secondary"
@@ -275,13 +271,7 @@ function Brand() {
         height={40}
         className="size-10 shrink-0 self-center rounded-xl shadow-sm ring-1 ring-border/80"
       />
-      <span className="min-w-0">
-        <span className="block truncate font-display text-base font-bold tracking-tight">CoindeccPay</span>
-        <span className="mt-0.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-secondary/50 px-2 py-0.5 text-[10.5px] font-medium tracking-tight text-muted-foreground">
-          <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-[var(--mint)]" />
-          USDC Gateway · Arc
-        </span>
-      </span>
+      <span className="min-w-0 truncate font-display text-lg font-bold tracking-tight">CoindeccPay</span>
     </div>
   );
 }
