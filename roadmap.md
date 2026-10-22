@@ -10,3 +10,6 @@
 
 - [x] Require sign-in (OAuth) before AI assistants can use the CoindeccPay MCP tools
 - [x] Polish wallet/guest menu with dismissible blur, desktop elevation, mobile bottom sheet, and verify interactions.
+
+- [x] Payment links: disconnect wallet option
+- [x] Immediate mobile wallet wake + 2-step approval/split labels

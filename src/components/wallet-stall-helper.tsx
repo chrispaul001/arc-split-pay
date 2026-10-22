@@ -5,13 +5,10 @@ import { isMobileDevice, metaMaskDappLink, metaMaskWakeLink } from "@/lib/wallet
 
 /** Shown while a wallet step is pending: always offers Cancel; on mobile, after a short stall, offers "Open MetaMask". */
 export function WalletStallHelper({ label, onCancel }: { label: string; onCancel: () => void }) {
-  const [stalled, setStalled] = useState(false);
+  // Mobile wallets sleep in the background, so offer the wake link immediately.
+  const stalled = true;
   const [mobile, setMobile] = useState(false);
-  useEffect(() => {
-    setMobile(isMobileDevice());
-    const t = window.setTimeout(() => setStalled(true), 6_000);
-    return () => window.clearTimeout(t);
-  }, []);
+  useEffect(() => { setMobile(isMobileDevice()); }, []);
 
   return (
     <div role="status" aria-live="polite" className="animate-rise space-y-2 rounded-2xl border border-border bg-secondary/50 p-3">

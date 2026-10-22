@@ -1,37 +1,29 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useDisconnect } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { useUsdc } from "@/lib/use-usdc";
 import { useConnectWallet } from "@/lib/use-connect";
-import { AlertTriangle, Copy, ExternalLink, Wallet } from "lucide-react";
+import { AlertTriangle, Copy, LogOut, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export function ConnectWallet({ compact = false }: { compact?: boolean }) {
   const { formatted } = useUsdc();
-  const { connect, embedded } = useConnectWallet();
+  const { connect } = useConnectWallet();
+  const { disconnect } = useDisconnect();
 
   return (
     <ConnectButton.Custom>
       {({ account, chain, openChainModal, mounted }) => {
-        const ready = mounted;
-        const connected = ready && account && chain;
+        const connected = mounted && account && chain;
 
-        if (!ready) {
+        if (!mounted) {
           return <div className="h-9 w-32 animate-pulse rounded-full bg-secondary/60" aria-hidden />;
         }
 
         if (!connected) {
           return (
-            <Button
-              size={compact ? "sm" : "lg"}
-              onClick={connect}
-              title={
-                embedded
-                  ? "Wallet apps can't open inside an embedded preview. Opens CoindeccPay in its own tab."
-                  : undefined
-              }
-            >
-              {embedded ? <ExternalLink className="size-4" /> : <Wallet className="size-4" />}
-              {embedded ? "Open to connect" : "Connect Wallet"}
+            <Button size={compact ? "sm" : "lg"} onClick={connect}>
+              <Wallet className="size-4" /> Connect Wallet
             </Button>
           );
         }
@@ -50,7 +42,7 @@ export function ConnectWallet({ compact = false }: { compact?: boolean }) {
               }}
               className="inline-flex min-w-0 items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-[11px] font-semibold transition-colors hover:bg-secondary/80"
             >
-              <span className="pulse-dot size-1.5 shrink-0 rounded-full bg-mint" />
+              <span className="size-1.5 shrink-0 rounded-full bg-mint" />
               <span className="truncate font-mono tabular-nums">{account.displayName}</span>
               <Copy className="size-3 shrink-0 text-muted-foreground" />
             </button>
@@ -60,8 +52,16 @@ export function ConnectWallet({ compact = false }: { compact?: boolean }) {
                 : `${Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`}
             </span>
             {!compact && (
-              <Button size="sm" variant="secondary" onClick={openChainModal}>
-                {chain.name}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 rounded-full px-3 text-[11px] text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  disconnect();
+                  toast.success("Wallet disconnected");
+                }}
+              >
+                <LogOut className="size-3.5" /> Disconnect
               </Button>
             )}
           </div>

@@ -35,8 +35,8 @@ type Phase = "idle" | "checking" | "approving" | "executing";
 
 const PHASE_LABEL: Record<Exclude<Phase, "idle">, string> = {
   checking: "Checking Allowance...",
-  approving: "Approving Token...",
-  executing: "Executing Split...",
+  approving: "Step 1 of 2 · One-time token approval",
+  executing: "Step 2 of 2 · Confirm payment",
 };
 
 /** Accepts plain decimals with at most `decimals` fractional digits. */

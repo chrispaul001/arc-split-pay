@@ -515,7 +515,7 @@ export function SplitRouter() {
             {sending && (
               <WalletStallHelper
                 key={phase}
-                label={phase === "approving" ? `Approving ${token.symbol}…` : "Processing Split..."}
+                label={phase === "approving" ? `Step 1 of 2 · One-time ${token.symbol} approval` : "Step 2 of 2 · Confirm split transfer"}
                 onCancel={cancelSend}
               />
             )}
