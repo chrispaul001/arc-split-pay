@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAccount } from "wagmi";
 import {
   DropdownMenu,
@@ -37,6 +38,13 @@ export function NotificationsBell() {
     else toast.error(PUSH_COPY[r.status]);
   };
 
+  const [backdrop, setBackdrop] = useState(false);
+  useEffect(() => {
+    if (open) { setBackdrop(true); return; }
+    const t = window.setTimeout(() => setBackdrop(false), 200);
+    return () => window.clearTimeout(t);
+  }, [open]);
+
   const items: MerchantNotification[] = isConnected ? data.notifications : [];
   const unread = items.filter((n) => !n.read).length;
   const selected = items.find((n) => n.id === selectedId);
@@ -54,6 +62,11 @@ export function NotificationsBell() {
 
   return (
     <>
+    {backdrop && createPortal(
+      <div className="wallet-menu-backdrop" data-state={open ? "open" : "closed"} aria-hidden="true"
+        onPointerDown={(e) => { e.preventDefault(); setOpen(false); }} />,
+      document.body,
+    )}
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon"
@@ -71,8 +84,10 @@ export function NotificationsBell() {
       <DropdownMenuContent
         align="end"
         sideOffset={10}
-        className="glass w-[min(20rem,calc(100vw-2rem))] rounded-2xl border-border p-1.5"
+        aria-label="Notifications"
+        className="wallet-menu-surface w-[min(22rem,calc(100vw-2rem))] rounded-2xl p-1.5"
       >
+        <div className="wallet-menu-handle" aria-hidden="true"><span /></div>
         <DropdownMenuLabel className="flex items-center justify-between px-2 py-2">
           <span className="text-sm font-semibold">Notifications</span>
           {items.length > 0 && (
