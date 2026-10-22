@@ -39,7 +39,6 @@ import { BrandProvider } from "@/lib/brand";
 import { MerchantProvider } from "@/lib/merchant-store";
 import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
-import { ConnectWallet } from "@/components/connect-wallet";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { Reveal } from "@/components/reveal";
 import logoTile from "@/assets/coindecc-tile.png.asset.json";
