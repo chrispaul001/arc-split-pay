@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, maxUint256, parseAbiItem, parseUnits } from "viem";
 import { useAccount, useConfig, useReadContract, useSwitchChain } from "wagmi";
-import { readContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
+import { getPublicClient, readContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
+
+const TRANSFER_EVENT = parseAbiItem("event Transfer(address indexed from, address indexed to, uint256 value)");
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -148,7 +150,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
         setApprove({ status: "wallet" });
         try {
           const hash = await run.wallet(writeContract(config, {
-            address: active.address, abi: ERC20_ABI, functionName: "approve", args: [spender, value], chainId: arcTestnet.id,
+            address: active.address, abi: ERC20_ABI, functionName: "approve", args: [spender, maxUint256], chainId: arcTestnet.id,
           }));
           setApprove({ status: "pending", hash });
           const receipt = await run.wait(waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id }));
@@ -166,16 +168,42 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
       setPhase("executing");
       setPay({ status: "wallet" });
       try {
-        const hash = useSplitter && effectiveShares
-          ? await run.wallet(writeContract(config, {
+        // Mobile wallets often deliver the hash late (or never) after the app switch.
+        // So don't time out: race the wallet reply against an on-chain watcher that
+        // spots the outgoing transfer from this wallet to the spender.
+        const client = getPublicClient(config, { chainId: arcTestnet.id });
+        const fromBlock = client ? await run.wait(client.getBlockNumber()) : 0n;
+        const request = useSplitter && effectiveShares
+          ? writeContract(config, {
               address: SPLIT_ROUTER_ADDRESS, abi: SPLIT_ROUTER_ABI, functionName: "splitToken",
               args: [active.address, value, effectiveShares.map((s) => ({ recipient: s.address as `0x${string}`, bps: BigInt(s.bps) }))],
               chainId: arcTestnet.id,
-            }))
-          : await run.wallet(writeContract(config, {
+            })
+          : writeContract(config, {
               address: COINDECC_PAY_ADDRESS, abi: COINDECC_PAY_ABI, functionName: "pay",
               args: [DEFAULT_SPLIT_ID, value], chainId: arcTestnet.id,
-            }));
+            });
+        let stop = false;
+        const watcher = new Promise<`0x${string}`>((resolve) => {
+          const tick = async () => {
+            while (!stop) {
+              await new Promise((r) => setTimeout(r, 3000));
+              if (stop || !client) return;
+              try {
+                const logs = await client.getLogs({
+                  address: active.address, event: TRANSFER_EVENT,
+                  args: { from: address, to: spender }, fromBlock, toBlock: "latest",
+                });
+                const hit = logs.find((l) => (l.args.value ?? 0n) === value);
+                if (hit?.transactionHash) { resolve(hit.transactionHash); return; }
+              } catch { /* keep polling */ }
+            }
+          };
+          void tick();
+        });
+        let hash: `0x${string}`;
+        try { hash = await run.wait(Promise.race([request, watcher])); }
+        finally { stop = true; }
         setPay({ status: "pending", hash });
         const receipt = await run.wait(waitForTransactionReceipt(config, { hash, chainId: arcTestnet.id }));
         if (receipt.status !== "success") throw new Error("Payment failed on-chain.");
