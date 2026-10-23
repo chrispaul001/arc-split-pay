@@ -149,7 +149,7 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
         setPhase("approving");
         setApprove({ status: "wallet" });
         try {
-          const hash = await run.wallet(writeContract(config, {
+          const hash = await run.wait(writeContract(config, {
             address: active.address, abi: ERC20_ABI, functionName: "approve", args: [spender, maxUint256], chainId: arcTestnet.id,
           }));
           setApprove({ status: "pending", hash });
