@@ -192,9 +192,9 @@ export function OnchainCheckout({ fixedAmount, guard, shares }: { fixedAmount?: 
               try {
                 const logs = await client.getLogs({
                   address: active.address, event: TRANSFER_EVENT,
-                  args: { from: address, to: spender }, fromBlock, toBlock: "latest",
+                  args: { from: address }, fromBlock, toBlock: "latest",
                 });
-                const hit = logs.find((l) => (l.args.value ?? 0n) === value);
+                const hit = logs[0];
                 if (hit?.transactionHash) { resolve(hit.transactionHash); return; }
               } catch { /* keep polling */ }
             }
