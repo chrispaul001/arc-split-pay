@@ -48,14 +48,15 @@
 :root {
   --radius: 1rem;
 
-  /* page gradient: crisp ice blue -> deep midnight navy */
+  /* Light canvas stays pale from the header through the page footer. */
   --grad-top: oklch(0.975 0.018 250);
-  --grad-mid: oklch(0.9 0.045 250);
-  --grad-bottom: oklch(0.24 0.055 264);
+  --grad-mid: oklch(0.96 0.018 250);
+  --grad-bottom: oklch(0.94 0.022 250);
+  --canvas-background: linear-gradient(180deg, var(--grad-top) 0%, var(--grad-mid) 45%, var(--grad-bottom) 100%);
 
   --background: oklch(0.975 0.018 250);
   --foreground: oklch(0.21 0.05 264);
-  --card: oklch(1 0 0 / 62%);
+  --card: oklch(1 0 0 / 94%);
   --card-foreground: oklch(0.21 0.05 264);
   --popover: oklch(0.99 0.008 250);
   --popover-foreground: oklch(0.21 0.05 264);
@@ -73,15 +74,15 @@
   --accent-foreground: oklch(0.24 0.05 264);
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.99 0.005 250);
-  --border: oklch(0.4 0.05 260 / 16%);
-  --input: oklch(0.4 0.05 260 / 20%);
+  --border: oklch(0.4 0.035 260 / 18%);
+  --input: oklch(0.4 0.035 260 / 24%);
   --ring: oklch(0.55 0.18 255);
   --electric: oklch(0.6 0.2 254);
   --mint: oklch(0.7 0.16 168);
 
-  --glass: oklch(1 0 0 / 62%);
-  --glass-border: oklch(1 0 0 / 70%);
-  --glow: 0 0 0 1px oklch(0.6 0.2 254 / 10%), 0 18px 45px -18px oklch(0.3 0.08 264 / 45%);
+  --glass: oklch(1 0 0 / 88%);
+  --glass-border: oklch(0.4 0.035 260 / 14%);
+  --glow: inset 0 1px 0 oklch(1 0 0 / 90%), 0 12px 32px -18px oklch(0.3 0.04 264 / 22%);
 
   --chart-1: oklch(0.6 0.2 254);
   --chart-2: oklch(0.7 0.16 168);
@@ -94,6 +95,11 @@
   --grad-top: oklch(0.16 0.03 265);
   --grad-mid: oklch(0.13 0.022 265);
   --grad-bottom: oklch(0.1 0.018 265);
+  --canvas-background:
+    radial-gradient(60% 45% at 85% -5%, oklch(0.65 0.2 265 / 22%) 0%, transparent 70%),
+    radial-gradient(50% 40% at 5% 15%, oklch(0.75 0.15 210 / 14%) 0%, transparent 70%),
+    radial-gradient(45% 35% at 60% 105%, oklch(0.7 0.16 165 / 10%) 0%, transparent 70%),
+    linear-gradient(180deg, var(--grad-top) 0%, var(--grad-mid) 45%, var(--grad-bottom) 100%);
 
   --background: oklch(0.12 0.02 265);
   --foreground: oklch(0.98 0.005 250);
@@ -129,11 +135,8 @@
 }
 
 @utility app-gradient {
-  background:
-    radial-gradient(60% 45% at 85% -5%, oklch(0.65 0.2 265 / 22%) 0%, transparent 70%),
-    radial-gradient(50% 40% at 5% 15%, oklch(0.75 0.15 210 / 14%) 0%, transparent 70%),
-    radial-gradient(45% 35% at 60% 105%, oklch(0.7 0.16 165 / 10%) 0%, transparent 70%),
-    linear-gradient(180deg, var(--grad-top) 0%, var(--grad-mid) 45%, var(--grad-bottom) 100%);
+  background-color: var(--background);
+  background-image: var(--canvas-background);
   background-attachment: fixed;
 }
 

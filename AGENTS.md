@@ -11,6 +11,7 @@
 
 - Normalize cached profile/merchant data on read to prevent startup crashes.
 - Use the browser-safe BrandTile component for app-owned brand images; it centralizes sizing and shape without importing wallet code into SSR routes.
+- All full-page canvases use app-gradient with the shared theme canvas token; light and dark surfaces are defined only in global CSS. Why: dashboard, checkout and developer sign-in must remain visually consistent without changing payment logic.
 - Merchant data (`merchant_profiles`) and wallet history (`wallet_transactions`) are keyed by wallet, reached only via server fns checking a wallet-signed HMAC token; profile/brand data is never stored in localStorage (only the session token); history keeps a local cache. Why: ownership must be proven and profiles must match across devices. Why: ownership must be proven.
 - Transactions merge saved history, local labels and wallet + CoindeccPay USDC Transfer logs by hash; scanned records are persisted, and overview settlement analytics derive from that same wallet history. Why: live analytics and history must agree and survive day changes.
 - One `MerchantProvider` holds merchant state and the payment listener; it verifies queued checkout hashes and dedupes alerts. Why: single sync source; cross-tab payments.
