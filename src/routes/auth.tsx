@@ -70,7 +70,7 @@ function AuthPage() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center bg-background px-4 py-10">
+    <main className="app-gradient grid min-h-screen place-items-center px-4 py-10">
       <div className="glass w-full max-w-sm rounded-3xl px-6 py-7">
         <h1 className="font-display text-2xl font-bold">{mode === "signin" ? "Sign in" : "Create account"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Sign in to let an AI assistant use your CoindeccPay tools.</p>

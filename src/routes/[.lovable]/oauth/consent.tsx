@@ -74,7 +74,7 @@ function ConsentPage() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center bg-background px-4 py-10">
+    <main className="app-gradient grid min-h-screen place-items-center px-4 py-10">
       <div className="glass w-full max-w-sm rounded-3xl px-6 py-7">
         {error ? (
           <>
