@@ -369,7 +369,7 @@ export function SplitRouter() {
                           });
                           if (p.bps > 0) toast(`${p.name || "Recipient"} removed`, { description: `${p.bps / 100}% returned to ${parties[0]?.name || "Merchant treasury"}.` });
                         }}
-                        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive disabled:opacity-40"
+                        className="grid size-10 touch-manipulation place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive disabled:opacity-40"
                         aria-label={`Remove ${p.name || "recipient"}`}
                       >
                         <Trash2 className="size-4" />

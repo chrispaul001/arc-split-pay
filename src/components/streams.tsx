@@ -154,7 +154,7 @@ export function Streams() {
           <div className="flex shrink-0 items-center gap-2">
             <CurrencySelect value={currency} onChange={setCurrency} />
             {open ? (
-              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              <Button size="sm" variant="outline" className="h-10 touch-manipulation px-4" onClick={() => setOpen(false)}>
                 <X className="size-4" /> Cancel
               </Button>
             ) : (
