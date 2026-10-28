@@ -41,7 +41,7 @@ import { Web3Provider } from "@/components/web3-provider";
 import { OnchainCheckout } from "@/components/onchain-checkout";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { Reveal } from "@/components/reveal";
-import logoTile from "@/assets/coindecc-tile.png.asset.json";
+import { BrandTile } from "@/components/brand-tile";
 
 const NAV = [
   { key: "overview", label: "Overview", icon: Layers },
@@ -264,13 +264,7 @@ function SidebarFooter() {
 function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <img
-        src={logoTile.url}
-        alt="CoindeccPay logo"
-        width={40}
-        height={40}
-        className="size-10 shrink-0 self-center rounded-xl shadow-sm ring-1 ring-border/80"
-      />
+      <BrandTile />
       <span className="min-w-0 truncate font-display text-lg font-bold tracking-tight">CoindeccPay</span>
     </div>
   );
