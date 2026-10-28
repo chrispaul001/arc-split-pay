@@ -13,3 +13,4 @@
 
 - [x] Payment links: disconnect wallet option
 - [x] Immediate mobile wallet wake + 2-step approval/split labels
+- [ ] Unify the navigation, loading and receipt logos as fitted rounded-rectangle tiles and verify phone/desktop rendering.
