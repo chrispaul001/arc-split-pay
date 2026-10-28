@@ -75,7 +75,7 @@ export function ReceiptModal({ data, open, onOpenChange }: { data: ReceiptData; 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto rounded-3xl border-border/70 p-0">
         <div className="space-y-5 p-5 sm:p-6">
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 pr-10">
             <img src={logoTile.url} alt="CoindeccPay" className="size-11 shrink-0 rounded-xl ring-1 ring-border/80" />
             <div className="min-w-0 flex-1">
               <DialogTitle className="font-display text-lg font-bold">CoindeccPay</DialogTitle>

@@ -18,7 +18,7 @@ export function WalletStallHelper({ label, onCancel }: { label: string; onCancel
           <p className="truncate text-xs font-semibold">{label}</p>
           <p className="text-[11px] text-muted-foreground">Confirm in your wallet app.</p>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={onCancel} className="h-8 shrink-0 px-3 text-xs" aria-label="Cancel transaction">
+        <Button type="button" variant="outline" size="sm" onClick={onCancel} className="h-10 min-w-[5.5rem] shrink-0 touch-manipulation px-4 text-xs" aria-label="Cancel transaction">
           <X className="size-3.5" /> Cancel
         </Button>
       </div>
