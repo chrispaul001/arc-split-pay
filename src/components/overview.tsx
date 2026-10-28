@@ -132,12 +132,15 @@ export function Overview() {
           >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
               <div className="min-w-0">
-                <p className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <p className="text-[11px] leading-snug font-medium tracking-wide text-balance text-muted-foreground uppercase">
                   {m.label}
                 </p>
-                <p className="mt-2 font-display text-3xl font-bold tabular-nums">
+                <p key={isConnected ? m.value : m.zero} className="animate-value-in mt-2 font-display text-3xl font-bold tabular-nums">
                   {isConnected ? m.value : m.zero}
                 </p>
+                {!isConnected && (
+                  <p className="mt-1 text-[11px] text-muted-foreground">Connect a wallet to see live data</p>
+                )}
 
               </div>
               <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary transition-transform duration-300 group-hover/metric:scale-110">

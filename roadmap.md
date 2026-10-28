@@ -14,3 +14,4 @@
 - [x] Payment links: disconnect wallet option
 - [x] Immediate mobile wallet wake + 2-step approval/split labels
 - [x] Unify the navigation, loading and receipt logos as fitted rounded-rectangle tiles and verify phone/desktop rendering.
+- [x] UI audit fixes: full metric labels, value animation, guest hints, checkout trust badges.
