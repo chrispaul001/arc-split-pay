@@ -200,6 +200,11 @@ export function CheckoutPreview() {
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] break-words text-muted-foreground">
             <Lock className="size-3" /> Secured by CoindeccPay
           </p>
+          <ul className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px] leading-tight text-muted-foreground">
+            <li className="rounded-xl bg-secondary/60 px-2 py-2"><span className="block font-semibold text-foreground">Non-custodial</span>Funds go straight to the merchant</li>
+            <li className="rounded-xl bg-secondary/60 px-2 py-2"><span className="block font-semibold text-foreground">Instant</span>Settles in seconds on Arc</li>
+            <li className="rounded-xl bg-secondary/60 px-2 py-2"><span className="block font-semibold text-foreground">Verifiable</span>Receipt linked to the explorer</li>
+          </ul>
         </div>
 
         {(payFlow.approve.status !== "idle" || payFlow.pay.status !== "idle") && (
