@@ -420,7 +420,7 @@ export function SettingsView() {
         </div>
       )}
 
-      <nav aria-label="Settings sections" className="no-scrollbar -mx-1 mb-4 flex gap-2 overflow-x-auto px-1 lg:hidden">
+      <nav aria-label="Settings sections" className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 lg:hidden">
         {SETTINGS_SECTIONS.map((s) => (
           <button key={s.id} type="button" onClick={() => jump(s.id)}
             className="motion-press shrink-0 rounded-full border border-border bg-background/50 px-3 py-1.5 text-xs font-medium hover:bg-secondary/60">
@@ -532,7 +532,7 @@ export function SettingsView() {
                 </div>
               ))}
             </dl>
-            <a href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer"
+            <a href="https://explorer.testnet.arc.io" target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
               Open Arc Explorer <ExternalLink className="size-3" />
             </a>
