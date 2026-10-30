@@ -19,3 +19,4 @@
 - [x] Settings: drop read-only Network and Payments sections plus dead toggle state; verify four remaining sections on desktop and phone.
 
 - [x] Unify every CoindeccPay mark on the loading screen squircle with a theme-aware ring and depth; verify light/dark on desktop and phone.
+- [x] Apply the saved colour mode before first paint so the loading screen never opens in the wrong theme; verify toggle, save and restore.
