@@ -17,3 +17,5 @@
 - [x] UI audit fixes: full metric labels, value animation, guest hints, checkout trust badges.
 - [x] Finish the shared light-mode canvas and surface contrast; verify dashboard, checkout, auth and dark mode on desktop and phone.
 - [x] Settings: drop read-only Network and Payments sections plus dead toggle state; verify four remaining sections on desktop and phone.
+
+- [x] Unify every CoindeccPay mark on the loading screen squircle with a theme-aware ring and depth; verify light/dark on desktop and phone.
