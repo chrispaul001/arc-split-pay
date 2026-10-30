@@ -289,12 +289,10 @@ export function SettingsView() {
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
   const [webhook, setWebhook] = useState("");
-  const [autoSplit, setAutoSplit] = useState(true);
-  const [emailReceipts, setEmailReceipts] = useState(true);
   const [walletError, setWalletError] = useState("");
   const [webhookError, setWebhookError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [baseline, setBaseline] = useState({ name: "", wallet: "", webhook: "", autoSplit: true, emailReceipts: true });
+  const [baseline, setBaseline] = useState({ name: "", wallet: "", webhook: "" });
   const canSave = useSaveGate();
 
   useEffect(() => {
@@ -303,25 +301,19 @@ export function SettingsView() {
       name: data.businessName || businessName,
       wallet: data.settlementWallet || settlementWallet,
       webhook: data.webhookUrl,
-      autoSplit: data.autoSplit,
-      emailReceipts: data.emailReceipts,
     };
     setBaseline(b);
     setName(b.name); setWallet(b.wallet); setWebhook(b.webhook);
-    setAutoSplit(b.autoSplit); setEmailReceipts(b.emailReceipts);
     if (data.businessName) setProfile({ businessName: data.businessName });
-  }, [connected, ready, data.businessName, data.settlementWallet, data.webhookUrl,
-      data.autoSplit, data.emailReceipts]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [connected, ready, data.businessName, data.settlementWallet, data.webhookUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dirty =
-    name !== baseline.name || wallet !== baseline.wallet || webhook !== baseline.webhook ||
-    autoSplit !== baseline.autoSplit || emailReceipts !== baseline.emailReceipts;
+    name !== baseline.name || wallet !== baseline.wallet || webhook !== baseline.webhook;
 
   const walletValid = ETH_ADDRESS_RE.test(wallet.trim());
 
   const discard = () => {
     setName(baseline.name); setWallet(baseline.wallet); setWebhook(baseline.webhook);
-    setAutoSplit(baseline.autoSplit); setEmailReceipts(baseline.emailReceipts);
     setWalletError(""); setWebhookError("");
   };
 
@@ -376,10 +368,8 @@ export function SettingsView() {
         settlementWallet: w,
         webhookUrl: wh,
         defaultCurrency: "USDC",
-        autoSplit,
-        emailReceipts,
       }));
-      setBaseline({ name: trimmed, wallet: w, webhook: wh, autoSplit, emailReceipts });
+      setBaseline({ name: trimmed, wallet: w, webhook: wh });
       setName(trimmed); setWallet(w); setWebhook(wh);
       toast.success("Settings saved", { description: `Business name updated to ${trimmed}.` });
     } finally {
