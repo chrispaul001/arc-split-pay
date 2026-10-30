@@ -398,7 +398,6 @@ export function SettingsView() {
     <div className="w-full max-w-5xl pb-28">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-xl font-semibold">Settings</h3>
           <p className="text-sm text-muted-foreground">Manage your business profile, payouts and integrations.</p>
         </div>
         {connected ? (
