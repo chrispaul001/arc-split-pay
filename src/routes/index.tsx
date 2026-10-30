@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { BrandTile } from "@/components/brand-tile";
 
@@ -28,12 +28,12 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-function LoadingShell() {
+function LoadingShell({ leaving = false }: { leaving?: boolean }) {
   return (
     <div
       role="status"
       aria-label="Loading CoindeccPay"
-      className="app-gradient relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6"
+      className={`app-gradient relative flex min-h-screen transition-all duration-[400ms] ease-out ${leaving ? "scale-[0.98] opacity-0" : "opacity-100"} w-full items-center justify-center overflow-hidden px-6`}
     >
       <div className="relative w-full max-w-[340px] rounded-3xl border border-border/60 bg-card/75 p-8 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-700">
         <div className="flex flex-col items-center text-center">
@@ -59,11 +59,25 @@ function LoadingShell() {
   );
 }
 
+const INTRO_MS = 2200;
+const FADE_MS = 400;
+
 function Home() {
+  const [phase, setPhase] = useState<"hold" | "leaving" | "done">("hold");
+  useEffect(() => {
+    const a = setTimeout(() => setPhase("leaving"), INTRO_MS);
+    const b = setTimeout(() => setPhase("done"), INTRO_MS + FADE_MS);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, []);
   return (
     <ClientOnly fallback={<LoadingShell />}>
       <Suspense fallback={<LoadingShell />}>
         <DashboardApp />
+        {phase !== "done" && (
+          <div className="fixed inset-0 z-[100]">
+            <LoadingShell leaving={phase === "leaving"} />
+          </div>
+        )}
       </Suspense>
     </ClientOnly>
   );
