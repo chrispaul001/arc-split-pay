@@ -386,7 +386,7 @@ export function SettingsView() {
     <div className="w-full max-w-5xl pb-28">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">Manage your business profile, payouts and integrations.</p>
+          <p className="text-sm text-muted-foreground">Manage your business profile, alerts and integrations.</p>
         </div>
         {connected ? (
           <span className="inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1.5 text-[11px] font-semibold text-mint">
@@ -407,14 +407,6 @@ export function SettingsView() {
         </div>
       )}
 
-      <nav aria-label="Settings sections" className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 lg:hidden">
-        {SETTINGS_SECTIONS.map((s) => (
-          <button key={s.id} type="button" onClick={() => jump(s.id)}
-            className="motion-press shrink-0 rounded-full border border-border bg-background/50 px-3 py-1.5 text-xs font-medium hover:bg-secondary/60">
-            {s.label}
-          </button>
-        ))}
-      </nav>
 
       <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
         <nav aria-label="Settings sections" className="hidden lg:block">
