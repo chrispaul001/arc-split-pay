@@ -16,3 +16,4 @@
 - [x] Unify the navigation, loading and receipt logos as fitted rounded-rectangle tiles and verify phone/desktop rendering.
 - [x] UI audit fixes: full metric labels, value animation, guest hints, checkout trust badges.
 - [x] Finish the shared light-mode canvas and surface contrast; verify dashboard, checkout, auth and dark mode on desktop and phone.
+- [x] Settings: drop read-only Network and Payments sections plus dead toggle state; verify four remaining sections on desktop and phone.
