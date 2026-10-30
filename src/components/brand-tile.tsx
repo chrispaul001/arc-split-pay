@@ -1,14 +1,32 @@
 import logoTile from "@/assets/coindecc-tile.png.asset.json";
 
-/** Shared, unclipped brand artwork; keep the tile shape consistent at every size. */
-export function BrandTile({ className = "size-10", decorative = false }: { className?: string; decorative?: boolean }) {
+/**
+ * The one CoindeccPay mark. Every instance (header, loading screen, receipts)
+ * is masked with the shared squircle geometry in `styles.css`, so the shape is
+ * identical at every size: a soft capsule with a hairline ring and depth.
+ */
+export function BrandTile({
+  className = "size-10",
+  decorative = false,
+  sheen = false,
+}: {
+  className?: string;
+  decorative?: boolean;
+  /** Slide a soft light across the tile; used by the loading screen. */
+  sheen?: boolean;
+}) {
   return (
-    <img
-      src={logoTile.url}
-      alt={decorative ? "" : "CoindeccPay logo"}
-      width={128}
-      height={128}
-      className={`aspect-square shrink-0 self-center rounded-[22%] object-contain shadow-sm ring-1 ring-border/80 ${className}`}
-    />
+    <span className={`brand-depth block shrink-0 self-center ${className}`}>
+      <span className="brand-squircle relative block h-full w-full bg-border/80 p-px">
+        <img
+          src={logoTile.url}
+          alt={decorative ? "" : "CoindeccPay logo"}
+          width={128}
+          height={128}
+          className="brand-squircle size-full object-cover"
+        />
+        {sheen && <span aria-hidden className="brand-sheen absolute inset-0" />}
+      </span>
+    </span>
   );
 }

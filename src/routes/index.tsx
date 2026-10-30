@@ -38,9 +38,7 @@ function LoadingShell({ leaving = false }: { leaving?: boolean }) {
       <div className="relative w-full max-w-[340px] rounded-3xl border border-border/60 bg-card/75 p-8 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-700">
         <div className="flex flex-col items-center text-center">
           <div className="flex items-center gap-3.5">
-            <div className="splash-sheen relative overflow-hidden rounded-2xl">
-              <BrandTile decorative className="size-14" />
-            </div>
+            <BrandTile decorative sheen className="size-14" />
             <div className="text-left">
               <p className="font-display text-2xl font-bold tracking-tight text-foreground">CoindeccPay</p>
               <p className="text-xs font-medium text-muted-foreground">Accept, Split &amp; Stream USDC</p>
