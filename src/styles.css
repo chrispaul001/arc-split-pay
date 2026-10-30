@@ -473,7 +473,13 @@
 .splash-bar { animation: splash-bar 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
 @keyframes splash-glow { 0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.95); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } }
 .splash-glow { animation: splash-glow 3s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .splash-bar, .splash-glow { animation: none; } }
+.splash-trail { background: linear-gradient(90deg, transparent, var(--primary)); animation: splash-trail 1.6s cubic-bezier(0.45, 0, 0.25, 1) infinite; }
+@keyframes splash-trail { 0% { left: -40%; } 100% { left: 100%; } }
+.splash-sheen::after { content: ""; position: absolute; inset: -50%; background: linear-gradient(115deg, transparent 42%, color-mix(in oklab, var(--background) 55%, transparent) 50%, transparent 58%); transform: translateX(-60%); animation: splash-sheen 2.8s ease-in-out infinite; pointer-events: none; }
+@keyframes splash-sheen { 0%, 25% { transform: translateX(-60%); } 75%, 100% { transform: translateX(60%); } }
+.splash-beacon { animation: splash-beacon 2.4s ease-in-out infinite; }
+@keyframes splash-beacon { 0%, 100% { opacity: 0.55; box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 35%, transparent); } 50% { opacity: 1; box-shadow: 0 0 0 4px transparent; } }
+@media (prefers-reduced-motion: reduce) { .splash-bar, .splash-glow, .splash-trail, .splash-sheen::after, .splash-beacon { animation: none; } }
 
 @keyframes value-in { from { opacity: 0; transform: translateY(6px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
 .animate-value-in { animation: value-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }

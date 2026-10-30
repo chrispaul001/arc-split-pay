@@ -35,22 +35,25 @@ function LoadingShell() {
       aria-label="Loading CoindeccPay"
       className="app-gradient relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6"
     >
-      <div className="pointer-events-none absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-3xl splash-glow" />
-      <div className="relative flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-700">
-        <div className="flex items-center gap-3.5">
-          <BrandTile decorative className="size-14" />
-          <div className="text-left">
-            <p className="font-display text-2xl font-bold tracking-tight text-foreground">CoindeccPay</p>
-            <p className="text-xs font-medium text-muted-foreground">Accept, Split &amp; Stream USDC</p>
+      <div className="relative w-full max-w-[340px] rounded-3xl border border-border/60 bg-card/75 p-8 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-700">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex items-center gap-3.5">
+            <div className="splash-sheen relative overflow-hidden rounded-2xl">
+              <BrandTile decorative className="size-14" />
+            </div>
+            <div className="text-left">
+              <p className="font-display text-2xl font-bold tracking-tight text-foreground">CoindeccPay</p>
+              <p className="text-xs font-medium text-muted-foreground">Accept, Split &amp; Stream USDC</p>
+            </div>
           </div>
+          <div className="relative mt-8 h-[1.5px] w-full overflow-hidden rounded-full bg-border/70">
+            <span className="splash-trail absolute inset-y-0 w-2/5 rounded-full" />
+          </div>
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-secondary/50 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+            <span className="splash-beacon size-1.5 rounded-full bg-primary" />
+            Connecting to Arc Network
+          </p>
         </div>
-        <div className="relative mt-9 h-0.5 w-44 overflow-hidden rounded-full bg-border">
-          <span className="splash-bar absolute inset-y-0 w-1/3 rounded-full bg-primary" />
-        </div>
-        <p className="mt-5 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-          <span className="pulse-dot size-1.5 rounded-full bg-primary" />
-          Connecting to Arc Network
-        </p>
       </div>
     </div>
   );
