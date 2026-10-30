@@ -115,6 +115,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.json" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=5" },
     ],
+    scripts: [
+      {
+        // Apply the saved colour mode before first paint so the loading screen
+        // never flashes the wrong theme.
+        children:
+          '(function(){try{var s=localStorage.getItem("coindecc-theme");var d=s==="dark"||(!s&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",!!d);}catch(e){}})();',
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
