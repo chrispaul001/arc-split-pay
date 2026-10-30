@@ -10,7 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Bell, Building2, CheckCircle2, Code2, Copy, ExternalLink, Eye, EyeOff, Globe, KeyRound, LifeBuoy, Link2, Loader2, Lock, Mail, Plus, Trash2, Wallet } from "lucide-react";
+import { Bell, Building2, CheckCircle2, Code2, Copy, ExternalLink, Eye, EyeOff, Globe, KeyRound, LifeBuoy, Link2, Loader2, Mail, Plus, Trash2 } from "lucide-react";
 import { GuestBanner, GuestEmpty, useSaveGate, useWalletGate } from "@/components/guest-gate";
 import { copyPaymentLink } from "@/components/link-share";
 import { PushAlertsToggle } from "@/components/push-alerts-toggle";
@@ -246,7 +246,6 @@ const ETH_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 
 const SETTINGS_SECTIONS = [
   { id: "profile", label: "Business profile", icon: Building2 },
-  { id: "payments", label: "Payments", icon: Wallet },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "developers", label: "Developers", icon: Code2 },
   { id: "support", label: "Help & support", icon: LifeBuoy },
@@ -473,24 +472,6 @@ export function SettingsView() {
               ) : (
                 <p className="text-xs text-muted-foreground">Where settled funds are sent. Must be a valid Ethereum-compatible address.</p>
               )}
-            </div>
-          </SettingsSection>
-
-          <SettingsSection id="payments" title="Payments" description="Currency and how incoming funds are routed." icon={Wallet}>
-            <div className="space-y-2">
-              <Label htmlFor="currency">Default currency</Label>
-              <div id="currency" className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-secondary/40 px-3 py-2.5">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-[10px] font-bold text-primary">$</span>
-                  <span className="truncate font-medium">USDC</span>
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-mint uppercase">
-                  <Lock className="size-3" /> Arc Native
-                </span>
-              </div>
-              <p className="text-xs break-words text-muted-foreground">
-                CoindeccPay operates as a USDC-native gateway on Arc Network for optimized gas and instant settlement.
-              </p>
             </div>
           </SettingsSection>
 
