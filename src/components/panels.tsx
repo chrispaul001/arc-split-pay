@@ -249,7 +249,6 @@ const SETTINGS_SECTIONS = [
   { id: "payments", label: "Payments", icon: Wallet },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "developers", label: "Developers", icon: Code2 },
-  { id: "network", label: "Network", icon: Globe },
   { id: "support", label: "Help & support", icon: LifeBuoy },
 ] as const;
 
@@ -493,12 +492,10 @@ export function SettingsView() {
                 CoindeccPay operates as a USDC-native gateway on Arc Network for optimized gas and instant settlement.
               </p>
             </div>
-            <SwitchRow title="Auto-split on receipt" description="Execute the router the moment funds land." checked={autoSplit} onChange={setAutoSplit} />
           </SettingsSection>
 
           <SettingsSection id="notifications" title="Notifications" description="Stay on top of every payment." icon={Bell}>
             <PushAlertsToggle address={connected ? address : null} />
-            <SwitchRow title="Email receipts" description="Send a branded receipt to every payer." checked={emailReceipts} onChange={setEmailReceipts} />
           </SettingsSection>
 
           <SettingsSection id="developers" title="Developers" description="Server-to-server notifications for payment events." icon={Code2}>
@@ -522,20 +519,6 @@ export function SettingsView() {
             </div>
           </SettingsSection>
 
-          <SettingsSection id="network" title="Network" description="CoindeccPay settles on Arc Testnet." icon={Globe}>
-            <dl className="grid gap-3 sm:grid-cols-3">
-              {[["Network", "Arc Testnet"], ["Chain ID", "5042002"], ["Settlement", "USDC"]].map(([k, v]) => (
-                <div key={k} className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5">
-                  <dt className="text-[11px] text-muted-foreground uppercase">{k}</dt>
-                  <dd className="font-medium">{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <a href="https://explorer.testnet.arc.io" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-              Open Arc Explorer <ExternalLink className="size-3" />
-            </a>
-          </SettingsSection>
 
           <SettingsSection id="support" title="Help & support" description="Questions, integrations or feedback? We usually reply within a day." icon={LifeBuoy}>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
