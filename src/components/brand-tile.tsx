@@ -16,7 +16,7 @@ export function BrandTile({
   sheen?: boolean;
 }) {
   return (
-    <span className={`block shrink-0 self-center drop-shadow-sm ${className}`}>
+    <span className={`brand-depth block shrink-0 self-center ${className}`}>
       <span className="brand-squircle relative block h-full w-full bg-border/80 p-px">
         <img
           src={logoTile.url}
