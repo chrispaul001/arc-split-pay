@@ -77,7 +77,7 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
       notify({
         kind: "system",
         title: ids.length === 1 ? "Payment link removed" : `${ids.length} payment links removed`,
-        body: ids.length === 1 ? names[0] : names.slice(0, 3).join(", ") + (names.length > 3 ? "…" : ""),
+        body: ids.length === 1 ? (names[0] ?? "") : names.slice(0, 3).join(", ") + (names.length > 3 ? "…" : ""),
       });
     }, 620);
   };
