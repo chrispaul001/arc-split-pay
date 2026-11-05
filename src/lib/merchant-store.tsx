@@ -75,6 +75,7 @@ export type MerchantNotification = {
   createdAt: number;
   read: boolean;
   linkUrl?: string;
+  streamId?: string;
   payment?: { hash: string; sender: string; amount: number; currency: "USDC"; splits: { address: string; amount: number }[] };
 };
 
@@ -157,6 +158,7 @@ function normalizeMerchantData(value: unknown): MerchantData {
         kind: ["payment", "split", "stream", "system"].includes(n.kind ?? "") ? n.kind as MerchantNotification["kind"] : "system" as const,
         createdAt: typeof n.createdAt === "number" && Number.isFinite(n.createdAt) ? n.createdAt : Date.now(),
         read: n.read === true,
+        ...(typeof n.streamId === "string" ? { streamId: n.streamId } : {}),
         ...(payment && typeof payment.hash === "string" && /^0x[a-f0-9]{64}$/i.test(payment.hash) &&
           typeof payment.sender === "string" && /^0x[a-f0-9]{40}$/i.test(payment.sender) &&
           typeof payment.amount === "number" && Number.isFinite(payment.amount) && payment.amount > 0 ? {
