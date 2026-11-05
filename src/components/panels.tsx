@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -37,23 +38,104 @@ function EmptyCard({ title, hint, action }: { title: string; hint: string; actio
 export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
   const connected = useWalletGate();
   const { data, update, notify, address } = useMerchantStore();
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [removing, setRemoving] = useState<Set<string>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (!connected)
     return <GuestEmpty description="Connect your wallet to manage payment links." />;
 
   const links = data.links;
+  const allSelected = links.length > 0 && selected.size === links.length;
+
+  const exitSelect = () => {
+    setSelecting(false);
+    setSelected(new Set());
+  };
+
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // iOS-style: row slides left over a red layer, then the gap collapses, then data is removed.
+  const removeLinks = (ids: string[]) => {
+    if (ids.length === 0) return;
+    const names = links.filter((l) => ids.includes(l.id)).map((l) => l.name);
+    setRemoving((prev) => new Set([...prev, ...ids]));
+    window.setTimeout(() => {
+      update((p) => ({ ...p, links: p.links.filter((x) => !ids.includes(x.id)) }));
+      setRemoving((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+      notify({
+        kind: "system",
+        title: ids.length === 1 ? "Payment link removed" : `${ids.length} payment links removed`,
+        body: ids.length === 1 ? names[0] : names.slice(0, 3).join(", ") + (names.length > 3 ? "…" : ""),
+      });
+    }, 620);
+  };
+
+  const deleteSelected = () => {
+    removeLinks([...selected]);
+    setConfirmOpen(false);
+    exitSelect();
+  };
 
   return (
     <div className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h3 className="truncate text-lg font-semibold">Payment links</h3>
-        <Button
-          size="sm"
-          className="shrink-0"
-          onClick={() => onNewLink?.()}
-        >
-          <Plus className="size-4" /> New link
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          {links.length > 0 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => (selecting ? exitSelect() : setSelecting(true))}
+            >
+              {selecting ? "Done" : "Select"}
+            </Button>
+          )}
+          {!selecting && (
+            <Button size="sm" className="shrink-0" onClick={() => onNewLink?.()}>
+              <Plus className="size-4" /> New link
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${selecting ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
+        <div className="overflow-hidden">
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 px-3 py-2">
+            <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-medium">
+              <Checkbox
+                checked={allSelected ? true : selected.size > 0 ? "indeterminate" : false}
+                onCheckedChange={() =>
+                  setSelected(allSelected ? new Set() : new Set(links.map((l) => l.id)))
+                }
+                aria-label="Select all links"
+              />
+              {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+            </label>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={selected.size === 0}
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Trash2 className="size-4" />
+              {allSelected ? "Delete all" : `Delete${selected.size ? ` (${selected.size})` : ""}`}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {links.length === 0 ? (
@@ -64,61 +146,113 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
           />
         </div>
       ) : (
-        <ul className="mt-5 space-y-3">
-          {links.map((l) => (
-            <li
-              key={l.id}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 w-full min-w-0 rounded-2xl bg-secondary/50 p-4 transition-all hover:-translate-y-0.5 hover:bg-secondary/70"
-            >
-              <div className="min-w-0">
-                <p className="truncate font-medium">{l.name}</p>
-                <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
-                  <Link2 className="mr-1 inline size-3" />
-                  {l.reference || l.id} · {l.parties.length} parties · {timeAgo(l.createdAt)}
-                </p>
-                <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground/80" title={l.url}>
-                  {l.url}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="font-display text-sm font-bold tabular-nums">
-                  {l.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                </span>
-                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-background/50 py-1 pr-2.5 pl-1.5">
-                  <Switch
-                    checked={l.status === "Active"}
-                    aria-label={`Toggle ${l.name} status`}
-                    onCheckedChange={(on) => {
-                      update((p) => ({ ...p, links: p.links.map((x) => (x.id === l.id ? { ...x, status: on ? "Active" : "Paused" } : x)) }));
-                      toast.success(on ? "Link activated" : "Link paused", { description: on ? `${l.name} can accept payments again.` : `Buyers opening ${l.name} will see it is inactive.` });
-                    }}
-                  />
-                  <span className={`text-[11px] font-semibold ${l.status === "Active" ? "text-mint" : "text-muted-foreground"}`}>
-                    {l.status === "Active" ? "Active" : "Inactive"}
-                  </span>
-                </label>
-                <button
-                  aria-label="Copy link"
-                  onClick={() => copyPaymentLink(address ? withLinkParams(l.url, l.id, address) : l.url)}
-                  className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
-                >
-                  <Copy className="size-4" />
-                </button>
-                <button
-                  aria-label={`Delete ${l.name}`}
-                  onClick={() => {
-                    update((p) => ({ ...p, links: p.links.filter((x) => x.id !== l.id) }));
-                    notify({ kind: "system", title: "Payment link removed", body: l.name });
-                  }}
-                  className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            </li>
-          ))}
+        <ul className="mt-5">
+          {links.map((l) => {
+            const isRemoving = removing.has(l.id);
+            const isSelected = selected.has(l.id);
+            return (
+              <li
+                key={l.id}
+                className={`grid transition-[grid-template-rows,margin,opacity] duration-300 ease-out [transition-delay:var(--d)] ${isRemoving ? "mb-0 grid-rows-[0fr] opacity-0" : "mb-3 grid-rows-[1fr] opacity-100"}`}
+                style={{ ["--d" as string]: isRemoving ? "320ms" : "0ms" }}
+              >
+                <div className="relative min-w-0 overflow-hidden rounded-2xl">
+                  {/* red layer revealed as the row slides away */}
+                  <div
+                    aria-hidden
+                    className={`absolute inset-0 flex items-center justify-end rounded-2xl bg-destructive pr-6 text-destructive-foreground transition-opacity duration-150 ${isRemoving ? "opacity-100" : "opacity-0"}`}
+                  >
+                    <Trash2 className="size-5" />
+                  </div>
+                  <div
+                    onClick={selecting ? () => toggle(l.id) : undefined}
+                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"} ${isRemoving ? "-translate-x-[110%]" : "translate-x-0"}`}
+                  >
+                    {selecting && (
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggle(l.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Select ${l.name}`}
+                        className="animate-in fade-in zoom-in-75"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{l.name}</p>
+                      <p className="truncate font-mono text-[11px] break-words text-muted-foreground">
+                        <Link2 className="mr-1 inline size-3" />
+                        {l.reference || l.id} · {l.parties.length} parties · {timeAgo(l.createdAt)}
+                      </p>
+                      <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground/80" title={l.url}>
+                        {l.url}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="font-display text-sm font-bold tabular-nums">
+                        {l.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </span>
+                      {!selecting && (
+                        <>
+                          <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-background/50 py-1 pr-2.5 pl-1.5">
+                            <Switch
+                              checked={l.status === "Active"}
+                              aria-label={`Toggle ${l.name} status`}
+                              onCheckedChange={(on) => {
+                                update((p) => ({ ...p, links: p.links.map((x) => (x.id === l.id ? { ...x, status: on ? "Active" : "Paused" } : x)) }));
+                                toast.success(on ? "Link activated" : "Link paused", { description: on ? `${l.name} can accept payments again.` : `Buyers opening ${l.name} will see it is inactive.` });
+                              }}
+                            />
+                            <span className={`text-[11px] font-semibold ${l.status === "Active" ? "text-mint" : "text-muted-foreground"}`}>
+                              {l.status === "Active" ? "Active" : "Inactive"}
+                            </span>
+                          </label>
+                          <button
+                            aria-label="Copy link"
+                            onClick={() => copyPaymentLink(address ? withLinkParams(l.url, l.id, address) : l.url)}
+                            className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-primary/12 hover:text-primary"
+                          >
+                            <Copy className="size-4" />
+                          </button>
+                          <button
+                            aria-label={`Delete ${l.name}`}
+                            disabled={isRemoving}
+                            onClick={() => removeLinks([l.id])}
+                            className="motion-press rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {allSelected ? "Delete all payment links?" : `Delete ${selected.size} payment link${selected.size === 1 ? "" : "s"}?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Buyers who open these links will no longer be able to pay. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteSelected}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
