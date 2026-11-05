@@ -184,6 +184,7 @@ export function Streams() {
       }));
       notify({
         kind: "stream",
+        ...(close ? {} : { streamId: s.id }),
         title: close ? "Stream closed & settled" : "Stream payout settled",
         body: `${due.toFixed(4)} USDC sent to ${s.address} on Arc.`,
       });
@@ -218,7 +219,7 @@ export function Streams() {
       createdAt: Date.now(),
     };
     update((p) => ({ ...p, streams: [stream, ...p.streams] }));
-    notify({ kind: "stream", title: "Stream started", body: `${stream.name} · ${rate.toFixed(6)} USDC/s` });
+    notify({ kind: "stream", title: "Stream started", streamId: stream.id, body: `${stream.name} · ${rate.toFixed(6)} USDC/s` });
     setForm(emptyForm);
     setOpen(false);
     toast.success("Stream started");
@@ -379,7 +380,7 @@ export function Streams() {
       ) : streams.length > 0 ? (
         <div className="space-y-3">
           {streams.map((s) => (
-            <div key={s.id} className="glass animate-rise w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
+            <div key={s.id} id={`stream-${s.id}`} className="glass animate-rise scroll-mt-24 transition-shadow duration-500 data-[focus=true]:ring-2 data-[focus=true]:ring-primary w-full max-w-full rounded-3xl px-4 py-5 sm:px-5">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0">
                   <p className="flex min-w-0 items-center gap-2">

@@ -144,6 +144,15 @@ export function NotificationsBell() {
         </DialogHeader>
         {selected && <div className="space-y-3 text-sm">
            <div><p className="text-xs text-muted-foreground">{selected.payment ? "Timestamp" : "Received"}</p><p>{new Date(selected.createdAt).toLocaleString(undefined, { dateStyle: "full", timeStyle: "medium" })}</p></div>
+          {selected.kind === "stream" && (
+            <Button className="w-full" onClick={() => {
+              const q = new URLSearchParams({ tab: "streams" });
+              if (selected.streamId) q.set("stream", selected.streamId);
+              window.history.pushState(null, "", `${window.location.pathname}?${q}`);
+              window.dispatchEvent(new PopStateEvent("popstate"));
+              setSelectedId(null);
+            }}>View stream</Button>
+          )}
           {selected.linkUrl && <div><p className="text-xs text-muted-foreground">Payment link</p><div className="mt-1"><PublishedLinkBox url={selected.linkUrl} /></div></div>}
           {selected.payment && <>
             <div><p className="text-xs text-muted-foreground">Sender</p><p className="break-all font-mono text-xs">{selected.payment.sender}</p></div>

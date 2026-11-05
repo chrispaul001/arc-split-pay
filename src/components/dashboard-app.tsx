@@ -82,7 +82,20 @@ function DashboardShell() {
       if (tab && NAV.some((n) => n.key === tab)) setView(tab as ViewKey);
       const tx = p.get("tx");
       if (tx && /^0x[0-9a-fA-F]{64}$/.test(tx)) setFocusTx(tx.toLowerCase());
-      if (tab || tx) window.history.replaceState(null, "", window.location.pathname);
+      const stream = p.get("stream");
+      if (stream && /^[\w-]{1,64}$/.test(stream)) {
+        let tries = 0;
+        const find = () => {
+          const el = document.getElementById(`stream-${stream}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            el.dataset.focus = "true";
+            window.setTimeout(() => { delete el.dataset.focus; }, 2400);
+          } else if (++tries < 20) window.setTimeout(find, 100);
+        };
+        window.setTimeout(find, 100);
+      }
+      if (tab || tx || stream) window.history.replaceState(null, "", window.location.pathname);
     };
     apply();
     window.addEventListener("popstate", apply);
