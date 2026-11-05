@@ -89,8 +89,8 @@ function DashboardShell() {
           const el = document.getElementById(`stream-${stream}`);
           if (el) {
             el.scrollIntoView({ behavior: "smooth", block: "start" });
-            el.dataset.focus = "true";
-            window.setTimeout(() => { delete el.dataset.focus; }, 2400);
+            el.dataset["focus"] = "true";
+            window.setTimeout(() => { delete el.dataset["focus"]; }, 2400);
           } else if (++tries < 20) window.setTimeout(find, 100);
         };
         window.setTimeout(find, 100);
