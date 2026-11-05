@@ -33,6 +33,88 @@ function toPerSecond(mode: PricingMode, amount: string, durationHours: string) {
   return a / MODES[mode].divisor;
 }
 
+const MAX_DAY = 500;
+const PRESETS = [10, 25, 50, 100];
+
+function RateControl({
+  name,
+  ratePerSec,
+  onChange,
+}: {
+  name: string;
+  ratePerSec: number;
+  onChange: (r: number) => void;
+}) {
+  const perDay = ratePerSec * 86400;
+  const [draft, setDraft] = useState(perDay.toFixed(2));
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    if (!editing) setDraft(perDay.toFixed(2));
+  }, [perDay, editing]);
+
+  const commit = (v: number) => {
+    if (!Number.isFinite(v) || v <= 0) {
+      setDraft(perDay.toFixed(2));
+      return;
+    }
+    onChange(Math.min(v, 100000) / 86400);
+  };
+
+  return (
+    <div className="mt-4 rounded-2xl bg-secondary/40 p-3 sm:p-4">
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor={`rate-${name}`} className="text-[11px] text-muted-foreground">
+          Daily rate
+        </Label>
+        <div className="flex items-center gap-1 rounded-xl border border-border bg-background/70 px-2 focus-within:ring-2 focus-within:ring-ring">
+          <Input
+            id={`rate-${name}`}
+            inputMode="decimal"
+            value={draft}
+            onFocus={(e) => {
+              setEditing(true);
+              e.currentTarget.select();
+            }}
+            onChange={(e) => setDraft(e.target.value.replace(/[^0-9.]/g, ""))}
+            onBlur={() => {
+              setEditing(false);
+              commit(Number(draft));
+            }}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            className="h-9 w-24 border-0 bg-transparent px-1 text-right font-mono text-sm font-semibold tabular-nums shadow-none focus-visible:ring-0"
+          />
+          <span className="text-[11px] text-muted-foreground">USDC/day</span>
+        </div>
+      </div>
+      <Slider
+        className="mt-4 py-2 [&_[role=slider]]:size-6 [&_[role=slider]]:shadow-md [&_[role=slider]]:transition-transform [&_[role=slider]]:active:scale-110 touch-none"
+        value={[Math.min(perDay, MAX_DAY)]}
+        min={1}
+        max={MAX_DAY}
+        step={0.5}
+        aria-label={`Daily rate for ${name}`}
+        onValueChange={([v]) => onChange((v ?? 1) / 86400)}
+      />
+      <div className="mt-3 grid grid-cols-4 gap-2">
+        {PRESETS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p / 86400)}
+            className={`h-9 rounded-xl text-xs font-semibold tabular-nums transition-colors motion-press ${
+              Math.abs(perDay - p) < 0.01
+                ? "bg-primary text-primary-foreground"
+                : "bg-background/60 text-foreground hover:bg-background"
+            }`}
+          >
+            ${p}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Streams() {
   const connected = useWalletGate();
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
@@ -40,6 +122,7 @@ export function Streams() {
   const { data, ready, update, notify } = useMerchantStore();
   const { settle, busyId } = useStreamSettle();
   const [open, setOpen] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState<string | null>(null);
   const emptyForm = { name: "", role: "", address: "", mode: "hour" as PricingMode, amount: "", duration: "" };
   const [form, setForm] = useState(emptyForm);
   const computedRate = toPerSecond(form.mode, form.amount, form.duration);
@@ -338,21 +421,13 @@ export function Streams() {
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <Slider
-                  value={[Math.round(s.ratePerSec * 10000)]}
-                  min={1}
-                  max={500}
-                  step={1}
-                  aria-label={`Streaming rate for ${s.name}`}
-                  onValueChange={([v]) => patch(s.id, { ratePerSec: (v ?? 1) / 10000 })}
-                />
-                <span className="shrink-0 rounded-full bg-background/50 px-2 py-1 font-mono text-[11px] tabular-nums">
-                  {(s.ratePerSec * 86400).toFixed(2)}/day
-                </span>
-              </div>
+              <RateControl
+                name={s.name}
+                ratePerSec={s.ratePerSec}
+                onChange={(r) => patch(s.id, { ratePerSec: r })}
+              />
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 <Button
                   size="sm"
                   variant={s.running ? "secondary" : "default"}
@@ -366,20 +441,43 @@ export function Streams() {
                 </Button>
                 <Button
                   size="sm"
-                  variant="secondary"
-                  disabled={busyId !== null}
+                  disabled={busyId !== null || s.streamed <= 0}
                   onClick={() => void doSettle(s, false)}
                 >
-                  <Send className="size-4" /> {busyId === s.id ? "Settling…" : "Settle now"}
+                  <Send className="size-4" />
+                  {busyId === s.id ? "Settling…" : `Pay out ${s.streamed.toFixed(2)} USDC`}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={busyId !== null}
-                  onClick={() => void doSettle(s, true)}
-                >
-                  <Square className="size-4" /> Close &amp; settle
-                </Button>
+                {confirmEnd === s.id ? (
+                  <div className="col-span-2 flex w-full flex-wrap items-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-3 animate-rise">
+                    <p className="min-w-0 flex-1 text-xs">
+                      End this stream? Any remaining {s.streamed.toFixed(2)} USDC is paid out and the stream stops for good.
+                    </p>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmEnd(null)}>
+                      Keep
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={busyId !== null}
+                      onClick={() => {
+                        setConfirmEnd(null);
+                        void doSettle(s, true);
+                      }}
+                    >
+                      <Square className="size-4" /> End stream
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    disabled={busyId !== null}
+                    onClick={() => setConfirmEnd(s.id)}
+                  >
+                    <Square className="size-4" /> End stream
+                  </Button>
+                )}
                 {s.lastSettleTx && (
                   <Button size="sm" variant="ghost" asChild>
                     <a href={explorerTx(s.lastSettleTx)} target="_blank" rel="noreferrer">
