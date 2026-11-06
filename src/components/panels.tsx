@@ -168,7 +168,7 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
                   )}
                   <div
                     onClick={selecting ? () => toggle(l.id) : undefined}
-                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[translate,background-color,box-shadow] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isRemoving ? "-translate-x-[110%] bg-popover" : isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"}`}
+                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[translate,background-color,box-shadow] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isRemoving ? "-translate-x-[110%] bg-popover" : `translate-x-0 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"}`}`}
                   >
                     {selecting && (
                       <Checkbox
