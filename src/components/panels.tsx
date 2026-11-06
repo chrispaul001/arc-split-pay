@@ -160,13 +160,13 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
                   {/* red layer revealed as the row slides away */}
                   <div
                     aria-hidden
-                    className={`absolute inset-0 flex items-center justify-end rounded-2xl bg-destructive pr-6 text-destructive-foreground transition-opacity duration-150 ${isRemoving ? "opacity-100" : "opacity-0"}`}
+                    className="absolute inset-0 flex items-center justify-end rounded-2xl bg-destructive pr-6 text-destructive-foreground"
                   >
                     <Trash2 className="size-5" />
                   </div>
                   <div
                     onClick={selecting ? () => toggle(l.id) : undefined}
-                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"} ${isRemoving ? "-translate-x-[110%]" : "translate-x-0"}`}
+                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[translate,background-color,box-shadow] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"} ${isRemoving ? "-translate-x-[110%]" : "translate-x-0"}`}
                   >
                     {selecting && (
                       <Checkbox
