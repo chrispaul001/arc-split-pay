@@ -79,7 +79,7 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
         title: ids.length === 1 ? "Payment link removed" : `${ids.length} payment links removed`,
         body: ids.length === 1 ? (names[0] ?? "") : names.slice(0, 3).join(", ") + (names.length > 3 ? "…" : ""),
       });
-    }, 620);
+    }, 480);
   };
 
   const deleteSelected = () => {
@@ -154,21 +154,12 @@ export function PaymentLinks({ onNewLink }: { onNewLink?: () => void }) {
               <li
                 key={l.id}
                 className={`grid transition-[grid-template-rows,margin,opacity] duration-300 ease-out [transition-delay:var(--d)] ${isRemoving ? "mb-0 grid-rows-[0fr] opacity-0" : "mb-3 grid-rows-[1fr] opacity-100"}`}
-                style={{ ["--d" as string]: isRemoving ? "320ms" : "0ms" }}
+                style={{ ["--d" as string]: isRemoving ? "160ms" : "0ms" }}
               >
                 <div className="relative min-w-0 overflow-hidden rounded-2xl">
-                  {/* red layer mounts only for the row being deleted, so it can never tint the others */}
-                  {isRemoving && (
-                    <div
-                      aria-hidden
-                      className="absolute inset-0 flex items-center justify-end rounded-2xl bg-destructive pr-6 text-destructive-foreground"
-                    >
-                      <Trash2 className="size-5" />
-                    </div>
-                  )}
                   <div
                     onClick={selecting ? () => toggle(l.id) : undefined}
-                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[translate,background-color,box-shadow] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isRemoving ? "-translate-x-[110%] bg-popover" : `translate-x-0 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"}`}`}
+                    className={`relative grid w-full min-w-0 items-center gap-3 rounded-2xl p-4 transition-[scale,opacity,filter,background-color,box-shadow] duration-200 ease-out ${selecting ? "cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[minmax(0,1fr)_auto]"} ${isRemoving ? "scale-[0.97] opacity-0 blur-[2px] bg-secondary" : `scale-100 opacity-100 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-secondary"}`}`}
                   >
                     {selecting && (
                       <Checkbox
