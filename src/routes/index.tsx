@@ -69,30 +69,44 @@ function LoadingShell({ leaving = false }: { leaving?: boolean }) {
 const INTRO_MS = 1800;
 const FADE_MS = 500;
 
+function DashboardReady({ onReady }: { onReady: () => void }) {
+  useEffect(() => onReady(), [onReady]);
+  return null;
+}
+
 function Home() {
   const [phase, setPhase] = useState<"hold" | "leaving" | "done">("hold");
+  const [introElapsed, setIntroElapsed] = useState(false);
+  const [ready, setReady] = useState(false);
+  const handleReady = useCallback(() => setReady(true), []);
 
   useEffect(() => {
-    const leaveTimer = setTimeout(() => setPhase("leaving"), INTRO_MS);
-    const doneTimer = setTimeout(() => setPhase("done"), INTRO_MS + FADE_MS);
-    return () => {
-      clearTimeout(leaveTimer);
-      clearTimeout(doneTimer);
-    };
+    const introTimer = setTimeout(() => setIntroElapsed(true), INTRO_MS);
+    return () => clearTimeout(introTimer);
   }, []);
 
+  useEffect(() => {
+    if (!introElapsed || !ready) return;
+    setPhase("leaving");
+    const doneTimer = setTimeout(() => setPhase("done"), FADE_MS);
+    return () => clearTimeout(doneTimer);
+  }, [introElapsed, ready]);
+
   return (
-    <ClientOnly fallback={<LoadingShell />}>
-      <Suspense fallback={<LoadingShell />}>
-        <div className={`dashboard-unlock ${phase === "hold" ? "" : "dashboard-unlock--active"}`}>
-          <DashboardApp />
-        </div>
-        {phase !== "done" && (
-          <div className={`fixed inset-0 z-[100] ${phase === "leaving" ? "pointer-events-none" : ""}`}>
-            <LoadingShell leaving={phase === "leaving"} />
+    <>
+      <ClientOnly fallback={null}>
+        <Suspense fallback={null}>
+          <div className={`dashboard-unlock ${phase === "hold" ? "" : "dashboard-unlock--active"}`}>
+            <DashboardApp />
+            <DashboardReady onReady={handleReady} />
           </div>
-        )}
-      </Suspense>
-    </ClientOnly>
+        </Suspense>
+      </ClientOnly>
+      {phase !== "done" && (
+        <div className={`fixed inset-0 z-[100] ${phase === "leaving" ? "pointer-events-none" : ""}`}>
+          <LoadingShell leaving={phase === "leaving"} />
+        </div>
+      )}
+    </>
   );
 }
