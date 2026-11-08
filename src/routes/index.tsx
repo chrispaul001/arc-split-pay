@@ -33,46 +33,62 @@ function LoadingShell({ leaving = false }: { leaving?: boolean }) {
     <div
       role="status"
       aria-label="Loading CoindeccPay"
-      className={`app-gradient relative flex min-h-screen transition-all duration-[400ms] ease-out ${leaving ? "scale-[0.98] opacity-0" : "opacity-100"} w-full items-center justify-center overflow-hidden px-6`}
+      className={`launch-screen app-gradient relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 ${
+        leaving ? "launch-screen--leaving" : ""
+      }`}
     >
-      <div className="relative w-full max-w-[340px] rounded-3xl border border-border/60 bg-card/75 p-8 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-700">
-        <div className="flex flex-col items-center text-center">
-          <div className="flex items-center gap-3.5">
-            <BrandTile decorative sheen className="size-14" />
-            <div className="text-left">
-              <p className="font-display text-2xl font-bold tracking-tight text-foreground">CoindeccPay</p>
-              <p className="text-xs font-medium text-muted-foreground">Accept, Split &amp; Stream USDC</p>
-            </div>
-          </div>
-          <div className="relative mt-8 h-[1.5px] w-full overflow-hidden rounded-full bg-border/70">
-            <span className="splash-trail absolute inset-y-0 w-2/5 rounded-full" />
-          </div>
-          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-secondary/50 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-            <span className="splash-beacon size-1.5 rounded-full bg-primary" />
-            Connecting to Arc Network
+      <div aria-hidden="true" className="launch-atmosphere pointer-events-none absolute inset-0 overflow-hidden">
+        <span className="launch-bloom absolute left-1/2 top-1/2 block" />
+        <span className="launch-ring absolute left-1/2 top-1/2 block rounded-full" />
+      </div>
+
+      <div className="launch-lockup relative z-10 flex flex-col items-center text-center">
+        <div className="launch-mark relative">
+          <span aria-hidden="true" className="launch-mark-halo absolute -inset-7 rounded-full" />
+          <BrandTile decorative sheen className="relative size-20 sm:size-24" />
+        </div>
+
+        <div className="launch-copy mt-7">
+          <p className="font-display text-3xl font-bold tracking-[-0.04em] text-foreground sm:text-4xl">
+            CoindeccPay
+          </p>
+          <p className="mt-2 text-sm font-medium tracking-wide text-muted-foreground">
+            Accept, Split &amp; Stream USDC
           </p>
         </div>
+
+        <p className="launch-status mt-8 inline-flex items-center gap-2 rounded-full border border-glass-border bg-glass px-3.5 py-1.5 text-[11px] font-medium text-muted-foreground shadow-[var(--glow-soft)] backdrop-blur-xl">
+          <span className="splash-beacon size-1.5 rounded-full bg-primary" />
+          Connecting to Arc Network
+        </p>
       </div>
     </div>
   );
 }
 
-const INTRO_MS = 2200;
-const FADE_MS = 400;
+const INTRO_MS = 1800;
+const FADE_MS = 500;
 
 function Home() {
   const [phase, setPhase] = useState<"hold" | "leaving" | "done">("hold");
+
   useEffect(() => {
-    const a = setTimeout(() => setPhase("leaving"), INTRO_MS);
-    const b = setTimeout(() => setPhase("done"), INTRO_MS + FADE_MS);
-    return () => { clearTimeout(a); clearTimeout(b); };
+    const leaveTimer = setTimeout(() => setPhase("leaving"), INTRO_MS);
+    const doneTimer = setTimeout(() => setPhase("done"), INTRO_MS + FADE_MS);
+    return () => {
+      clearTimeout(leaveTimer);
+      clearTimeout(doneTimer);
+    };
   }, []);
+
   return (
     <ClientOnly fallback={<LoadingShell />}>
       <Suspense fallback={<LoadingShell />}>
-        <DashboardApp />
+        <div className={`dashboard-unlock ${phase === "hold" ? "" : "dashboard-unlock--active"}`}>
+          <DashboardApp />
+        </div>
         {phase !== "done" && (
-          <div className="fixed inset-0 z-[100]">
+          <div className={`fixed inset-0 z-[100] ${phase === "leaving" ? "pointer-events-none" : ""}`}>
             <LoadingShell leaving={phase === "leaving"} />
           </div>
         )}
