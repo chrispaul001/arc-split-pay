@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { BrandTile } from "@/components/brand-tile";
 
