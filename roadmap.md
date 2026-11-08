@@ -20,4 +20,4 @@
 
 - [x] Unify every CoindeccPay mark on the loading screen squircle with a theme-aware ring and depth; verify light/dark on desktop and phone.
 - [x] Apply the saved colour mode before first paint so the loading screen never opens in the wrong theme; verify toggle, save and restore.
-- [ ] Build the brand-morph launch sequence and tactile specular glass surfaces; verify motion and light/dark rendering on phone and desktop.
+- [x] Build the brand-morph launch sequence and tactile specular glass surfaces; verify motion and light/dark rendering on phone and desktop.
